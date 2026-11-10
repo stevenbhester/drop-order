@@ -49,7 +49,9 @@ static func button_style(target: Object, bg: Color, fg: Color) -> void:
 		target.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			target.set_color(c, "Button", fg)
+		target.set_color("font_disabled_color", "Button", Color(fg, 0.45))
 	else:
 		target.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			target.add_theme_color_override(c, fg)
+		target.add_theme_color_override("font_disabled_color", Color(fg, 0.45))

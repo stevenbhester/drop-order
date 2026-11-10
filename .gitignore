@@ -1,3 +1,5 @@
 .godot/
 /android/
 *.tmp
+build/
+.DS_Store

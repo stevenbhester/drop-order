@@ -38,6 +38,10 @@ func first_incomplete(count: int) -> int:
 
 
 func _save() -> void:
+	# Self-tests (debug_auto.gd) play levels for real; never let them touch the player's save.
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--auto"):
+			return
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"completed": completed.keys()}))

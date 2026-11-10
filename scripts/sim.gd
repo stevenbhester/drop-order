@@ -1,62 +1,161 @@
 class_name Sim
 extends RefCounted
 ## The game rules, shared by gameplay and the solver so they can never disagree.
-## State is a plain Dictionary: { "left": int (packages still in the van), "fills": Array[int] }.
+##
+## State is a plain Dictionary:
+##   "stack":  Array[String]  packages in the van, bottom..top
+##   "fills":  Array[int]     packages each house has received
+##   "picked": Array[bool]    which parcel shops have been emptied
+##
+## A route is an Array[Vector2i] starting at the van's start tile. The player builds it in
+## segments, but the rules only ever look at the whole route so far plus the state after it.
 
 
 static func new_state(L: LevelData) -> Dictionary:
 	var fills := []
 	fills.resize(L.houses.size())
 	fills.fill(0)
-	return {"left": L.stack.size(), "fills": fills}
+	var picked := []
+	picked.resize(L.shops.size())
+	picked.fill(false)
+	return {"stack": L.stack.duplicate(), "fills": fills, "picked": picked}
 
 
 static func copy_state(s: Dictionary) -> Dictionary:
-	return {"left": s["left"], "fills": s["fills"].duplicate()}
+	return {"stack": s["stack"].duplicate(), "fills": s["fills"].duplicate(), "picked": s["picked"].duplicate()}
 
 
-static func top_color(L: LevelData, s: Dictionary) -> String:
-	var n: int = s["left"]
-	return L.stack[n - 1] if n > 0 else ""
+static func top_color(_L: LevelData, s: Dictionary) -> String:
+	var st: Array = s["stack"]
+	return st.back() if not st.is_empty() else ""
 
 
-## Can a path (path[0] is the van's tile) be extended onto `next`?
-## Stepping back onto path[-2] is a retract, never an extension.
-static func can_extend(L: LevelData, path: Array, next: Vector2i) -> bool:
-	if not L.is_road(next):
+## Packages still to deliver (in the van or waiting at shops).
+static func remaining(L: LevelData, s: Dictionary) -> int:
+	var n := L.total_orders()
+	for f in s["fills"]:
+		n -= f
+	return n
+
+
+static func all_delivered(L: LevelData, s: Dictionary) -> bool:
+	return remaining(L, s) == 0
+
+
+static func parked(L: LevelData, route: Array) -> bool:
+	return L.return_depot and route.size() > 1 and route.back() == L.start
+
+
+static func is_won(L: LevelData, s: Dictionary, route: Array) -> bool:
+	if not all_delivered(L, s):
 		return false
-	var last: Vector2i = path.back()
-	if absi(next.x - last.x) + absi(next.y - last.y) != 1:
+	return parked(L, route) if L.return_depot else true
+
+
+## Can the route (with state `s` after driving it) be extended onto `next`?
+## - orthogonal step onto road
+## - one-way tiles may only be entered moving in their arrow's direction
+## - bridges must be driven straight across, and (no-revisit levels) once per axis
+## - colour gates may only be entered while the top package is their colour
+## - no-revisit levels: any other tile at most once, except driving home to the depot
+## - once parked at the depot, the shift is over
+## U-turns are legal (the player can stop, then draw back the way they came);
+## while drawing a single segment, dragging back is a retract instead.
+static func can_extend(L: LevelData, route: Array, next: Vector2i, s: Dictionary) -> bool:
+	if not L.is_road(next) or parked(L, route):
 		return false
-	if path.size() >= 2 and next == path[path.size() - 2]:
+	var last: Vector2i = route.back()
+	var d := next - last
+	if absi(d.x) + absi(d.y) != 1:
 		return false
-	if L.no_revisit and path.has(next):
+	if L.oneway.has(next) and L.oneway[next] != d:
 		return false
+	if L.gates.has(next) and top_color(L, s) != L.gates[next]:
+		return false
+	var n := route.size()
+	if L.bridges.has(last) and n >= 2 and d != last - route[n - 2]:
+		return false
+	if L.bridges.has(next):
+		if L.no_revisit:
+			for i in range(1, n):
+				if route[i] == next and ((route[i] - route[i - 1]).x == 0) == (d.x == 0):
+					return false
+		return true
+	if L.no_revisit and route.has(next):
+		return L.return_depot and next == L.start
 	return true
 
 
-## The van arrives on `tile`. Delivers the top package to every adjacent matching
-## house it can (repeatedly, since the next package may also match), mutating `s`.
-## Returns { "delivered": [house idx in order], "nopes": [house idx] }.
+static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
+	for d in LevelData.DIRS:
+		if can_extend(L, route, route.back() + d, s):
+			return true
+	return false
+
+
+## The van arrives on `tile`, mutating `s`:
+##  1. a sorting hub swaps the top two packages;
+##  2. then, repeatedly: deliver the top package to an adjacent house that wants it,
+##     otherwise collect one waiting parcel from an adjacent shop (it goes on top).
+## Returns { "events": [ {type: "swap"} | {type: "deliver", house, color} |
+##                       {type: "pickup", shop, color} ], "nopes": [house idx] }.
 static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
-	var delivered := []
-	var adj: Array = L.adjacent_houses.get(tile, [])
+	var events := []
+	var stack: Array = s["stack"]
 	var fills: Array = s["fills"]
+	var picked: Array = s["picked"]
+	if L.hubs.has(tile) and stack.size() >= 2:
+		var a = stack[stack.size() - 1]
+		stack[stack.size() - 1] = stack[stack.size() - 2]
+		stack[stack.size() - 2] = a
+		events.append({"type": "swap"})
+	var adj_h: Array = L.adjacent_houses.get(tile, [])
+	var adj_s: Array = L.adjacent_shops.get(tile, [])
+	var delivered := {}
 	var progress := true
-	while progress and s["left"] > 0:
+	while progress:
 		progress = false
-		var top: String = L.stack[s["left"] - 1]
-		for h in adj:
-			if L.houses[h].color == top and fills[h] < L.houses[h].order:
-				fills[h] += 1
-				s["left"] -= 1
-				delivered.append(h)
+		if not stack.is_empty():
+			var top: String = stack.back()
+			for h in adj_h:
+				if L.houses[h].color == top and fills[h] < L.houses[h].order:
+					fills[h] += 1
+					stack.pop_back()
+					delivered[h] = true
+					events.append({"type": "deliver", "house": h, "color": top})
+					progress = true
+					break
+		if progress:
+			continue
+		for k in adj_s:
+			if not picked[k]:
+				picked[k] = true
+				stack.append(L.shops[k].color)
+				events.append({"type": "pickup", "shop": k, "color": L.shops[k].color})
 				progress = true
 				break
 	var nopes := []
-	if s["left"] > 0:
-		var top: String = L.stack[s["left"] - 1]
-		for h in adj:
+	if not stack.is_empty():
+		var top: String = stack.back()
+		for h in adj_h:
 			if fills[h] < L.houses[h].order and L.houses[h].color != top and not delivered.has(h):
 				nopes.append(h)
-	return {"delivered": delivered, "nopes": nopes}
+	return {"events": events, "nopes": nopes}
+
+
+## Runs a whole route from a fresh state (no legality checks). Returns the final state.
+static func run(L: LevelData, route: Array) -> Dictionary:
+	var s := new_state(L)
+	for i in range(1, route.size()):
+		arrive(L, s, route[i])
+	return s
+
+
+## Runs a route checking every step is legal. Returns the final state, or {} if illegal.
+static func run_checked(L: LevelData, route: Array) -> Dictionary:
+	var s := new_state(L)
+	for i in range(1, route.size()):
+		if not can_extend(L, route.slice(0, i), route[i], s):
+			return {}
+		arrive(L, s, route[i])
+	return s

@@ -4,7 +4,7 @@ extends RefCounted
 ## replace any wav there with a real asset (same name) and the game picks it up.
 
 const RATE := 44100
-const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click"]
+const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click", "rewind", "pickup", "swap", "gate"]
 
 
 static func make(sound: String) -> AudioStreamWAV:
@@ -19,6 +19,10 @@ static func make(sound: String) -> AudioStreamWAV:
 		"pop": b = _pop()
 		"win": b = _notes([523.25, 659.25, 783.99, 1046.5], 0.075, 1.0, 0.22, 5.5)
 		"fail": b = _notes([392.0, 293.66], 0.15, 0.6, 0.22, 7.0)
+		"rewind": b = _rewind()
+		"pickup": b = _notes([783.99, 1046.5], 0.06, 0.24, 0.2, 14.0)
+		"swap": b = _swap()
+		"gate": b = _gate()
 		_: b = PackedFloat32Array([0.0])
 	return _wav(b)
 
@@ -120,4 +124,43 @@ static func _notes(freqs: Array, step: float, dur: float, amp: float, decay: flo
 			var f: float = freqs[n]
 			s += (sin(TAU * f * lt) + 0.3 * sin(TAU * f * 2.0 * lt) + 0.1 * sin(TAU * f * 3.0 * lt)) * exp(-lt * decay) * _attack(lt, 2.0)
 		b[i] = s * amp * minf(1.0, (dur - t) * 20.0)
+	return b
+
+
+## Tape-rewind warble: falling pitch with fast vibrato.
+static func _rewind() -> PackedFloat32Array:
+	var dur := 0.38
+	var b := _buf(dur)
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var f := lerpf(1100.0, 280.0, t / dur) * (1.0 + 0.12 * sin(TAU * 28.0 * t))
+		ph += TAU * f / RATE
+		b[i] = (sin(ph) + 0.3 * sin(2.0 * ph)) * 0.28 * _attack(t, 3.0) * minf(1.0, (dur - t) * 12.0)
+	return b
+
+
+## Two tones sliding past each other.
+static func _swap() -> PackedFloat32Array:
+	var dur := 0.22
+	var b := _buf(dur)
+	var p1 := 0.0
+	var p2 := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		p1 += TAU * lerpf(500.0, 1000.0, k) / RATE
+		p2 += TAU * lerpf(1000.0, 500.0, k) / RATE
+		b[i] = (sin(p1) + sin(p2)) * 0.16 * sin(PI * k) * _attack(t)
+	return b
+
+
+## Barrier clack: short filtered noise tick on a low knock.
+static func _gate() -> PackedFloat32Array:
+	var b := _buf(0.12)
+	var lp := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		lp += (randf_range(-1.0, 1.0) - lp) * 0.35
+		b[i] = (lp * exp(-t * 90.0) * 0.5 + sin(TAU * 210.0 * t) * exp(-t * 40.0) * 0.4) * _attack(t, 0.3)
 	return b

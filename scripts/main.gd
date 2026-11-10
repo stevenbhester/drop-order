@@ -16,7 +16,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--level="):
 			start = a.trim_prefix("--level=").to_int() - 1
-	play(start)
+	if OS.get_cmdline_user_args().has("--select"):
+		show_select()
+	else:
+		play(start)
 
 
 func play(i: int) -> void:

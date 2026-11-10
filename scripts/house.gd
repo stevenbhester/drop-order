@@ -29,6 +29,17 @@ func deliver() -> void:
 		tw.tween_property(self, "check_t", 1.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Undo: take packages back. Checkmark shrinks away if no longer full.
+func undeliver(to_filled: int) -> void:
+	var was_full := is_full()
+	filled = to_filled
+	queue_redraw()
+	pop()
+	if was_full and not is_full():
+		var tw := create_tween()
+		tw.tween_property(self, "check_t", 0.0, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+
 func pop() -> void:
 	_kill(_scale_tw)
 	_scale_tw = create_tween()

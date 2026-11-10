@@ -1,10 +1,16 @@
 class_name Solver
 extends RefCounted
-## DFS over every path the player could draw, using the real rules in Sim.
-## A "solution" is a path whose final tile is where the last package gets delivered
-## (extending a winning path further is not counted as a new solution).
-## On levels that allow revisits the path space is infinite, so each tile may be
-## used at most REVISIT_CAP times there; the count is a difficulty signal, not gospel.
+## DFS over every route the player could build, using the real rules in Sim.
+## A "solution" is a route that ends the moment the level is won (driving further after
+## winning is not counted as a new solution). Segments don't matter here: any route can be
+## split into segments wherever the player likes.
+##
+## On levels that allow revisits the route space is infinite, so each tile may be used at
+## most REVISIT_CAP times there; the count is a difficulty signal, not gospel.
+## No-revisit levels prune branches where something still needed can no longer be reached.
+##
+## `nodes` (partial routes explored) is a rough measure of how many tempting wrong
+## routes a level has: the generator uses it to prefer deceptive levels.
 
 const REVISIT_CAP := 2
 
@@ -14,14 +20,17 @@ var shortest: Array = []
 var limit := 20000
 var max_len := 0
 var capped := false
+var nodes := 0
+var node_limit := 4000000
 var _visits := {}
 
 
-static func solve(level: LevelData, max_solutions := 20000) -> Dictionary:
+static func solve(level: LevelData, max_solutions := 20000, max_nodes := 4000000) -> Dictionary:
 	var s := Solver.new()
 	s.L = level
 	s.limit = max_solutions
-	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + 1
+	s.node_limit = max_nodes
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
 	var t0 := Time.get_ticks_usec()
 	s._visits = {level.start: 1}
 	s._dfs([level.start], Sim.new_state(level))
@@ -29,34 +38,85 @@ static func solve(level: LevelData, max_solutions := 20000) -> Dictionary:
 		"count": s.count,
 		"shortest": s.shortest,
 		"capped": s.capped,
+		"nodes": s.nodes,
 		"ms": (Time.get_ticks_usec() - t0) / 1000.0,
 	}
 
 
-func _dfs(path: Array, state: Dictionary) -> void:
-	if count >= limit:
+func _dfs(route: Array, state: Dictionary) -> void:
+	if count >= limit or nodes >= node_limit:
 		capped = true
 		return
-	var last: Vector2i = path.back()
+	nodes += 1
+	var last: Vector2i = route.back()
 	for d in LevelData.DIRS:
 		var nxt: Vector2i = last + d
-		if not Sim.can_extend(L, path, nxt):
+		if not Sim.can_extend(L, route, nxt, state):
 			continue
 		var v: int = _visits.get(nxt, 0)
-		if v >= REVISIT_CAP:
+		if not L.no_revisit and v >= REVISIT_CAP:
 			continue
 		var st := Sim.copy_state(state)
 		Sim.arrive(L, st, nxt)
-		path.append(nxt)
+		route.append(nxt)
 		_visits[nxt] = v + 1
-		if st["left"] == 0:
+		if Sim.is_won(L, st, route):
 			count += 1
-			if shortest.is_empty() or path.size() < shortest.size():
-				shortest = path.duplicate()
-		elif path.size() < max_len:
-			_dfs(path, st)
-		path.pop_back()
+			if shortest.is_empty() or route.size() < shortest.size():
+				shortest = route.duplicate()
+		elif route.size() < max_len and not _hopeless(route, st):
+			_dfs(route, st)
+		route.pop_back()
 		_visits[nxt] = v
+
+
+## True if something still needed can't be reached any more: a house still waiting, a
+## shop still holding a parcel, or (return levels) the depot. Only valid without revisits.
+func _hopeless(route: Array, st: Dictionary) -> bool:
+	if not L.no_revisit:
+		return false
+	if Sim.parked(L, route):
+		return true
+	var last: Vector2i = route.back()
+	var reach := {last: true}
+	var queue := [last]
+	while not queue.is_empty():
+		var t: Vector2i = queue.pop_back()
+		for d in LevelData.DIRS:
+			var n: Vector2i = t + d
+			if reach.has(n) or not L.is_road(n) or _used_up(n):
+				continue
+			reach[n] = true
+			queue.append(n)
+	var fills: Array = st["fills"]
+	for h in L.houses.size():
+		if fills[h] < L.houses[h].order and not _touches(L.house_roads[h], reach, last):
+			return true
+	var picked: Array = st["picked"]
+	for k in L.shops.size():
+		if not picked[k] and not _touches(L.shop_roads[k], reach, last):
+			return true
+	if L.return_depot:
+		var home := false
+		for d in LevelData.DIRS:
+			if reach.has(L.start + d):
+				home = true
+				break
+		if not home:
+			return true
+	return false
+
+
+func _touches(roads: Array, reach: Dictionary, last: Vector2i) -> bool:
+	for rp in roads:
+		if reach.has(rp) and rp != last:
+			return true
+	return false
+
+
+func _used_up(t: Vector2i) -> bool:
+	var v: int = _visits.get(t, 0)
+	return v >= (2 if L.bridges.has(t) else 1)
 
 
 static func describe(L: LevelData, r: Dictionary) -> String:
@@ -64,7 +124,7 @@ static func describe(L: LevelData, r: Dictionary) -> String:
 	var s := "%d%s solution%s" % [n, "+" if r["capped"] else "", "" if n == 1 else "s"]
 	if n > 0:
 		s += " · shortest %d tiles" % (r["shortest"].size() - 1)
-	s += " · %.0f ms" % r["ms"]
+	s += " · %d nodes · %.0f ms" % [r.get("nodes", 0), r["ms"]]
 	if not L.no_revisit:
 		s += " · revisits on (≤%d/tile)" % REVISIT_CAP
 	return s

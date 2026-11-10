@@ -3,12 +3,13 @@ extends RefCounted
 ## Parsed description of one level. Pure data: no rendering, no rules.
 ## The text encoding is documented in levels/README.md.
 
-enum Cell { BLOCK, ROAD, HOUSE }
+enum Cell { BLOCK, ROAD, HOUSE, SHOP }
 
 const COLOR_CODES := {
 	"r": "red", "b": "blue", "g": "green", "y": "yellow", "p": "purple", "o": "orange",
 }
 const DIRS: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+const ARROWS := {"^": Vector2i(0, -1), ">": Vector2i(1, 0), "v": Vector2i(0, 1), "<": Vector2i(-1, 0)}
 
 var number := 0
 var title := ""
@@ -17,10 +18,19 @@ var width := 0
 var height := 0
 var cells: Array = []            # Cell per index (y * width + x)
 var houses: Array = []           # [{ "pos": Vector2i, "color": String, "order": int }]
+var shops: Array = []            # parcel shops: [{ "pos": Vector2i, "color": String }]
 var start := Vector2i.ZERO
 var stack: Array = []            # colour names; first = bottom, last = top
 var no_revisit := false
+var return_depot := false        # must finish parked back on the start tile
+var oneway := {}                 # road Vector2i -> Vector2i: the only direction it may be entered
+var bridges := {}                # road Vector2i -> true: crossable once per axis, straight through
+var gates := {}                  # road Vector2i -> colour: enterable only with that colour on top
+var hubs := {}                   # road Vector2i -> true: swaps the top two packages
 var adjacent_houses := {}        # road Vector2i -> Array[int] of house indices
+var adjacent_shops := {}         # road Vector2i -> Array[int] of shop indices
+var house_roads: Array = []      # per house: Array[Vector2i] of touching road tiles
+var shop_roads: Array = []       # per shop: Array[Vector2i] of touching road tiles
 var errors: Array = []
 
 
@@ -30,6 +40,7 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L.title = str(d.get("title", ""))
 	L.hint = str(d.get("hint", ""))
 	L.no_revisit = bool(d.get("no_revisit", false))
+	L.return_depot = bool(d.get("return", false))
 	var rows: Array = d.get("map", [])
 	L.height = rows.size()
 	var starts := 0
@@ -42,27 +53,9 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 			L.errors.append("row %d has %d cells, expected %d" % [y, toks.size(), L.width])
 		for x in L.width:
 			var t: String = toks[x] if x < toks.size() else "."
-			var i := y * L.width + x
-			match t:
-				".":
-					L.cells[i] = Cell.BLOCK
-				"#":
-					L.cells[i] = Cell.ROAD
-				"S":
-					L.cells[i] = Cell.ROAD
-					L.start = Vector2i(x, y)
-					starts += 1
-				_:
-					var code := t.substr(0, 1)
-					if COLOR_CODES.has(code):
-						L.cells[i] = Cell.HOUSE
-						var order := 1
-						if t.length() > 1:
-							order = maxi(1, t.substr(1).to_int())
-						L.houses.append({"pos": Vector2i(x, y), "color": COLOR_CODES[code], "order": order})
-					else:
-						L.cells[i] = Cell.BLOCK
-						L.errors.append("unknown token '%s' at %d,%d" % [t, x, y])
+			L._parse_token(t, Vector2i(x, y))
+			if t == "S":
+				starts += 1
 	if starts != 1:
 		L.errors.append("expected exactly one S, found %d" % starts)
 
@@ -70,32 +63,98 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 		var s := str(c)
 		L.stack.append(COLOR_CODES.get(s, s))
 
-	# Road tile -> adjacent houses.
-	for hi in L.houses.size():
-		var hp: Vector2i = L.houses[hi].pos
-		var touches_road := false
-		for dir in DIRS:
-			var rp := hp + dir
-			if L.is_road(rp):
-				touches_road = true
-				if not L.adjacent_houses.has(rp):
-					L.adjacent_houses[rp] = []
-				L.adjacent_houses[rp].append(hi)
-		if not touches_road:
-			L.errors.append("house at %s touches no road" % hp)
-	if L.adjacent_houses.has(L.start):
-		L.errors.append("a house touches the start tile (ambiguous: van doesn't deliver before moving)")
+	L._index_neighbours()
+	L._validate()
+	return L
 
-	# Orders must match the stack exactly.
+
+func _parse_token(t: String, p: Vector2i) -> void:
+	var i := p.y * width + p.x
+	cells[i] = Cell.ROAD
+	match t:
+		".":
+			cells[i] = Cell.BLOCK
+		"#":
+			pass
+		"S":
+			start = p
+		"+":
+			bridges[p] = true
+		"@":
+			hubs[p] = true
+		"^", ">", "v", "<":
+			oneway[p] = ARROWS[t]
+		_:
+			var code := t.substr(0, 1)
+			if code == "=" and t.length() == 2 and COLOR_CODES.has(t.substr(1)):
+				gates[p] = COLOR_CODES[t.substr(1)]
+			elif COLOR_CODES.has(code):
+				cells[i] = Cell.HOUSE
+				var order := 1
+				if t.length() > 1:
+					order = maxi(1, t.substr(1).to_int())
+				houses.append({"pos": p, "color": COLOR_CODES[code], "order": order})
+			elif COLOR_CODES.has(code.to_lower()) and t.length() == 1:
+				cells[i] = Cell.SHOP
+				shops.append({"pos": p, "color": COLOR_CODES[code.to_lower()]})
+			else:
+				cells[i] = Cell.BLOCK
+				errors.append("unknown token '%s' at %d,%d" % [t, p.x, p.y])
+
+
+func _index_neighbours() -> void:
+	for hi in houses.size():
+		house_roads.append(_touching(houses[hi].pos, adjacent_houses, hi))
+	for si in shops.size():
+		shop_roads.append(_touching(shops[si].pos, adjacent_shops, si))
+
+
+func _touching(p: Vector2i, index: Dictionary, id: int) -> Array:
+	var out := []
+	for dir in DIRS:
+		var rp := p + dir
+		if is_road(rp):
+			out.append(rp)
+			if not index.has(rp):
+				index[rp] = []
+			index[rp].append(id)
+	return out
+
+
+func _validate() -> void:
+	for hi in houses.size():
+		_check_building("house", houses[hi].pos, house_roads[hi])
+	for si in shops.size():
+		_check_building("shop", shops[si].pos, shop_roads[si])
+	for b in bridges:
+		for dir in DIRS:
+			if not is_road(b + dir):
+				errors.append("bridge at %s needs road on all four sides" % b)
+				break
+	if bridges.has(start) or oneway.has(start) or gates.has(start) or hubs.has(start):
+		errors.append("the start tile must be plain road")
+	if adjacent_houses.has(start) or adjacent_shops.has(start):
+		errors.append("a house/shop touches the start tile (the van only acts on tiles it drives onto)")
+
+	# House orders must match the packages that exist (van stack + shop parcels) exactly.
 	var need := {}
-	for h in L.houses:
+	for h in houses:
 		need[h.color] = need.get(h.color, 0) + h.order
 	var have := {}
-	for c in L.stack:
+	for c in stack:
 		have[c] = have.get(c, 0) + 1
+	for s in shops:
+		have[s.color] = have.get(s.color, 0) + 1
 	if need != have:
-		L.errors.append("house orders %s don't match stack %s" % [need, have])
-	return L
+		errors.append("house orders %s don't match packages (stack + shops) %s" % [need, have])
+
+
+func _check_building(kind: String, p: Vector2i, roads: Array) -> void:
+	if roads.is_empty():
+		errors.append("%s at %s touches no road" % [kind, p])
+	for rp in roads:
+		if bridges.has(rp) or hubs.has(rp):
+			errors.append("%s at %s touches a bridge/hub" % [kind, p])
 
 
 func in_bounds(p: Vector2i) -> bool:
@@ -112,3 +171,10 @@ func is_road(p: Vector2i) -> bool:
 
 func road_count() -> int:
 	return cells.count(Cell.ROAD)
+
+
+func total_orders() -> int:
+	var n := 0
+	for h in houses:
+		n += h.order
+	return n

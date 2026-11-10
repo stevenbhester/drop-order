@@ -29,22 +29,22 @@
       "stack": ["blue", "red"]
     },
     {
-      "title": "Wrong Way Round",
-      "hint": "Blue is on top. Drive past red, then loop back.",
+      "title": "Turn Around",
+      "hint": "Blue first! Drive up to blue, lift your finger, then draw back down to red.",
       "map": [
         ". . . . .",
-        ". # # # .",
-        ". # b # .",
-        ". # . # .",
-        "r # # # .",
-        ". S . . .",
+        ". . # b .",
+        ". . # . .",
+        ". . # . .",
+        ". r # . .",
+        ". . S . .",
         ". . . . ."
       ],
       "stack": ["red", "blue"]
     },
     {
       "title": "One Pass",
-      "hint": "New rule: each road can only be used once!",
+      "hint": "New rule: each road only once. Roads you've driven turn dark.",
       "no_revisit": true,
       "map": [
         ". . . . .",
@@ -59,6 +59,7 @@
     },
     {
       "title": "Rush Hour",
+      "hint": "Wrong turn? Undo takes back your last drive, once per try.",
       "no_revisit": true,
       "map": [
         "# # # # #",
@@ -70,6 +71,538 @@
         "# # S # #"
       ],
       "stack": ["purple", "yellow", "red", "blue"]
+    },
+    {
+      "title": "Side Streets",
+      "no_revisit": true,
+      "map": [
+        "r . . . .",
+        "# # # # #",
+        "# b # b #",
+        "# . # . #",
+        "# # # . #",
+        "# r # . .",
+        "S # # # #"
+      ],
+      "stack": ["red", "red", "blue", "blue"]
+    },
+    {
+      "title": "Double Order",
+      "hint": "A ×2 house wants two packages of its colour.",
+      "no_revisit": true,
+      "map": [
+        "b  .  .  .  .",
+        "#  #  #  #  #",
+        "#  .  #  .  #",
+        "#  #  #  .  #",
+        "#  r2 .  .  #",
+        "#  #  S  #  #"
+      ],
+      "stack": ["red", "blue", "red"]
+    },
+    {
+      "title": "Bulk Buyer",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  #  #",
+        "S  .  #  .  #",
+        "#  r  #  #  #",
+        "#  .  #  b  r",
+        "#  #  #  #  #",
+        "#  .  #  .  #",
+        "#  #  #  #  #",
+        ".  .  .  .  y2"
+      ],
+      "stack": ["blue", "yellow", "yellow", "red", "red"]
+    },
+    {
+      "title": "One Way",
+      "hint": "Arrows are one-way streets: drive only the way they point.",
+      "no_revisit": true,
+      "map": [
+        "S # # y #",
+        "# . # y #",
+        "# # # . #",
+        "# b # . #",
+        "# # > # #"
+      ],
+      "stack": ["yellow", "blue", "yellow"]
+    },
+    {
+      "title": "Against Traffic",
+      "no_revisit": true,
+      "map": [
+        "# # # # S",
+        "# p # . #",
+        "# b # . #",
+        "# y # # #",
+        "# . # . v",
+        "v p # . #",
+        "# # # # #",
+        "y . . . ."
+      ],
+      "stack": ["purple", "blue", "purple", "yellow", "yellow"]
+    },
+    {
+      "title": "Downtown",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  #  #  .",
+        "#  y  #  p2 #  .",
+        "#  .  ^  .  #  .",
+        "#  >  #  .  #  .",
+        "#  y  b  .  #  y",
+        "#  #  #  #  #  .",
+        "#  .  #  .  .  .",
+        "#  S  #  #  #  ."
+      ],
+      "stack": ["yellow", "blue", "purple", "purple", "yellow", "yellow"]
+    },
+    {
+      "title": "Long Haul",
+      "no_revisit": true,
+      "map": [
+        ". . . p . .",
+        ". # # # # .",
+        ". # y y # .",
+        ". # # # # .",
+        ". # b . . .",
+        ". # # S # .",
+        ". # . . # .",
+        "y # # # # b"
+      ],
+      "stack": ["yellow", "blue", "yellow", "purple", "yellow", "blue"]
+    },
+    {
+      "title": "Overpass",
+      "hint": "Bridges cross twice: once each way. Drive straight over.",
+      "no_revisit": true,
+      "map": [
+        "# . # # S",
+        "# . # y #",
+        "# # + # #",
+        "# y # . #",
+        "# # # . #",
+        ". . b . ."
+      ],
+      "stack": ["yellow", "yellow", "blue"]
+    },
+    {
+      "title": "Flyover",
+      "no_revisit": true,
+      "map": [
+        "S # # # # #",
+        "# . # . y #",
+        "# # # # # #",
+        "# . # . . #",
+        "# # + # # #",
+        "# p # r . #",
+        "# # # # # #",
+        "b . r . . ."
+      ],
+      "stack": ["purple", "blue", "red", "yellow", "red"]
+    },
+    {
+      "title": "Spaghetti Junction",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        ". p # y b #",
+        "# # + # # #",
+        "v . ^ r r #",
+        "# . # . . S",
+        "# # # . . #",
+        "# . # . . #",
+        "# # # r . #"
+      ],
+      "stack": ["blue", "yellow", "red", "red", "purple", "red"]
+    },
+    {
+      "title": "Suburbs",
+      "no_revisit": true,
+      "map": [
+        "S  #  #  #  .  #",
+        "#  r2 r  #  b  #",
+        "#  #  #  #  #  #",
+        "#  .  .  p  .  #",
+        "#  .  .  .  .  #",
+        "#  #  #  #  #  #",
+        "#  .  .  #  .  #",
+        "#  #  #  #  #  #",
+        ".  b  .  .  .  ."
+      ],
+      "stack": ["red", "blue", "blue", "purple", "red", "red"]
+    },
+    {
+      "title": "Rainbow Row",
+      "no_revisit": true,
+      "map": [
+        "r . . . . . .",
+        "# # # # # # #",
+        "# b # . # y .",
+        "# # # > # # #",
+        "# r # p # g #",
+        "^ p # . # . ^",
+        "# # # # # S #"
+      ],
+      "stack": ["purple", "red", "blue", "red", "purple", "green", "yellow"]
+    },
+    {
+      "title": "Crosstown",
+      "no_revisit": true,
+      "map": [
+        ".  #  .  #  #  #  #",
+        ".  #  .  #  .  b  #",
+        ".  #  .  #  .  y  #",
+        ".  #  #  +  #  #  #",
+        ".  #  r  #  .  .  #",
+        "b2 #  #  #  .  .  #",
+        ".  #  .  #  .  .  #",
+        ".  S  #  #  #  #  #",
+        ".  .  .  r  .  .  b"
+      ],
+      "stack": ["yellow", "blue", "red", "red", "blue", "blue", "blue"]
+    },
+    {
+      "title": "Gridlock",
+      "no_revisit": true,
+      "map": [
+        "# # # . # # #",
+        "# . . . # . #",
+        "# . # # # # #",
+        "# r p . # . .",
+        "# # # # # # #",
+        "v . # b # y p",
+        "# < # # + # #",
+        "# r # . # b #",
+        "S # # b # # #"
+      ],
+      "stack": ["red", "red", "purple", "blue", "yellow", "blue", "purple", "blue"]
+    },
+    {
+      "title": "Last Mile",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  #  #  #  #",
+        "v  g  #  .  #  y  #",
+        "#  p  #  g2 ^  .  S",
+        "#  #  +  #  #  #  #",
+        ".  .  #  r  #  r  #",
+        ".  .  #  .  #  .  #",
+        "#  #  #  #  <  #  #",
+        ".  .  .  p  .  .  ."
+      ],
+      "stack": ["green", "purple", "green", "purple", "red", "red", "green", "yellow"]
+    },
+    {
+      "title": "Return to Sender",
+      "hint": "Parcel shops load their parcel onto the TOP of your stack as you drive past.",
+      "no_revisit": true,
+      "map": [
+        ". # # # .",
+        "b # . # r",
+        ". # . # .",
+        ". # . # .",
+        "B # # # .",
+        ". . S . ."
+      ],
+      "stack": ["red"]
+    },
+    {
+      "title": "Pick Up, Drop Off",
+      "no_revisit": true,
+      "map": [
+        "# # # # # R",
+        "# . # . # r",
+        "# . # r # .",
+        "# # # # # .",
+        "# . S . # .",
+        "# # # # # b",
+        ". . . r . ."
+      ],
+      "stack": ["blue", "red", "red"]
+    },
+    {
+      "title": "Corner Shops",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# B v . . #",
+        "# . # . . #",
+        "# # # # # #",
+        "# B # b y #",
+        "# . S . . #",
+        "# # # # # #",
+        ". . b . . b"
+      ],
+      "stack": ["yellow", "blue"]
+    },
+    {
+      "title": "High Street",
+      "no_revisit": true,
+      "map": [
+        ". y . r . .",
+        ". # # # # #",
+        ". # y # R #",
+        ". # # ^ # #",
+        ". # b # p #",
+        ". v # # # #",
+        ". # . S . #",
+        "Y # # # # #"
+      ],
+      "stack": ["yellow", "blue", "purple"]
+    },
+    {
+      "title": "Checkpoint",
+      "hint": "Colour gates only lift while your top package matches their colour.",
+      "no_revisit": true,
+      "map": [
+        "r  .  .  .  .",
+        "#  .  .  .  .",
+        "=r .  .  .  .",
+        "#  #  #  .  .",
+        "#  .  #  y  .",
+        "#  .  #  .  .",
+        "#  #  #  .  .",
+        ".  S  .  .  ."
+      ],
+      "stack": ["red", "yellow"]
+    },
+    {
+      "title": "Toll Road",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  #  #  #",
+        "#  y  .  S  .  =b",
+        "#  #  #  #  >  #",
+        "#  r  .  #  b  #",
+        "#  #  #  #  #  #",
+        "#  .  r  #  .  #",
+        "#  #  #  #  .  #",
+        "r  .  .  .  .  ."
+      ],
+      "stack": ["blue", "yellow", "red", "red", "red"]
+    },
+    {
+      "title": "Key Delivery",
+      "hint": "Need a certain colour on top? A shop might have one.",
+      "no_revisit": true,
+      "map": [
+        ".  .  b  .  .  .",
+        "#  #  #  #  #  .",
+        "#  .  #  .  #  y",
+        "#  .  #  y  #  .",
+        "#  S  #  #  #  .",
+        "#  .  #  r  =b .",
+        "#  #  #  #  #  .",
+        ".  .  .  .  R  ."
+      ],
+      "stack": ["yellow", "blue", "yellow"]
+    },
+    {
+      "title": "Border Control",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  S  #  #  .",
+        "#  b2 #  .  .  #  .",
+        "#  .  #  #  #  #  .",
+        "=r .  #  .  .  #  .",
+        "#  .  #  .  .  #  .",
+        "#  #  v  #  #  #  .",
+        "#  .  #  .  .  #  b",
+        "#  r2 #  b  .  #  .",
+        "#  #  #  #  #  #  ."
+      ],
+      "stack": ["blue", "blue", "blue", "red", "red", "blue"]
+    },
+    {
+      "title": "Clocking Off",
+      "hint": "End of shift: deliver everything, then park back at the depot.",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "# # # # #",
+        "# b . y #",
+        "# . . . #",
+        "# . . . #",
+        "# # S # #"
+      ],
+      "stack": ["blue", "yellow"]
+    },
+    {
+      "title": "Round Trip",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        ". # # # # #",
+        "y # r # b #",
+        "y # # # # #",
+        ". # . # y #",
+        ". # . # . #",
+        ". # # # . S",
+        ". # . . . #",
+        ". # # # # #"
+      ],
+      "stack": ["red", "yellow", "yellow", "blue", "yellow"]
+    },
+    {
+      "title": "Overtime",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "#  #  #  #  #  r",
+        "#  .  #  .  #  .",
+        "#  #  #  S  #  .",
+        "#  y  #  .  #  .",
+        "#  #  #  #  #  .",
+        "#  y  #  b  #  .",
+        "#  =r #  #  #  .",
+        "Y  .  .  .  .  ."
+      ],
+      "stack": ["red", "yellow", "blue"]
+    },
+    {
+      "title": "Night Shift",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "# # # > # # #",
+        "# p # r # p #",
+        "# . # p # . #",
+        "# # # # v # #",
+        "# . # . # . #",
+        "# # # p # # #",
+        "# . # . # . S",
+        "# . # . # b #",
+        "# # # # # # #"
+      ],
+      "stack": ["blue", "purple", "purple", "red", "purple", "purple"]
+    },
+    {
+      "title": "Turntable",
+      "hint": "Sorting hubs swap your top two packages as you drive over them.",
+      "no_revisit": true,
+      "map": [
+        ". # # # .",
+        "r # . # b",
+        ". # . # .",
+        ". # # # .",
+        ". . @ . .",
+        ". . S . ."
+      ],
+      "stack": ["blue", "red"]
+    },
+    {
+      "title": "Mix-Up",
+      "no_revisit": true,
+      "map": [
+        "# # # # # .",
+        ". . # b # .",
+        ". b # . # .",
+        "# # # # # y",
+        "@ . # r # r",
+        "# # # # # .",
+        "# . S . # .",
+        "# # # # # ."
+      ],
+      "stack": ["blue", "red", "yellow", "blue", "red"]
+    },
+    {
+      "title": "Shuffle",
+      "no_revisit": true,
+      "map": [
+        ". . y . . .",
+        "# # # # # #",
+        "# . S . y #",
+        "# r # . . #",
+        "# b # # # #",
+        "# . # . . #",
+        "# . @ . R #",
+        "# # # # # #"
+      ],
+      "stack": ["blue", "yellow", "yellow"]
+    },
+    {
+      "title": "Sorting Office",
+      "no_revisit": true,
+      "map": [
+        "p  #  #  #  #  #  #",
+        ".  =p r  b  .  y  #",
+        ".  #  #  #  #  #  #",
+        ".  #  y  .  #  p  #",
+        ".  #  #  #  #  #  #",
+        ".  #  .  .  S  .  @",
+        ".  #  .  .  #  .  #",
+        ".  #  #  #  #  #  #"
+      ],
+      "stack": ["blue", "yellow", "red", "purple", "purple", "yellow"]
+    },
+    {
+      "title": "Rush Order",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        ".  .  R  .  .  r  .",
+        ".  #  #  #  #  #  #",
+        ".  #  .  .  #  .  #",
+        ".  #  .  .  #  R  #",
+        "r  #  #  #  #  #  #",
+        "r  #  .  .  #  y  #",
+        ".  #  #  #  #  #  #",
+        ".  =r y  .  r  .  #",
+        ".  #  #  #  #  S  #"
+      ],
+      "stack": ["yellow", "red", "red", "yellow"]
+    },
+    {
+      "title": "Mixed Bag",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# r # y B #",
+        "# # + # # @",
+        "S . # b . #",
+        "# # # . . #",
+        "# . # r . #",
+        "# p # . . #",
+        "# # # # # #",
+        ". y . . . ."
+      ],
+      "stack": ["purple", "yellow", "red", "red", "yellow"]
+    },
+    {
+      "title": "Black Friday",
+      "no_revisit": true,
+      "map": [
+        "#  #  #  #  #  #  p",
+        "=r b3 #  B  .  S  .",
+        "#  r  #  p  .  #  .",
+        "#  #  #  #  #  #  .",
+        "#  .  #  .  .  #  .",
+        "#  #  #  #  #  v  .",
+        "#  P  #  .  .  #  .",
+        "#  #  #  #  #  #  .",
+        ".  .  p  .  .  .  ."
+      ],
+      "stack": ["blue", "purple", "red", "blue", "purple"]
+    },
+    {
+      "title": "Christmas Eve",
+      "hint": "Everything you've learned. Then home for the holidays.",
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "#  #  #  #  #  .",
+        "#  .  #  .  #  .",
+        "@  #  #  S  #  b",
+        "#  P  #  .  #  b",
+        "#  #  #  #  #  .",
+        "#  p  #  .  #  .",
+        "#  #  #  #  #  .",
+        "#  r  #  p  #  r",
+        "#  #  #  =p #  ."
+      ],
+      "stack": ["blue", "blue", "purple", "red", "red"]
     }
   ]
 }

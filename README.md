@@ -1,9 +1,14 @@
 # Last Mile (prototype)
 
-One-thumb portrait puzzle: drag a route from the van, release, and it drives — delivering the
-**top** package of its stack to each matching house it passes. Empty the van to win.
+One-thumb portrait puzzle: draw a route from the van and it drives it, delivering the **top**
+package of its stack to each matching house it passes. Deliver everything to win.
 
-Godot 4.7, GDScript, 1080×1920 portrait. Status: core loop + levels 1–5.
+Godot 4.7, GDScript, 1080×1920 portrait. 40 levels in two parts.
+- **Part 1 · The Suburbs (1–20):** stack order (1–2), driving in segments (3), each road only
+  once (4), undo (5), ×2 houses (7), one-way streets (9), bridges (13), then combinations.
+- **Part 2 · The City (21–40):** parcel shops that load a parcel onto your stack (21), colour
+  gates that only lift for the matching top package (25), finishing back at the depot (29),
+  sorting hubs that swap your top two packages (33), then combinations.
 
 ## Run
 - **Editor:** open `project.godot` in Godot 4.7 and press Play (F5).
@@ -11,34 +16,57 @@ Godot 4.7, GDScript, 1080×1920 portrait. Status: core loop + levels 1–5.
   ```
   /Applications/Godot.app/Contents/MacOS/Godot --path .
   ```
-  Add `-- --level=3` to jump straight to a level.
+  Add `-- --level=13` to jump straight to a level, or `-- --select` to open the level select.
+- **Mac app:** Project → Export → macOS writes `build/Last Mile.app` (preset in `export_presets.cfg`).
 
 The game opens on the first level you haven't completed. Progress is saved to
 `user://save.json`; "Reset progress" is on the level-select screen.
 
-### Controls
-- Press on the van and drag along roads; drag back over your route to retract it. Release to drive.
-- Top bar: **Levels**, **Retry**. Keys: `R` retry, `Enter`/`N` next, `Esc` level select.
-- Debug builds: `D`/`F3` toggles the solver overlay, `S` auto-drives the shortest solution.
+### How to play
+- Press on the van and drag along roads. Drag back to shorten the segment you're drawing.
+- **Lift your finger and the van drives that segment.** Then press the van again to keep going
+  from where it stopped. Roads already driven show a dark trail.
+- **Undo** (bottom right) rewinds your last segment, including its deliveries. **Once per attempt.**
+- If the van has nowhere left to go before the level is done, you're stuck: Undo (if unused) or Retry.
+- Part 2: **parcel shops** (striped awning) put their parcel on top of your stack as you pass;
+  **colour gates** lift only while your top package matches (they react as you draw);
+  on **depot** levels (garage icon) you must finish parked where you started;
+  **sorting hubs** (turntable) swap your top two packages.
+- Keys: `R` retry, `Z`/`U` undo, `Enter`/`N` next, `Esc` level select.
+- Debug builds: `D`/`F3` toggles the solver overlay; `S` auto-drives the shortest solution.
 
 ## Layout
 | Path | What |
 |---|---|
-| `levels/levels.json` | Level data — format in [`levels/README.md`](levels/README.md) |
+| `levels/levels.json` | Level data; format in [`levels/README.md`](levels/README.md) |
 | `scripts/level_data.gd` | Parses one level (data only) |
-| `scripts/sim.gd` | The rules: route validity, deliveries, "nope"s. Used by both game and solver |
-| `scripts/solver.gd` | DFS solver: solvability + number of winning routes |
-| `scripts/board.gd`, `house.gd` | Rendering of the map and houses |
+| `scripts/sim.gd` | The rules: legal moves (one-way, bridges, gates, no-revisit, depot), deliveries, pickups, swaps. Shared by game and solver |
+| `scripts/solver.gd` | DFS solver: solvability and number of winning routes |
+| `scripts/board.gd`, `house.gd` | Rendering of the map (roads, arrows, bridges, trail) and houses |
+| `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |
 | `scripts/van.gd`, `stack_view.gd`, `package_box.gd` | Van, its load, packages |
-| `scripts/game.gd` | Input, driving, juice, win/fail, in-level UI |
+| `scripts/game.gd` | Input, segments, driving, undo, juice, win/stuck, in-level UI |
 | `scripts/main.gd`, `level_select.gd` | Screen switching, level grid |
 | `scripts/sfx.gd`, `sfx_synth.gd`, `audio/` | Sounds (synthesised placeholders) |
-| `tools/` | Headless scripts: level validator, stack-order explorer, SFX generator |
+| `scripts/debug_auto.gd` | Command-line self-tests that play levels with injected mouse input |
+| `tools/` | Headless scripts: level validator, single-level checker, generator, stack-order explorer, SFX generator, autotest runner |
 
-## Tools
+## Tools and tests
 ```
-# Check every level parses and is solvable; prints solution counts
-godot --headless --path . --script res://tools/validate_levels.gd
+# Every level parses and is solvable; --ablate shows whether arrows/bridges/gates/hubs matter
+godot --headless --path . --script res://tools/validate_levels.gd -- --ablate
+
+# Play every level (or a range) with injected input in several modes; prints a summary
+tools/autotest_all.sh            # or: tools/autotest_all.sh 21 40 autoundo
+
+# Generate candidate levels (see levels/README.md for options)
+godot --headless --path . --script res://tools/generate.gd -- --w=6 --h=8 --n=5 --oneway=2
+
+# Play one level with injected mouse drags; prints an AUTOTEST line and quits.
+# (Autotests never write to your save file.)
+# Modes: --autodrag (one drag per segment), --autoseg (extra segment breaks),
+#        --autoundo (drive, undo, then finish), --autostuck (wander until stuck), --autoplay
+godot --headless --path . -- --level=12 --autoundo
 
 # Regenerate placeholder sounds into audio/ (replace any .wav with a real one, same name)
 godot --headless --path . --script res://tools/gen_sfx.gd
