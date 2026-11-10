@@ -1,5 +1,5 @@
 extends Node
-## Screen switcher: level select <-> game. Caches solver results per level.
+## Screen switcher: title <-> level select <-> game. Caches solver results per level.
 
 var levels: Array = []
 var solved := {}
@@ -13,13 +13,38 @@ func _ready() -> void:
 		push_error("No levels loaded")
 		return
 	var start := Progress.first_incomplete(levels.size())
+	var direct := false
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--level="):
 			start = a.trim_prefix("--level=").to_int() - 1
+			direct = true
+		elif a.begins_with("--auto"):
+			direct = true
 	if OS.get_cmdline_user_args().has("--select"):
 		show_select()
-	else:
+	elif direct:
 		play(start)
+	else:
+		show_title()
+		# Once a launch, the studio card plays over the title and dives through its door into it.
+		if StudioCard.due() and not OS.get_cmdline_user_args().has("--no-intro"):
+			var card := StudioCard.new()
+			(screen as TitleScreen).quiet = true
+			card.draining.connect(_title_audible)
+			add_child(card)
+
+
+func show_title() -> void:
+	var t := TitleScreen.new()
+	t.setup(levels)
+	t.play_pressed.connect(func(): play(Progress.first_incomplete(levels.size())))
+	t.levels_pressed.connect(show_select)
+	_swap(t)
+
+
+func _title_audible() -> void:
+	if screen is TitleScreen:
+		(screen as TitleScreen).quiet = false
 
 
 func play(i: int) -> void:

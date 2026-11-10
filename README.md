@@ -16,11 +16,17 @@ Godot 4.7, GDScript, 1080×1920 portrait. 40 levels in two parts.
   ```
   /Applications/Godot.app/Contents/MacOS/Godot --path .
   ```
-  Add `-- --level=13` to jump straight to a level, or `-- --select` to open the level select.
+  Add `-- --level=13` to jump straight to a level, `-- --select` to open the level select, or
+  `-- --no-intro` to skip the studio card.
 - **Mac app:** Project → Export → macOS writes `build/Last Mile.app` (preset in `export_presets.cfg`).
+- **iPhone (by cable):** plug it in, unlock it, then run `tools/install_ios.sh`. It exports the Xcode
+  project, builds and signs it with team 7FR35W6Q64 (Xcode must be signed in to that account), installs
+  it and opens it. The phone needs Developer Mode on (Settings → Privacy & Security).
 
-The game opens on the first level you haven't completed. Progress is saved to
-`user://save.json`; "Reset progress" is on the level-select screen.
+The game opens with the Door Bowl studio card (once a launch; tap to skip), which dives through its
+little door into the title screen. Play continues from the first level you haven't completed.
+
+Progress is saved to `user://save.json`; "Reset progress" is on the level-select screen.
 
 ### How to play
 - Press on the van and drag along roads. Drag back to shorten the segment you're drawing.
@@ -46,10 +52,11 @@ The game opens on the first level you haven't completed. Progress is saved to
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |
 | `scripts/van.gd`, `stack_view.gd`, `package_box.gd` | Van, its load, packages |
 | `scripts/game.gd` | Input, segments, driving, undo, juice, win/stuck, in-level UI |
-| `scripts/main.gd`, `level_select.gd` | Screen switching, level grid |
+| `scripts/main.gd`, `title_screen.gd`, `level_select.gd` | Screen switching, title (with its little delivery loop), level grid |
+| `scripts/studio_card.gd`, `assets/fonts/Fredoka.ttf`, `audio/studio_*.wav` | Door Bowl studio intro, ported from Frontiers Celestia |
 | `scripts/sfx.gd`, `sfx_synth.gd`, `audio/` | Sounds (synthesised placeholders) |
 | `scripts/debug_auto.gd` | Command-line self-tests that play levels with injected mouse input |
-| `tools/` | Headless scripts: level validator, single-level checker, generator, stack-order explorer, SFX generator, autotest runner |
+| `tools/` | Headless scripts: level validator, single-level checker, generator, stack-order explorer, SFX generator, autotest runner, iOS icon maker, iPhone installer |
 
 ## Tools and tests
 ```
@@ -73,6 +80,7 @@ godot --headless --path . --script res://tools/gen_sfx.gd
 ```
 
 ## Phone
-Uses Godot's standard export (Project → Export, add iOS/Android presets and templates).
+iPhone: see Run above (`tools/install_ios.sh`). The iOS icon is `assets/icon/ios_1024.png`, made from
+`icon.svg` by `tools/make_ios_icon.gd`. Android would need its own preset and the Android SDK.
 For Android haptics, enable the `VIBRATE` permission in the preset. Touch is handled via
 Godot's mouse emulation, so there's no separate touch code path.

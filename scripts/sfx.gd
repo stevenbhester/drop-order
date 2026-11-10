@@ -18,7 +18,11 @@ func _ready() -> void:
 
 func play(sound: String, pitch := 1.0, db := 0.0) -> void:
 	if not _streams.has(sound):
-		return
+		# Sounds without a synth fallback (the studio card's) are loaded the first time they're played.
+		var p := "res://audio/%s.wav" % sound
+		if not ResourceLoader.exists(p):
+			return
+		_streams[sound] = load(p)
 	var a: AudioStreamPlayer = _players[_next]
 	_next = (_next + 1) % _players.size()
 	a.stream = _streams[sound]
