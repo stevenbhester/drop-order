@@ -1,0 +1,75 @@
+{
+  "levels": [
+    {
+      "title": "First Drop",
+      "hint": "Drag a route from the van to the red house.",
+      "map": [
+        ". . . . .",
+        ". # # # .",
+        ". # . r .",
+        ". # . . .",
+        ". # . . .",
+        ". S . . .",
+        ". . . . ."
+      ],
+      "stack": ["red"]
+    },
+    {
+      "title": "Top Goes First",
+      "hint": "Only the TOP package can be delivered.",
+      "map": [
+        ". . . . .",
+        ". b # . .",
+        ". . # . .",
+        ". . # r .",
+        ". . # . .",
+        ". . S . .",
+        ". . . . ."
+      ],
+      "stack": ["blue", "red"]
+    },
+    {
+      "title": "Wrong Way Round",
+      "hint": "Blue is on top. Drive past red, then loop back.",
+      "map": [
+        ". . . . .",
+        ". # # # .",
+        ". # b # .",
+        ". # . # .",
+        "r # # # .",
+        ". S . . .",
+        ". . . . ."
+      ],
+      "stack": ["red", "blue"]
+    },
+    {
+      "title": "One Pass",
+      "hint": "New rule: each road can only be used once!",
+      "no_revisit": true,
+      "map": [
+        ". . . . .",
+        ". # # # .",
+        ". # y # .",
+        "r # . # b",
+        ". # # # .",
+        ". . S . .",
+        ". . . . ."
+      ],
+      "stack": ["blue", "yellow", "red"]
+    },
+    {
+      "title": "Rush Hour",
+      "no_revisit": true,
+      "map": [
+        "# # # # #",
+        "# y . b #",
+        "# # # # #",
+        "# . r . #",
+        "# # # # #",
+        "# p . . #",
+        "# # S # #"
+      ],
+      "stack": ["purple", "yellow", "red", "blue"]
+    }
+  ]
+}
