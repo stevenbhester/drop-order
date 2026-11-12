@@ -29,14 +29,14 @@
       "stack": ["blue", "red"]
     },
     {
-      "title": "Turn Around",
-      "hint": "Blue first! Drive up to blue, lift your finger, then draw back down to red.",
+      "title": "Burning Rubber",
+      "hint": "You drive so hard the road tears up behind you, so you can never cross your own wreckage. Which way round?",
       "map": [
         ". . . . .",
-        ". . # b .",
-        ". . # . .",
-        ". . # . .",
-        ". r # . .",
+        ". # # # .",
+        ". # . # b",
+        "r # . # .",
+        ". # # # .",
         ". . S . .",
         ". . . . ."
       ],
@@ -44,7 +44,7 @@
     },
     {
       "title": "One Pass",
-      "hint": "New rule: each road only once. Roads you've driven turn dark.",
+      "hint": "Plan the whole loop first: once you've torn a road up, it's gone.",
       "no_revisit": true,
       "map": [
         ". . . . .",
@@ -59,7 +59,8 @@
     },
     {
       "title": "Rush Hour",
-      "hint": "Wrong turn? Undo takes back your last drive, once per try.",
+      "challenge": true,
+      "hint": "Wrong turn? Undo takes back your last drive. One free per try.",
       "no_revisit": true,
       "map": [
         "# # # # #",
@@ -70,11 +71,13 @@
         "# p . . #",
         "# # S # #"
       ],
+      "gift": {"at": [0, 5], "item": "racing"},
       "stack": ["purple", "yellow", "red", "blue"]
     },
     {
       "title": "Side Streets",
       "no_revisit": true,
+      "gift": {"at": [0, 5], "item": "monster_truck"},
       "map": [
         "r . . . .",
         "# # # # #",
@@ -113,16 +116,17 @@
         "#  #  #  #  #",
         ".  .  .  .  y2"
       ],
+      "gift": {"at": [1, 4], "item": "drizzlet"},
       "stack": ["blue", "yellow", "yellow", "red", "red"]
     },
     {
       "title": "One Way",
-      "hint": "Arrows are one-way streets: drive only the way they point.",
+      "hint": "Arrows are one-way. You can turn onto one, but you must leave it the way it points.",
       "no_revisit": true,
       "map": [
         "S # # y #",
         "# . # y #",
-        "# # # . #",
+        "# # < . #",
         "# b # . #",
         "# # > # #"
       ],
@@ -185,10 +189,12 @@
         "# # # . #",
         ". . b . ."
       ],
+      "gift": {"at": [3, 0], "item": "bonkle"},
       "stack": ["yellow", "yellow", "blue"]
     },
     {
       "title": "Flyover",
+      "challenge": true,
       "no_revisit": true,
       "map": [
         "S # # # # #",
@@ -200,6 +206,7 @@
         "# # # # # #",
         "b . r . . ."
       ],
+      "gift": {"at": [2, 0], "item": "duskwood"},
       "stack": ["purple", "blue", "red", "yellow", "red"]
     },
     {
@@ -231,6 +238,7 @@
         "#  #  #  #  #  #",
         ".  b  .  .  .  ."
       ],
+      "gift": {"at": [3, 6], "item": "gloaming"},
       "stack": ["red", "blue", "blue", "purple", "red", "red"]
     },
     {
@@ -281,6 +289,7 @@
     },
     {
       "title": "Last Mile",
+      "challenge": true,
       "no_revisit": true,
       "map": [
         "#  #  #  #  #  #  #",
@@ -288,7 +297,7 @@
         "#  p  #  g2 ^  .  S",
         "#  #  +  #  #  #  #",
         ".  .  #  r  #  r  #",
-        ".  .  #  .  #  .  #",
+        ".  .  #  .  ^  .  #",
         "#  #  #  #  <  #  #",
         ".  .  .  p  .  .  ."
       ],
@@ -306,6 +315,7 @@
         "B # # # .",
         ". . S . ."
       ],
+      "gift": {"at": [3, 4], "item": "sprout"},
       "stack": ["red"]
     },
     {
@@ -344,7 +354,7 @@
         ". y . r . .",
         ". # # # # #",
         ". # y # R #",
-        ". # # ^ # #",
+        ". # # < # #",
         ". # b # p #",
         ". v # # # #",
         ". # . S . #",
@@ -381,6 +391,7 @@
         "#  #  #  #  .  #",
         "r  .  .  .  .  ."
       ],
+      "gift": {"at": [5, 6], "item": "puffball"},
       "stack": ["blue", "yellow", "red", "red", "red"]
     },
     {
@@ -401,6 +412,7 @@
     },
     {
       "title": "Border Control",
+      "challenge": true,
       "no_revisit": true,
       "map": [
         "#  #  #  S  #  #  .",
@@ -411,7 +423,7 @@
         "#  #  v  #  #  #  .",
         "#  .  #  .  .  #  b",
         "#  r2 #  b  .  #  .",
-        "#  #  #  #  #  #  ."
+        "#  <  #  #  #  #  ."
       ],
       "stack": ["blue", "blue", "blue", "red", "red", "blue"]
     },
@@ -463,13 +475,14 @@
     },
     {
       "title": "Night Shift",
+      "challenge": true,
       "no_revisit": true,
       "return": true,
       "map": [
         "# # # > # # #",
         "# p # r # p #",
         "# . # p # . #",
-        "# # # # v # #",
+        "# # # # < # #",
         "# . # . # . #",
         "# # # p # # #",
         "# . # . # . S",
@@ -505,6 +518,7 @@
         "# . S . # .",
         "# # # # # ."
       ],
+      "gift": {"at": [0, 0], "item": "mosaic_moth"},
       "stack": ["blue", "red", "yellow", "blue", "red"]
     },
     {
@@ -524,6 +538,7 @@
     },
     {
       "title": "Sorting Office",
+      "challenge": true,
       "no_revisit": true,
       "map": [
         "p  #  #  #  #  #  #",
@@ -568,6 +583,7 @@
         "# # # # # #",
         ". y . . . ."
       ],
+      "gift": {"at": [1, 4], "item": "rivet"},
       "stack": ["purple", "yellow", "red", "red", "yellow"]
     },
     {
@@ -603,6 +619,215 @@
         "#  #  #  =p #  ."
       ],
       "stack": ["blue", "blue", "purple", "red", "red"]
+    },
+    {
+      "title": "Needle in a Haystack",
+      "hint": "Sneak peek: a huge map with a short answer. Most roads are a trap.",
+      "preview": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # # # # #",
+        ". ^ y . # . . . #",
+        ". # # S # # # # #",
+        "g # . . # . # . #",
+        "p # # # # # # # #",
+        ". # . . # . # . #",
+        "y # # # ^ # # . #",
+        ". # . b # . # . #",
+        "b # . B # r # . #",
+        "g # # # # # # # #",
+        ". . p . b . . . ."
+      ],
+      "stack": ["blue", "red", "purple", "green", "blue", "yellow", "purple", "green", "yellow"]
+    },
+    {
+      "title": "Last Orders",
+      "hint": "Sneak peek: everything out, then all the way home.",
+      "preview": true,
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        ". # y # # # # #",
+        ". # b # b # y #",
+        ". # # + # # # #",
+        ". # . v y # . #",
+        ". # # # < # # #",
+        ". # . . . # . #",
+        ". # # # . # # #",
+        ". # . g . # Y #",
+        "p # # # S # # #",
+        ". # . . . # p #",
+        ". # # # # @ # #",
+        ". . . . . . p ."
+      ],
+      "stack": ["yellow", "blue", "yellow", "blue", "purple", "purple", "purple", "green"]
+    },
+    {
+      "title": "The Long Way Round",
+      "hint": "Sneak peek: one route, fifty-two tiles. Plan the whole shift.",
+      "preview": true,
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "# # < S # # # .",
+        "@ . # . # . # .",
+        "# # # # > # # r",
+        "# p # . . . # .",
+        "# # + # # # # b",
+        "# . # . # . # .",
+        "# # # . # # # .",
+        "# p # b # . # .",
+        "# y # # # # # .",
+        "# . # p # . # .",
+        "# b # . # G # .",
+        "# # # # # # # g"
+      ],
+      "stack": ["red", "blue", "purple", "yellow", "blue", "purple", "purple", "blue"]
+    },
+    {
+      "title": "Night Freight",
+      "hint": "Sneak peek: two gates, a hub, two shops. Get the order right.",
+      "preview": true,
+      "no_revisit": true,
+      "map": [
+        "G   g   .   .   .   .   .   .",
+        "#   #   #   #   #   #   #   #",
+        "=r  r   #   .   .   #   .   #",
+        "#   #   #   #   #   #   #   #",
+        "#   R   #   .   .   #   .   #",
+        "#   >   #   #   #   #   #   #",
+        "=g  g   #   .   .   #   .   #",
+        "@   #   #   #   #   #   #   #",
+        "#   p   #   .   r   #   .   S",
+        "#   #   #   #   #   <   #   #",
+        ".   .   y   .   .   b   b   p"
+      ],
+      "gift": {"at": [6, 1], "item": "deep_field"},
+      "stack": ["green", "purple", "yellow", "red", "blue", "blue", "purple"]
+    },
+    {
+      "title": "Grand Tour",
+      "challenge": true,
+      "hint": "Sneak peek: everything at once. Good luck.",
+      "preview": true,
+      "no_revisit": true,
+      "return": true,
+      "map": [
+        "R   #   #   #   #   #   #   #",
+        "r   =r  r2  #   .   #   .   #",
+        ".   #   =r  +   #   #   #   #",
+        ".   p   R   #   y   #   y   #",
+        ".   #   #   #   #   +   #   #",
+        ".   #   .   #   y   #   .   @",
+        ".   #   .   #   .   #   g   #",
+        ".   #   #   #   #   #   #   #",
+        ".   #   .   #   .   #   p2  #",
+        ".   #   #   #   #   #   #   ^",
+        ".   #   .   #   .   #   .   S",
+        ".   #   #   #   <   #   #   #"
+      ],
+      "stack": ["purple", "yellow", "red", "purple", "yellow", "yellow", "green", "purple"]
+    },
+    {
+      "title": "Bulk Order",
+      "hint": "Warehouses (\u00d7N) load everything at once. Make room first.",
+      "no_revisit": true,
+      "preview": true,
+      "map": [
+        "r   #   #   #   #   #   #   #   #",
+        ".   #   .   r4  #   Y5  #   y2  ^",
+        ".   =b  R5  .   #   #   #   #   #",
+        ".   #   .   .   S   .   #   y4  #",
+        ".   #   .   y2  #   y2  #   Y5  #",
+        ".   #   #   #   #   #   #   #   @",
+        ".   b3  .   .   #   b   #   y3  #",
+        ".   #   #   =b  #   #   #   #   #",
+        ".   #   B5  .   #   .   #   .   #",
+        ".   #   #   #   >   #   #   <   #",
+        "R4  #   .   b4  #   .   b3  Y   #",
+        "r4  #   #   #   #   #   #   #   #"
+      ],
+      "stack": ["blue", "blue", "blue", "blue", "blue", "blue", "yellow", "yellow"]
+    },
+    {
+      "title": "Peak Season",
+      "no_revisit": true,
+      "preview": true,
+      "map": [
+        "p   #   #   #   #   S   #   #   #",
+        ".   #   y3  #   r3  .   #   P4  #",
+        ".   #   #   #   #   #   #   <   #",
+        ".   #   .   #   .   .   #   .   #",
+        ".   #   #   #   #   #   #   #   #",
+        ".   #   .   #   B2  b4  #   p4  #",
+        ".   #   .   #   .   B5  #   b3  #",
+        ".   #   #   #   >   >   #   #   #",
+        "b   =b  .   .   y2  .   #   B2  =p",
+        ".   #   #   #   #   @   #   #   #",
+        ".   .   .   p4  .   .   Y2  P4  b"
+      ],
+      "stack": ["yellow", "purple", "yellow", "yellow", "red", "red", "red"]
+    },
+    {
+      "title": "Overstock",
+      "no_revisit": true,
+      "preview": true,
+      "map": [
+        "#   #   v   #   #   #   #   #   #",
+        "p   p5  #   b   .   r2  #   .   .",
+        "#   #   #   #   #   =b  #   #   #",
+        "#   p4  #   P5  B   R2  #   .   #",
+        "#   y4  #   .   Y4  .   #   .   #",
+        "#   #   #   #   #   #   #   #   #",
+        "#   .   #   .   #   P5  #   p   #",
+        "#   .   #   .   #   P   =p  .   #",
+        "#   #   #   #   #   #   #   S   #",
+        "#   p   #   p4  #   .   v   .   #",
+        "#   y4  #   #   #   #   #   #   #"
+      ],
+      "stack": ["purple", "purple", "purple", "purple", "purple", "yellow", "yellow", "yellow", "yellow"]
+    },
+    {
+      "title": "Cyber Monday",
+      "no_revisit": true,
+      "preview": true,
+      "map": [
+        "#   #   #   #   #   #   #   #",
+        "#   B5  y   #   .   y2  .   #",
+        "#   #   #   ^   #   #   #   #",
+        "#   r   y4  #   y2  #   .   #",
+        "#   #   =y  #   #   #   >   #",
+        "#   Y3  .   #   Y4  #   .   #",
+        "#   y3  r3  #   .   #   Y5  =b",
+        "#   #   #   #   #   #   #   #",
+        "#   .   R4  #   .   .   .   #",
+        "#   #   #   #   #   #   #   #",
+        "#   b3  b3  #   .   v   r4  #",
+        "#   .   .   #   S   #   #   #"
+      ],
+      "stack": ["blue", "red", "red", "red", "red"]
+    },
+    {
+      "title": "The Last Mile",
+      "challenge": true,
+      "hint": "Good luck, driver.",
+      "no_revisit": true,
+      "preview": true,
+      "map": [
+        ".   .   .   .   r4  .   .   .   r2",
+        "#   #   #   =r  #   #   #   #   #",
+        "#   r   .   R4  #   b2  #   R2  #",
+        "#   #   #   #   #   #   #   #   #",
+        "#   r3  r2  b2  v   .   #   B4  #",
+        "#   #   #   #   #   #   #   .   #",
+        "#   b2  #   .   #   .   #   R5  #",
+        "#   B2  v   #   v   #   #   y4  #",
+        "#   b2  #   .   #   .   .   b2  =y",
+        "#   #   #   #   #   #   #   #   #",
+        "#   B4  #   b2  #   .   #   .   #",
+        "#   =y  #   #   #   S   #   #   #"
+      ],
+      "stack": ["red", "yellow", "yellow", "yellow", "yellow", "blue", "blue"]
     }
   ]
 }

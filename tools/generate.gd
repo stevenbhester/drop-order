@@ -21,6 +21,11 @@ extends SceneTree
 ##     search is smaller than --minnodes (too few tempting wrong turns), are dropped.
 ## Candidates are ranked on search size, decision points, "nope" moments and length.
 ##
+## Big levels: --run=3 lets one stop fill a house with up to 3 packages in a row (a ×N house) ·
+## --stock=5 lets a pickup be a warehouse handing over up to 5 parcels of one colour · --minpkg=25
+## the level must have at least that many packages · --maxload=12 the most aboard at the start and
+## at any point on the intended route (the default; LevelData.MAX_LOAD) · --nodes=200000 search cap ·
+## --walks=40 try that many random drives on each map and keep the longest (long levels need long drives).
 ## Other flags: --multi=1 require a ×2 house · --needbridge=1 / --needhub=1 the level must be
 ## unsolvable without its bridges / hubs · --loops=50 % chance to keep extra street pieces ·
 ## --open=200 how many solutions the map may have before gates/arrows narrow it down.
@@ -32,7 +37,7 @@ var rejects := {}
 var o := {"w": 5, "h": 7, "n": 4, "colors": 3, "multi": 0, "oneway": 0, "bridges": 0,
 	"shops": 0, "gates": 0, "hubs": 0, "ret": 0, "needbridge": 0, "needhub": 0,
 	"maxsol": 3, "minnodes": 0, "tries": 150, "seed": 1, "top": 3, "minlen": 8,
-	"nodes": 200000, "loops": 50, "open": 200}
+	"nodes": 200000, "loops": 50, "open": 200, "run": 1, "stock": 1, "minpkg": 0, "maxload": 12, "walks": 1}
 
 
 func _init() -> void:
@@ -154,6 +159,10 @@ func _candidate():
 		start = roads.pick_random()
 
 	var walk := _walk(m, start)
+	for k in o.walks - 1:
+		var other := _walk(m, start)
+		if other.route.size() > walk.route.size():
+			walk = other
 	var route: Array = walk.route
 	var bridges: Dictionary = walk.bridges
 	if o.ret == 1:
@@ -221,7 +230,7 @@ func _candidate():
 
 	# Backwards pass: build the buildings and the starting stack.
 	var houses := {}     # Vector2i -> { color, order }
-	var shops := {}      # Vector2i -> colour code
+	var shops := {}      # Vector2i -> { color, count }
 	var stack := []
 	for i in range(route.size() - 1, 0, -1):
 		if kinds.has(i):
@@ -238,22 +247,34 @@ func _candidate():
 				if cells.is_empty():
 					return _rej("cells.is_empty()")
 				var c: Vector2i = cells.pick_random()
-				shops[c] = stack.pop_back()
+				# How many of the same colour are on top: a warehouse may hand over that many in one go.
+				var top: String = stack.back()
+				var same := 0
+				while same < stack.size() and stack[stack.size() - 1 - same] == top:
+					same += 1
+				var k := mini(same, o.stock)
+				for j in k:
+					stack.pop_back()
+				shops[c] = {"color": top, "count": k}
 			else:
 				var reuse := []
 				if o.multi == 1:
 					for d in LevelData.DIRS:
 						if houses.has(route[i] + d):
 							reuse.append(route[i] + d)
+				# Deliveries at this stop: one, or with --run a few in a row to the same house.
+				var k := randi_range(1, o.run)
 				if not reuse.is_empty() and (cells.is_empty() or randf() < 0.4):
 					var c: Vector2i = reuse.pick_random()
-					houses[c].order += 1
-					stack.append(houses[c].color)
+					houses[c].order += k
+					for j in k:
+						stack.append(houses[c].color)
 				elif not cells.is_empty():
 					var c: Vector2i = cells.pick_random()
 					var col: String = COLORS[randi() % o.colors]
-					houses[c] = {"color": col, "order": 1}
-					stack.append(col)
+					houses[c] = {"color": col, "order": k}
+					for j in k:
+						stack.append(col)
 				else:
 					return _rej("else")
 		if hubs.has(route[i]) and stack.size() >= 2:
@@ -270,10 +291,14 @@ func _candidate():
 	var dict := _to_dict(m, start, bridges, hubs, houses, shops, gates, arrows, stack)
 	var L := LevelData.from_dict(dict, 0)
 	if not L.errors.is_empty():
-		return _rej("not L.errors.is_empty()")
+		return _rej("level error: " + str(L.errors[0]).substr(0, 34))
 	var fin := Sim.run_checked(L, route)
 	if fin.is_empty() or not Sim.is_won(L, fin, route):
 		return _rej("fin.is_empty() or not Sim.is_won(L, fin, route)")
+	if L.total_orders() < o.minpkg:
+		return _rej("fewer packages than --minpkg")
+	if stack.size() > o.maxload or Sim.max_load(L, route) > o.maxload:
+		return _rej("too many aboard at once")
 	# Before gates/arrows the map may be wide open (up to `open` solutions): they are
 	# what narrows it down, which leaves lots of tempting-but-wrong roads.
 	var r := Solver.solve(L, o.open, o.nodes)
@@ -352,6 +377,8 @@ func _candidate():
 	if o.needhub == 1 and not _unsolvable_without(L, "hubs"):
 		return _rej("o.needhub == 1 and not _unsolvable_without(L, hu")
 
+	if Sim.max_load(L, r.shortest) > o.maxload:
+		return _rej("the solution carries too many at once")
 	var nopes := 0
 	var s := Sim.new_state(L)
 	for i in range(1, r.shortest.size()):
@@ -510,7 +537,8 @@ func _arrow_candidate(m: Dictionary, route: Array, start: Vector2i, bridges: Dic
 		if i >= 1:
 			if route.count(p) > 1:
 				continue
-			d = route[i] - route[i - 1]
+			# Arrows point the way the van leaves the tile (it may turn onto it from the side).
+			d = route[i + 1] - route[i] if i + 1 < route.size() else route[i] - route[i - 1]
 		else:
 			d = LevelData.DIRS.pick_random()
 		if _is_road(m, p - d) and _is_road(m, p + d):
@@ -541,7 +569,8 @@ func _to_dict(m: Dictionary, start: Vector2i, bridges: Dictionary, hubs: Diction
 				var h: Dictionary = houses[p]
 				toks.append(h.color + (str(h.order) if h.order > 1 else ""))
 			elif shops.has(p):
-				toks.append(_code(shops[p]).to_upper())
+				var sh: Dictionary = shops[p]
+				toks.append(_code(sh.color).to_upper() + (str(sh.count) if sh.count > 1 else ""))
 			else:
 				toks.append(".")
 		rows.append(" ".join(toks))

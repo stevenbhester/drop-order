@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs><radialGradient id="bg" cx="0.5" cy="0.45" r="0.75"><stop offset="0" stop-color="#b8e895"/><stop offset="1" stop-color="#6fbf5a"/></radialGradient></defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- roads: a fat S -->
+  <path d="M -40 300 L 330 300 Q 420 300 420 390 L 420 640 Q 420 730 510 730 L 1064 730" fill="none" stroke="#3f4757" stroke-width="196" stroke-linejoin="round"/>
+  <path d="M -40 300 L 330 300 Q 420 300 420 390 L 420 640 Q 420 730 510 730 L 1064 730" fill="none" stroke="#596273" stroke-width="176" stroke-linejoin="round"/>
+  <path d="M 700 120 L 700 1060" stroke="#3f4757" stroke-width="196"/>
+  <path d="M 700 120 L 700 1060" stroke="#596273" stroke-width="176"/>
+  <!-- wreckage behind the van (left): torn trench -->
+  <path d="M -40 300 L 250 300" stroke="#1d1f26" stroke-width="76" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 10 300 L 60 288 L 110 310 L 170 290 L 230 304" fill="none" stroke="#ffc23d" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(60,262) rotate(-20) scale(0.9)">
+    <path d="M -40 -20 L 44 -30 L 50 22 L -36 30 Z" fill="#5b6475"/>
+    <path d="M -40 -28 L 44 -38 L 46 -6 L -38 2 Z" fill="#7d8697"/>
+  </g><g transform="translate(170,338) rotate(16) scale(0.8)">
+    <path d="M -40 -20 L 44 -30 L 50 22 L -36 30 Z" fill="#5b6475"/>
+    <path d="M -40 -28 L 44 -38 L 46 -6 L -38 2 Z" fill="#7d8697"/>
+  </g><g transform="translate(230,254) rotate(30) scale(0.7)">
+    <path d="M -40 -20 L 44 -30 L 50 22 L -36 30 Z" fill="#5b6475"/>
+    <path d="M -40 -28 L 44 -38 L 46 -6 L -38 2 Z" fill="#7d8697"/>
+  </g>
+  <g transform="translate(40,330) rotate(-10) scale(0.8)">
+    <path d="M 0 0 C -60 -10 -70 -90 -30 -150 C -24 -110 -6 -100 4 -120 C 0 -170 30 -210 60 -230 C 50 -170 96 -140 80 -70 C 74 -30 40 2 0 0 Z" fill="#ff8a1f"/>
+    <path d="M 4 -4 C -34 -12 -40 -66 -14 -104 C -8 -76 8 -72 16 -88 C 16 -122 34 -146 52 -160 C 46 -116 72 -96 62 -50 C 56 -22 32 -2 4 -4 Z" fill="#ffc23d"/>
+    <path d="M 8 -8 C -12 -14 -14 -44 2 -64 C 6 -48 16 -46 22 -56 C 24 -76 34 -88 42 -96 C 40 -70 52 -56 46 -30 C 42 -16 26 -6 8 -8 Z" fill="#fff1a8"/>
+  </g><g transform="translate(150,320) rotate(10) scale(0.65)">
+    <path d="M 0 0 C -60 -10 -70 -90 -30 -150 C -24 -110 -6 -100 4 -120 C 0 -170 30 -210 60 -230 C 50 -170 96 -140 80 -70 C 74 -30 40 2 0 0 Z" fill="#ff8a1f"/>
+    <path d="M 4 -4 C -34 -12 -40 -66 -14 -104 C -8 -76 8 -72 16 -88 C 16 -122 34 -146 52 -160 C 46 -116 72 -96 62 -50 C 56 -22 32 -2 4 -4 Z" fill="#ffc23d"/>
+    <path d="M 8 -8 C -12 -14 -14 -44 2 -64 C 6 -48 16 -46 22 -56 C 24 -76 34 -88 42 -96 C 40 -70 52 -56 46 -30 C 42 -16 26 -6 8 -8 Z" fill="#fff1a8"/>
+  </g>
+  <!-- the drawn route ahead: thick white line round the corner, ending in an arrow -->
+  <path d="M 420 390 L 420 640 Q 420 730 510 730 L 860 730" fill="none" stroke="#ffffff" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 880 690 L 950 730 L 880 770 Z" fill="#ffffff" stroke="#ffffff" stroke-width="22" stroke-linejoin="round"/>
+  <!-- houses waiting, tagged in delivery order -->
+  <g transform="translate(250,640) scale(1.25)">
+    <rect x="-66" y="-10" width="132" height="22" rx="10" fill="#000" opacity="0.13"/>
+    <rect x="-56" y="-78" width="112" height="78" rx="10" fill="#fff6ee"/>
+    <path d="M -74 -72 L 0 -136 L 74 -72 Z" fill="#ff5d5d" stroke="#ff5d5d" stroke-width="12" stroke-linejoin="round"/>
+    <rect x="-13" y="-42" width="26" height="42" rx="7" fill="#ff5d5d" opacity="0.8"/>
+  </g><g transform="translate(320,520)">
+    <circle r="40" fill="#ffffff"/><circle r="31" fill="#ff5d5d"/>
+    <path d="M -6 -18 L 4 -24 L 4 22" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(590,620) scale(1.25)">
+    <rect x="-66" y="-10" width="132" height="22" rx="10" fill="#000" opacity="0.13"/>
+    <rect x="-56" y="-78" width="112" height="78" rx="10" fill="#fff6ee"/>
+    <path d="M -74 -72 L 0 -136 L 74 -72 Z" fill="#ffc53d" stroke="#ffc53d" stroke-width="12" stroke-linejoin="round"/>
+    <rect x="-13" y="-42" width="26" height="42" rx="7" fill="#ffc53d" opacity="0.8"/>
+  </g><g transform="translate(660,500)">
+    <circle r="40" fill="#ffffff"/><circle r="31" fill="#ffc53d"/>
+    <path d="M -14 -12 Q -12 -26 2 -26 Q 16 -26 16 -12 Q 16 -2 -14 22 L 17 22" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(880,600) scale(1.25)">
+    <rect x="-66" y="-10" width="132" height="22" rx="10" fill="#000" opacity="0.13"/>
+    <rect x="-56" y="-78" width="112" height="78" rx="10" fill="#fff6ee"/>
+    <path d="M -74 -72 L 0 -136 L 74 -72 Z" fill="#4d8dff" stroke="#4d8dff" stroke-width="12" stroke-linejoin="round"/>
+    <rect x="-13" y="-42" width="26" height="42" rx="7" fill="#4d8dff" opacity="0.8"/>
+  </g><g transform="translate(950,480)">
+    <circle r="40" fill="#ffffff"/><circle r="31" fill="#4d8dff"/>
+    <path d="M -14 -20 Q 0 -30 13 -20 Q 18 -8 0 -2 Q 20 2 14 16 Q 2 30 -15 18" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(250,180) scale(1.0)">
+    <rect x="-66" y="-10" width="132" height="22" rx="10" fill="#000" opacity="0.13"/>
+    <rect x="-56" y="-78" width="112" height="78" rx="10" fill="#fff6ee"/>
+    <path d="M -74 -72 L 0 -136 L 74 -72 Z" fill="#a26bf5" stroke="#a26bf5" stroke-width="12" stroke-linejoin="round"/>
+    <rect x="-13" y="-42" width="26" height="42" rx="7" fill="#a26bf5" opacity="0.8"/>
+  </g>
+  <g transform="translate(250,300) rotate(0) scale(1.1)"><g>
+    <rect x="-118" y="-74" width="236" height="160" rx="50" fill="#000" opacity="0.2"/>
+    <rect x="-96" y="-90" width="56" height="30" rx="10" fill="#23262e"/><rect x="40" y="-90" width="56" height="30" rx="10" fill="#23262e"/>
+    <rect x="-96" y="62" width="56" height="30" rx="10" fill="#23262e"/><rect x="40" y="62" width="56" height="30" rx="10" fill="#23262e"/>
+    <rect x="-130" y="-76" width="260" height="152" rx="46" fill="#fffaf2"/>
+    <rect x="42" y="-76" width="88" height="152" rx="40" fill="#3b4a6b"/>
+    <rect x="56" y="-56" width="40" height="112" rx="14" fill="#9cc4ea"/>
+    <rect x="-84" y="-48" width="96" height="96" rx="16" fill="#ff5d5d"/>
+    <rect x="-42" y="-48" width="14" height="96" fill="#fff" opacity="0.6"/>
+  </g></g>
+</svg>

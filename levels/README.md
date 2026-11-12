@@ -28,11 +28,12 @@ so rows can be aligned when some tokens are two characters). Every row needs the
 | `.` | Block (grass; decorative trees are added automatically) |
 | `#` | Road |
 | `S` | Road where the van starts (exactly one) |
-| `^` `>` `v` `<` | One-way road: can only be **entered** moving in the arrow's direction |
+| `^` `>` `v` `<` | One-way road: you must **leave** it moving the way the arrow points. You can turn onto it from the side, but never drive onto it head-on against the arrow. Point it at road |
 | `+` | Bridge: crossable once horizontally and once vertically, always straight across. Needs road on all four sides |
 | `r` `b` `g` `y` `p` `o` | House: red, blue, green, yellow, purple, orange. Wants 1 package |
 | `r2`, `b3`, ... | House wanting that many packages of its colour (shows "×2") |
 | `R` `B` `G` `Y` `P` `O` | Parcel shop (uppercase colour): its parcel goes onto the **top** of the van's stack when the van drives past |
+| `R4`, `B3`, ... | Warehouse: a shop holding that many parcels of its colour (shows "×4"). Driving past loads them all, one by one onto the top, unless a house right there wants the one that just came aboard (then it's delivered in between) |
 | `=r`, `=b`, ... | Colour gate (road): can only be entered while the top package is that colour. Put it on a straight piece of road |
 | `@` | Sorting hub (road): swaps the top two packages when the van drives onto it |
 
@@ -40,19 +41,34 @@ The loader rejects levels where:
 - a house or shop touches no road, touches a bridge or hub, or touches the `S` tile (the van
   only acts on tiles it drives *onto*);
 - the start is anything but plain road;
-- total house orders per colour don't exactly match the packages: stack plus shop parcels.
+- total house orders per colour don't exactly match the packages: stack plus shop parcels;
+- the van starts with more than 12 packages (`LevelData.MAX_LOAD`). Bigger levels feed packages in
+  from warehouses along the way instead, and `tools/validate_levels.gd` also fails a level whose
+  winning route ever has more than 12 aboard at once.
 
 ## `stack`
 Package colours, **first = bottom, last = top** (the top is delivered first). Full names
 (`"red"`) or the single letters above both work.
 
+## Daily puzzles
+`daily.json` has the same format: `{"levels": [ ... ]}`. Today's puzzle is the next one in the list
+each day, repeating (see `scripts/daily.gd`). The validator checks them too.
+
 ## Other fields
 - `title`: shown under the board.
 - `hint`: instruction shown under the board until the player starts drawing.
-- `no_revisit`: `true` means each road tile can be used once per attempt (bridges: once per
-  direction). Default `false`. Levels 4+ use it.
+- `no_revisit`: each road tile can be used once per attempt (bridges: once per direction), because
+  the van wrecks the road behind it. Default `true` (every level); `false` would allow revisits.
 - `return`: `true` means the level is only won once everything is delivered **and** the van
   is parked back on `S`. Driving onto `S` ends the shift, ready or not.
+- `gift`: `{"at": [x, y], "item": "drizzlet"}` puts a cosmetic present on a road tile (ids in
+  `scripts/cosmetics.gd`). It isn't part of the rules; the validator checks it can be picked up on the way
+  to a win (on some winning route, or by driving past the last delivery in the same drag).
+  `tools/place_gifts.gd` lists good spots.
+- `preview`: `true` marks a sneak-peek level (shown with a PEEK tag).
+- `challenge`: `true` marks a difficulty spike (much harder than its neighbours): a hazard rim and flame on
+  the map, a "CHALLENGE!" intro until it's beaten, and a 500 Dollaroo bonus on the first win. One per
+  region or so, after an easy level and a moderate one.
 
 ## Rules recap (implemented in `scripts/sim.gd`)
 The player builds the route in segments, each driven when they lift their finger. On levels
@@ -75,6 +91,13 @@ top package at the moment the van would enter them.
    ```
    godot --headless --path . --script res://tools/stack_orders.gd -- <level number>
    ```
+
+## Repairing a level's arrows
+If a rule change leaves a level with no solution or several, this searches single (or with `--pairs`,
+double) arrow edits that leave exactly one, and prints the best with the solution drawn:
+```
+godot --headless --path . --script res://tools/arrow_edits.gd -- <level number> [--pairs] [--top=6]
+```
 
 ## Checking a hand-made level
 Put one or more level objects in a JSON array in a scratch file, then:

@@ -10,18 +10,28 @@ var shop_nodes: Array = []       # Shop, same order as L.shops
 var gate_nodes := {}             # Vector2i -> Gate
 var hub_nodes := {}              # Vector2i -> Hub
 var depot: DepotGlow
-var path_line: Line2D
+var gift: Gift
+var fire: AnimeFire
+var wreck: Wreckage
+var path_line: RouteLine
+## The red X where the route being drawn runs into torn-up road (or itself): the line stops there.
+var crash_mark: CrashMark
+
 var trail_line: Line2D
+var hint_line: Line2D
+var hint_head: Polygon2D
+var _hint_tw: Tween
 
 
 func setup(level: LevelData, tile_size: float) -> void:
 	L = level
 	tile = tile_size
-	if L.return_depot:
-		depot = DepotGlow.new()
-		depot.tile = tile
-		depot.position = center(L.start)
-		add_child(depot)
+	# The start is a little pit stop (and on return levels, the finish too).
+	depot = DepotGlow.new()
+	depot.tile = tile
+	depot.returning = L.return_depot
+	depot.position = center(L.start)
+	add_child(depot)
 	for p in L.hubs:
 		var hb := Hub.new()
 		hb.tile = tile
@@ -36,14 +46,41 @@ func setup(level: LevelData, tile_size: float) -> void:
 	trail_line.end_cap_mode = Line2D.LINE_CAP_ROUND
 	trail_line.antialiased = true
 	add_child(trail_line)
-	path_line = Line2D.new()
+	# The torn-up road replaces the old faint trail line.
+	trail_line.visible = false
+	wreck = Wreckage.new()
+	wreck.L = L
+	wreck.tile = tile
+	wreck.momentum = Progress.momentum
+	if L.return_depot:
+		wreck.sturdy = L.start
+	add_child(wreck)
+	fire = AnimeFire.new()
+	fire.tile = tile
+	fire.momentum = Progress.momentum
+	add_child(fire)
+	path_line = RouteLine.new()
+	path_line.board = self
 	path_line.width = tile * 0.3
-	path_line.default_color = Palette.PATH
-	path_line.joint_mode = Line2D.LINE_JOINT_ROUND
-	path_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	path_line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	path_line.antialiased = true
 	add_child(path_line)
+	crash_mark = CrashMark.new()
+	crash_mark.tile = tile
+	crash_mark.visible = false
+	crash_mark.z_index = 4
+	add_child(crash_mark)
+	hint_line = Line2D.new()
+	hint_line.width = tile * 0.16
+	hint_line.default_color = Palette.HINT
+	hint_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	hint_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	hint_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	hint_line.antialiased = true
+	add_child(hint_line)
+	hint_head = Polygon2D.new()
+	hint_head.color = Palette.HINT
+	hint_head.polygon = PackedVector2Array([Vector2(0.42, 0) * tile, Vector2(0.08, -0.24) * tile, Vector2(0.08, 0.24) * tile])
+	hint_head.visible = false
+	add_child(hint_head)
 	for h in L.houses:
 		var n := House.new()
 		n.color = Palette.pkg(h.color)
@@ -55,12 +92,21 @@ func setup(level: LevelData, tile_size: float) -> void:
 		house_nodes.append(n)
 	for sh in L.shops:
 		var n := Shop.new()
+		n.stock = sh.count
+		n.left = sh.count
 		n.color = Palette.pkg(sh.color)
 		n.size = tile
 		n.base_pos = center(sh.pos) + Vector2(0, tile * 0.3)
 		n.position = n.base_pos
 		add_child(n)
 		shop_nodes.append(n)
+	if L.gift_item != "" and not Progress.owns(L.gift_item):
+		gift = Gift.new()
+		gift.item = L.gift_item
+		gift.tile = tile
+		gift.position = center(L.gift)
+		gift.z_index = 3
+		add_child(gift)
 	for p in L.gates:
 		var g := Gate.new()
 		g.color = Palette.pkg(L.gates[p])
@@ -93,8 +139,46 @@ func tile_at(local: Vector2) -> Vector2i:
 	return Vector2i(floori(local.x / tile), floori(local.y / tile))
 
 
-func show_path(points: Array) -> void:
-	path_line.points = _pts(points)
+## The planned route. `colors` (optional) has one entry per stretch: the colour of the package on top
+## while the van drives it, or null.
+func show_path(points: Array, colors: Array = []) -> void:
+	path_line.set_route(_pts(points), colors)
+
+
+## A red X on the edge between tile `from` and tile `to`: the route can't go that way.
+func show_block(from: Vector2i, to: Vector2i) -> void:
+	crash_mark.position = center(from).lerp(center(to), 0.5)
+	if not crash_mark.visible:
+		crash_mark.visible = true
+		crash_mark.scale = Vector2.ONE * 1.7
+		crash_mark.create_tween().tween_property(crash_mark, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func clear_block() -> void:
+	crash_mark.visible = false
+
+
+## A pulsing golden arrow along `points` (tiles): the hint. Empty clears it.
+func show_hint(points: Array) -> void:
+	if _hint_tw and _hint_tw.is_valid():
+		_hint_tw.kill()
+	hint_line.points = _pts(points)
+	hint_head.visible = points.size() >= 2
+	if points.size() < 2:
+		return
+	var last := center(points[points.size() - 1])
+	hint_head.position = last
+	hint_head.rotation = (last - center(points[points.size() - 2])).angle()
+	hint_line.modulate.a = 1.0
+	hint_head.modulate.a = 1.0
+	_hint_tw = create_tween().set_loops()
+	_hint_tw.tween_method(_hint_alpha, 1.0, 0.4, 0.45).set_trans(Tween.TRANS_SINE)
+	_hint_tw.tween_method(_hint_alpha, 0.4, 1.0, 0.45).set_trans(Tween.TRANS_SINE)
+
+
+func _hint_alpha(a: float) -> void:
+	hint_line.modulate.a = a
+	hint_head.modulate.a = a
 
 
 ## Faint line over everything already driven (so used roads are visible).
@@ -161,9 +245,6 @@ func _draw() -> void:
 	for p in L.oneway:
 		_arrow(center(p), Vector2(L.oneway[p]))
 
-	# Depot ring where the van starts (return levels draw a fuller depot node instead).
-	if not L.return_depot:
-		draw_arc(center(L.start), tile * 0.36, 0, TAU, 48, Palette.DEPOT, tile * 0.045, true)
 
 
 ## Tiles whose centre is occupied by a marking, so lane dashes skip them.

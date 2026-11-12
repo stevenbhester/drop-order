@@ -1,11 +1,19 @@
 class_name Shop
 extends Node2D
 ## Parcel shop: has a parcel waiting that the van collects (onto the top of its stack) as it
-## drives past. Origin at the building's base, like House.
+## drives past. A warehouse (stock > 1) holds several: a little stack of them sits on the roof with a
+## "×N" for how many are left, and they all come aboard as the van passes. Origin at the building's base,
+## like House.
 
 var color := Color.RED
 var size := 180.0
 var base_pos := Vector2.ZERO
+## Parcels it starts with, and how many are still waiting.
+var stock := 1
+var left := 1:
+	set(v):
+		left = v
+		queue_redraw()
 var parcel_t := 1.0:              # 1 = parcel waiting, 0 = collected
 	set(v):
 		parcel_t = v
@@ -26,14 +34,18 @@ func parcel_pos() -> Vector2:
 
 func collect() -> void:
 	_pop()
-	var tw := create_tween()
-	tw.tween_property(self, "parcel_t", 0.0, 0.12)
+	left = maxi(left - 1, 0)
+	if left == 0:
+		var tw := create_tween()
+		tw.tween_property(self, "parcel_t", 0.0, 0.12)
 
 
 func restore() -> void:
 	_pop()
-	var tw := create_tween()
-	tw.tween_property(self, "parcel_t", 1.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	left = mini(left + 1, stock)
+	if parcel_t < 1.0:
+		var tw := create_tween()
+		tw.tween_property(self, "parcel_t", 1.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _pop() -> void:
@@ -63,10 +75,38 @@ func _draw() -> void:
 		var r := Rect2(-w / 2 - s * 0.02 + k * aw, -h + s * 0.01, aw, s * 0.09)
 		draw_rect(r, col)
 		draw_circle(Vector2(r.position.x + aw / 2, r.end.y), aw / 2, col)
-	# window + door
-	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.06, -h * 0.55, s * 0.24, s * 0.13), Color("cfe6f7"), s * 0.02)
-	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.22, -s * 0.19, s * 0.13, s * 0.19), Palette.VAN_CAB, s * 0.03)
+	# A big shop window with the parcel(s) bouncing about inside, and a door.
+	var win := Rect2(-w / 2 + s * 0.05, -h * 0.72, w * 0.62, h * 0.62)
+	DrawUtil.rrect(self, win.grow(s * 0.012), Palette.VAN_CAB, s * 0.03)
+	DrawUtil.rrect(self, win, Color("e6f3fc") if not empty else Color("d9dee3"), s * 0.025)
+	if not empty:
+		var n := mini(left, 3)
+		for i in n:
+			var ph := _t * 4.2 + i * 2.1
+			var hop := absf(sin(ph))
+			var ms := s * 0.15 * (1.0 if i == 0 else 0.82)
+			var mx := win.position.x + win.size.x * (0.5 + 0.28 * sin(_t * 1.3 + i * 2.4)) 
+			var floor_y := win.end.y - s * 0.012
+			var sq := 1.0 - 0.22 * (1.0 - hop) * (1.0 - hop)
+			var py := floor_y - ms * 0.5 * sq - hop * win.size.y * 0.42
+			draw_set_transform(Vector2(mx, py), sin(ph * 0.5) * 0.3, Vector2(1.0 / sq, sq))
+			DrawUtil.package(self, Vector2.ZERO, ms, color.darkened(0.05 * i), false)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.2, -s * 0.19, s * 0.13, s * 0.19), Palette.VAN_CAB, s * 0.03)
 	if parcel_t > 0.0:
-		var bob := sin(_t * 3.0) * s * 0.025
+		var bob := -absf(sin(_t * 2.6)) * s * 0.045
 		var c := Vector2(0, -h - s * 0.21 + bob)
-		DrawUtil.package(self, c, s * 0.24 * parcel_t, color)
+		if stock > 1 and left > 1:
+			# A warehouse: a little pile on the roof, and how many are left.
+			DrawUtil.package(self, c + Vector2(-s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.08))
+			DrawUtil.package(self, c + Vector2(s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.04))
+			DrawUtil.package(self, c + Vector2(0, -s * 0.07), s * 0.22 * parcel_t, color)
+			var bc := Vector2(w * 0.5, -h - s * 0.2)
+			draw_circle(bc, s * 0.13, Color.WHITE)
+			var f := UiTheme.font()
+			var txt := "×%d" % left
+			var fs := int(s * 0.15)
+			var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+			draw_string(f, bc + Vector2(-tw / 2, fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+		else:
+			DrawUtil.package(self, c, s * 0.24 * parcel_t, color)

@@ -11,6 +11,13 @@ var inviting := false:
 		queue_redraw()
 
 var body: Node2D
+## What it's wearing: a Cosmetics paint id and topper id. Empty paint = whatever Progress says.
+var paint := ""
+var topper := ""
+## A whole other vehicle (Cosmetics "ride" id), or "" for the van.
+var ride := ""
+## Wear what Progress says (and follow changes in the garage).
+var follow_progress := true
 var _top_color := Color.WHITE
 var _has_top := false
 var _t := 0.0
@@ -23,6 +30,17 @@ func _ready() -> void:
 	add_child(body)
 	body.draw.connect(_draw_body)
 	rotation = target_rotation
+	if follow_progress:
+		_wear()
+		Progress.changed.connect(_wear)
+
+
+func _wear() -> void:
+	paint = Progress.paint
+	topper = Progress.topper
+	ride = Progress.ride
+	if body:
+		body.queue_redraw()
 
 
 func set_top(color_name: String) -> void:
@@ -35,9 +53,11 @@ func set_top(color_name: String) -> void:
 
 func _process(delta: float) -> void:
 	rotation = lerp_angle(rotation, target_rotation, 1.0 - exp(-24.0 * delta))
+	_t += delta
 	if inviting:
-		_t += delta
 		queue_redraw()
+	if topper == "sprout" or topper == "rivet" or topper == "puffball" or ride != "":
+		body.queue_redraw()
 
 
 func squash() -> void:
@@ -83,15 +103,22 @@ func _draw_body() -> void:
 	var b := body
 	var L := size * 0.74
 	var W := size * 0.46
+	if ride != "":
+		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t)
+		if topper != "":
+			Cosmetics.draw_topper(b, topper, at, W, _t)
+		return
 	DrawUtil.rrect(b, Rect2(-L / 2 - 4, -W / 2 - 2, L + 8, W + 12), Color(0, 0, 0, 0.2), W * 0.32)
 	# wheels
 	for sx in [-0.28, 0.28]:
 		for sy in [-1.0, 1.0]:
 			DrawUtil.rrect(b, Rect2(Vector2(L * sx - L * 0.1, sy * W * 0.5 - W * 0.09), Vector2(L * 0.2, W * 0.18)), Palette.WHEEL, W * 0.06)
-	DrawUtil.rrect(b, Rect2(-L / 2, -W / 2, L, W), Palette.VAN_BODY, W * 0.28)
+	var p := paint if paint != "" else "classic"
+	DrawUtil.rrect(b, Rect2(-L / 2, -W / 2, L, W), Cosmetics.body_color(p), W * 0.28)
+	Cosmetics.draw_pattern(b, p, Rect2(-L / 2 + W * 0.12, -W / 2 + W * 0.1, L * 0.7 - W * 0.12, W * 0.8))
 	# cab at the front (+x)
 	var cab := L * 0.3
-	DrawUtil.rrect(b, Rect2(L / 2 - cab, -W / 2, cab, W), Palette.VAN_CAB, W * 0.28)
+	DrawUtil.rrect(b, Rect2(L / 2 - cab, -W / 2, cab, W), Cosmetics.cab_color(p), W * 0.28)
 	DrawUtil.rrect(b, Rect2(L / 2 - cab + W * 0.06, -W * 0.36, cab * 0.42, W * 0.72), Palette.VAN_GLASS, W * 0.1)
 	for sy in [-1.0, 1.0]:
 		b.draw_circle(Vector2(L / 2 - W * 0.06, sy * W * 0.32), W * 0.07, Color("ffe28a"))
@@ -101,3 +128,5 @@ func _draw_body() -> void:
 		DrawUtil.package(b, cargo_c, W * 0.66, _top_color, false)
 	else:
 		DrawUtil.rrect(b, Rect2(cargo_c - Vector2(W, W) * 0.33, Vector2(W, W) * 0.66), Color("ece4d6"), W * 0.12)
+	if topper != "":
+		Cosmetics.draw_topper(b, topper, Vector2(L / 2 - cab * 0.62, 0), W, _t)

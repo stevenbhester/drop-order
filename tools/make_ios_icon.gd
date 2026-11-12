@@ -1,11 +1,11 @@
 extends SceneTree
-## Rasterises icon.svg to assets/icon/ios_1024.png for the iOS export: square corners (iOS rounds them) and no
-## transparency (the App Store refuses it).
+## Rasterises icon.svg (the hero van, from design/icon_concepts/a_hero.svg) to assets/icon/ios_1024.png for the
+## iOS export: square corners (iOS rounds them) and no transparency (the App Store refuses it).
 ##   godot --headless --path . --script res://tools/make_ios_icon.gd
 
 
 func _init() -> void:
-	var svg := FileAccess.get_file_as_string("res://icon.svg").replace('rx="28"', 'rx="0"')
+	var svg := FileAccess.get_file_as_string("res://icon.svg").replace('rx="224"', 'rx="0"')
 	var img := Image.new()
 	var err := img.load_svg_from_string(svg, 1024.0 / 128.0)
 	if err != OK:

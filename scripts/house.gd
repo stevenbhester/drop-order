@@ -11,6 +11,22 @@ var check_t := 0.0:
 	set(v):
 		check_t = v
 		queue_redraw()
+## The package that's next out of the van (at the end of the route being planned, if there is one) is for
+## this house: it gives off a soft, slowly breathing glow in its colour.
+var next_up := false:
+	set(v):
+		if next_up != v:
+			next_up = v
+			set_process(true)
+			queue_redraw()
+var _glow := 0.0
+var _gt := 0.0
+## The route being planned will fill this house: a ghost of the tick shows.
+var ghost_done := false:
+	set(v):
+		if ghost_done != v:
+			ghost_done = v
+			queue_redraw()
 
 var _scale_tw: Tween
 var _pos_tw: Tween
@@ -66,13 +82,39 @@ func bounce(delay: float) -> void:
 	_pos_tw.tween_property(self, "position:y", base_pos.y, 0.32).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 
+## A small hop: "that one's mine!" (houses waiting for the package now on top).
+func hop() -> void:
+	if _pos_tw and _pos_tw.is_valid() and _pos_tw.is_running():
+		return
+	position = base_pos
+	_pos_tw = create_tween()
+	_pos_tw.tween_property(self, "position:y", base_pos.y - size * 0.09, 0.11).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_pos_tw.tween_property(self, "position:y", base_pos.y, 0.22).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+
 func _kill(tw: Tween) -> void:
 	if tw and tw.is_valid():
 		tw.kill()
 
 
+func _process(delta: float) -> void:
+	_gt += delta
+	_glow = move_toward(_glow, 1.0 if next_up and not is_full() else 0.0, delta * 4.0)
+	if _glow > 0.0:
+		queue_redraw()
+	elif not next_up:
+		set_process(false)
+
+
 func _draw() -> void:
 	var s := size
+	if _glow > 0.0:
+		# The glow: soft rings of its colour round the house, breathing.
+		var pulse := 0.75 + 0.25 * sin(_gt * 3.2)
+		var gc := Vector2(0, -s * 0.24)
+		for k in 5:
+			var r := s * (0.36 + k * 0.07)
+			draw_circle(gc, r, Color(color, 0.075 * _glow * pulse))
 	var w := s * 0.62
 	var h := s * 0.4
 	var done := is_full()
@@ -111,6 +153,14 @@ func _draw() -> void:
 		var fs := int(s * 0.15)
 		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		draw_string(f, bc + Vector2(-tw / 2, fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+
+	# The plan will deliver here: a ghost tick.
+	if ghost_done and check_t <= 0.0:
+		var gc := Vector2(w * 0.45, -h - s * 0.17)
+		draw_circle(gc, s * 0.15, Color(1, 1, 1, 0.85))
+		draw_arc(gc, s * 0.13, 0, TAU, 28, Color(Palette.CHECK, 0.9), s * 0.03, true)
+		draw_polyline(PackedVector2Array([gc + Vector2(-0.065, 0.0) * s, gc + Vector2(-0.02, 0.045) * s, gc + Vector2(0.07, -0.045) * s]),
+			Color(Palette.CHECK, 0.9), s * 0.035, true)
 
 	if check_t > 0.0:
 		var c := Vector2(w * 0.45, -h - s * 0.17)

@@ -12,7 +12,39 @@ static func font() -> Font:
 		sf.font_names = PackedStringArray(["Avenir Next", "SF Pro Rounded", "Helvetica Neue", "Roboto", "Arial", "sans-serif"])
 		sf.font_weight = 700
 		_font = sf
+		# Fredoka (bundled) everywhere: round and friendly, and the same on every device.
+		var path := "res://assets/fonts/Fredoka.ttf"
+		if ResourceLoader.exists(path):
+			var fv := FontVariation.new()
+			fv.base_font = load(path)
+			fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 600}
+			fv.fallbacks = [sf]
+			_font = fv
 	return _font
+
+
+## Room to leave for a phone's notch and home bar, in viewport units: Vector2(top, bottom).
+static func insets(vp: Viewport) -> Vector2:
+	if not OS.has_feature("mobile"):
+		return Vector2.ZERO
+	var safe := DisplayServer.get_display_safe_area()
+	var win := DisplayServer.window_get_size()
+	if win.x <= 0:
+		return Vector2.ZERO
+	var k := vp.get_visible_rect().size.x / float(win.x)
+	return Vector2(safe.position.y * k, maxf(0.0, (win.y - safe.end.y) * k))
+
+
+## Room to leave at the left and right in sideways play (the notch), in viewport units: Vector2(left, right).
+static func side_insets(vp: Viewport) -> Vector2:
+	if not OS.has_feature("mobile"):
+		return Vector2.ZERO
+	var safe := DisplayServer.get_display_safe_area()
+	var win := DisplayServer.window_get_size()
+	if win.x <= 0:
+		return Vector2.ZERO
+	var k := vp.get_visible_rect().size.x / float(win.x)
+	return Vector2(safe.position.x * k, maxf(0.0, (win.x - safe.end.x) * k))
 
 
 static func theme() -> Theme:
@@ -21,10 +53,17 @@ static func theme() -> Theme:
 	var t := Theme.new()
 	t.default_font = font()
 	t.default_font_size = 44
-	button_style(t, Color.WHITE, Palette.TEXT)
-	t.set_color("font_color", "Label", Palette.TEXT)
 	_theme = t
+	refresh()
 	return t
+
+
+## Night mode flipped: re-colour the shared theme in place (everything using it updates).
+static func refresh() -> void:
+	if _theme == null:
+		return
+	button_style(_theme, Palette.SURFACE, Palette.TEXT)
+	_theme.set_color("font_color", "Label", Palette.TEXT)
 
 
 ## Applies a chunky rounded style to Button, either on a Theme or as overrides on one Button.

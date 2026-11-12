@@ -17,7 +17,8 @@ if [[ -z $DEVICE ]]; then
 	echo "No connected iPhone found. Plug it in, unlock it, and tap Trust if asked." >&2
 	exit 1
 fi
-echo "==> Device $DEVICE"
+NAME=$(xcrun devicectl list devices 2>/dev/null | grep "$DEVICE" | sed -E 's/ {2,}.*//')
+echo "==> Installing on ${NAME:-this device} ($DEVICE)"
 
 echo "==> Exporting the Xcode project"
 mkdir -p build/ios

@@ -1,0 +1,17 @@
+; Daily-puzzle reminders as local notifications (see scripts/notify.gd and src/LastMileNotify.mm).
+; Rebuild the binary with tools/build_notify_plugin.sh.
+[config]
+name="LastMileNotify"
+binary="LastMileNotify.xcframework"
+initialization="last_mile_notify_init"
+deinitialization="last_mile_notify_deinit"
+
+[dependencies]
+linked=[]
+embedded=[]
+system=["UserNotifications.framework"]
+capabilities=[]
+files=[]
+linker_flags=[]
+
+[plist]

@@ -5,7 +5,7 @@ extends RefCounted
 ## State is a plain Dictionary:
 ##   "stack":  Array[String]  packages in the van, bottom..top
 ##   "fills":  Array[int]     packages each house has received
-##   "picked": Array[bool]    which parcel shops have been emptied
+##   "picked": Array[int]     parcels taken from each shop so far (a warehouse holds several)
 ##
 ## A route is an Array[Vector2i] starting at the van's start tile. The player builds it in
 ## segments, but the rules only ever look at the whole route so far plus the state after it.
@@ -17,7 +17,7 @@ static func new_state(L: LevelData) -> Dictionary:
 	fills.fill(0)
 	var picked := []
 	picked.resize(L.shops.size())
-	picked.fill(false)
+	picked.fill(0)
 	return {"stack": L.stack.duplicate(), "fills": fills, "picked": picked}
 
 
@@ -54,21 +54,25 @@ static func is_won(L: LevelData, s: Dictionary, route: Array) -> bool:
 
 ## Can the route (with state `s` after driving it) be extended onto `next`?
 ## - orthogonal step onto road
-## - one-way tiles may only be entered moving in their arrow's direction
+## - one-way tiles: you may turn onto one from the side, but never drive onto it head-on against its arrow,
+##   and you must leave it moving the way the arrow points
 ## - bridges must be driven straight across, and (no-revisit levels) once per axis
 ## - colour gates may only be entered while the top package is their colour
-## - no-revisit levels: any other tile at most once, except driving home to the depot
+## - no-revisit levels (all of them now: the road behind the van is wrecked): any other tile at most
+##   once, except driving home to the depot
 ## - once parked at the depot, the shift is over
 ## U-turns are legal (the player can stop, then draw back the way they came);
 ## while drawing a single segment, dragging back is a retract instead.
-static func can_extend(L: LevelData, route: Array, next: Vector2i, s: Dictionary) -> bool:
+static func can_extend(L: LevelData, route: Array, next: Vector2i, s: Dictionary, ignore_wreck := false) -> bool:
 	if not L.is_road(next) or parked(L, route):
 		return false
 	var last: Vector2i = route.back()
 	var d := next - last
 	if absi(d.x) + absi(d.y) != 1:
 		return false
-	if L.oneway.has(next) and L.oneway[next] != d:
+	if L.oneway.has(next) and L.oneway[next] == -d:
+		return false
+	if L.oneway.has(last) and L.oneway[last] != d:
 		return false
 	if L.gates.has(next) and top_color(L, s) != L.gates[next]:
 		return false
@@ -76,14 +80,20 @@ static func can_extend(L: LevelData, route: Array, next: Vector2i, s: Dictionary
 	if L.bridges.has(last) and n >= 2 and d != last - route[n - 2]:
 		return false
 	if L.bridges.has(next):
-		if L.no_revisit:
+		if L.no_revisit and not ignore_wreck:
 			for i in range(1, n):
 				if route[i] == next and ((route[i] - route[i - 1]).x == 0) == (d.x == 0):
 					return false
 		return true
-	if L.no_revisit and route.has(next):
+	if L.no_revisit and route.has(next) and not ignore_wreck:
 		return L.return_depot and next == L.start
 	return true
+
+
+## Is `next` blocked only by the route's own wreckage (it would be a legal step on fresh road)?
+## That's a crash: the drawn path turns red from there.
+static func wrecked(L: LevelData, route: Array, next: Vector2i, s: Dictionary) -> bool:
+	return not can_extend(L, route, next, s) and can_extend(L, route, next, s, true)
 
 
 static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
@@ -96,7 +106,9 @@ static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
 ## The van arrives on `tile`, mutating `s`:
 ##  1. a sorting hub swaps the top two packages;
 ##  2. then, repeatedly: deliver the top package to an adjacent house that wants it,
-##     otherwise collect one waiting parcel from an adjacent shop (it goes on top).
+##     otherwise collect one waiting parcel from an adjacent shop (it goes on top). A warehouse
+##     keeps handing them over one by one, so passing it loads its whole stock (deliveries can
+##     happen in between, if a house right there wants what just came aboard).
 ## Returns { "events": [ {type: "swap"} | {type: "deliver", house, color} |
 ##                       {type: "pickup", shop, color} ], "nopes": [house idx] }.
 static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
@@ -128,8 +140,8 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 		if progress:
 			continue
 		for k in adj_s:
-			if not picked[k]:
-				picked[k] = true
+			if picked[k] < L.shops[k].count:
+				picked[k] += 1
 				stack.append(L.shops[k].color)
 				events.append({"type": "pickup", "shop": k, "color": L.shops[k].color})
 				progress = true
@@ -141,6 +153,21 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 			if fills[h] < L.houses[h].order and L.houses[h].color != top and not delivered.has(h):
 				nopes.append(h)
 	return {"events": events, "nopes": nopes}
+
+
+## The most packages aboard at any point along `route` (from a fresh start), counting the start.
+static func max_load(L: LevelData, route: Array) -> int:
+	var s := new_state(L)
+	var most: int = s["stack"].size()
+	for i in range(1, route.size()):
+		var before: int = s["stack"].size()
+		var res := arrive(L, s, route[i])
+		# Within one stop the load can rise and fall: count the pickups before any delivery after them.
+		var load := before
+		for ev in res["events"]:
+			load += 1 if ev["type"] == "pickup" else (-1 if ev["type"] == "deliver" else 0)
+			most = maxi(most, load)
+	return most
 
 
 ## Runs a whole route from a fresh state (no legality checks). Returns the final state.

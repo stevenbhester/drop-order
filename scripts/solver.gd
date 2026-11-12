@@ -23,6 +23,9 @@ var capped := false
 var nodes := 0
 var node_limit := 4000000
 var _visits := {}
+## When set, every winning route found is kept here (up to `limit`).
+var keep_all := false
+var routes: Array = []
 
 
 static func solve(level: LevelData, max_solutions := 20000, max_nodes := 4000000) -> Dictionary:
@@ -41,6 +44,81 @@ static func solve(level: LevelData, max_solutions := 20000, max_nodes := 4000000
 		"nodes": s.nodes,
 		"ms": (Time.get_ticks_usec() - t0) / 1000.0,
 	}
+
+
+## Every winning route (up to `cap`), shortest first.
+static func solve_all(level: LevelData, cap := 400, max_nodes := 2000000) -> Array:
+	var s := Solver.new()
+	s.L = level
+	s.limit = cap
+	s.node_limit = max_nodes
+	s.keep_all = true
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	s._visits = {level.start: 1}
+	s._dfs([level.start], Sim.new_state(level))
+	s.routes.sort_custom(func(a, b): return a.size() < b.size())
+	return s.routes
+
+
+## A winning route that drives over the level's present: either a winning route through it, or one that
+## carries on past the last delivery to reach it ("the extra mile"). [] if the present can't be had.
+static func gift_route(level: LevelData) -> Array:
+	if level.gift_item == "":
+		return []
+	var routes := solve_all(level, 300)
+	for r in routes:
+		if r.has(level.gift):
+			return r
+	if level.return_depot:
+		return []
+	for r in routes:
+		var ext := _reach(level, r.duplicate(), Sim.run(level, r), level.gift, 6)
+		if not ext.is_empty():
+			return ext
+	return []
+
+
+static func _reach(L: LevelData, route: Array, st: Dictionary, goal: Vector2i, depth: int) -> Array:
+	if route.back() == goal:
+		return route.duplicate()
+	if depth <= 0:
+		return []
+	for d in LevelData.DIRS:
+		var n: Vector2i = route.back() + d
+		if not Sim.can_extend(L, route, n, st):
+			continue
+		route.append(n)
+		var st2 := Sim.copy_state(st)
+		Sim.arrive(L, st2, n)
+		var got := _reach(L, route, st2, goal, depth - 1)
+		route.pop_back()
+		if not got.is_empty():
+			return got
+	return []
+
+
+## The shortest way to finish from where the player is now: the tiles from the van's tile onwards, or [] if
+## there's no way to win from here. Used for hints.
+static func solve_from(level: LevelData, route: Array, state: Dictionary, max_nodes := 400000) -> Array:
+	var s := Solver.new()
+	s.L = level
+	s.limit = 400
+	s.node_limit = max_nodes
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	var from: Array = route.duplicate()
+	if level.no_revisit:
+		for t in from:
+			s._visits[t] = s._visits.get(t, 0) + 1
+	else:
+		# Earlier driving doesn't restrict anything on these levels: search afresh from the van.
+		from = [route.back()]
+		s._visits = {route.back(): 1}
+	if s._hopeless(from, state):
+		return []
+	s._dfs(from, Sim.copy_state(state))
+	if s.shortest.is_empty():
+		return []
+	return s.shortest.slice(from.size() - 1)
 
 
 func _dfs(route: Array, state: Dictionary) -> void:
@@ -62,6 +140,8 @@ func _dfs(route: Array, state: Dictionary) -> void:
 		_visits[nxt] = v + 1
 		if Sim.is_won(L, st, route):
 			count += 1
+			if keep_all:
+				routes.append(route.duplicate())
 			if shortest.is_empty() or route.size() < shortest.size():
 				shortest = route.duplicate()
 		elif route.size() < max_len and not _hopeless(route, st):
@@ -94,7 +174,7 @@ func _hopeless(route: Array, st: Dictionary) -> bool:
 			return true
 	var picked: Array = st["picked"]
 	for k in L.shops.size():
-		if not picked[k] and not _touches(L.shop_roads[k], reach, last):
+		if picked[k] < L.shops[k].count and not _touches(L.shop_roads[k], reach, last):
 			return true
 	if L.return_depot:
 		var home := false

@@ -3,3 +3,6 @@
 *.tmp
 build/
 .DS_Store
+
+# Ad renders (tools/ads/render.sh makes them; too big for the repo)
+ads/*.mp4

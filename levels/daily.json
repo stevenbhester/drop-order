@@ -1,0 +1,161 @@
+{
+  "levels": [
+    {
+      "title": "Two Doors Down",
+      "hint": "Small map. Big ideas. Watch what you pass.",
+      "no_revisit": true,
+      "map": [
+        "y r . b R",
+        "# # # # #",
+        "# r # b #",
+        "# # # # #",
+        "# . S . #",
+        "# # # # #"
+      ],
+      "stack": ["red", "yellow", "blue", "blue"]
+    },
+    {
+      "title": "Switchbacks",
+      "no_revisit": true,
+      "map": [
+        "# # # y # # #",
+        "# b # . # . #",
+        "# . # # # # #",
+        "# . # p p r #",
+        "# < + # # # #",
+        ". . # . # . #",
+        "# # # # ^ # #",
+        "# . # . # y #",
+        "S . # p # . #",
+        "# # # # # # #"
+      ],
+      "stack": ["purple", "purple", "yellow", "blue", "purple", "red", "yellow"]
+    },
+    {
+      "title": "Red Tape",
+      "no_revisit": true,
+      "map": [
+        ".  #  #  #  #  #",
+        ".  #  .  S  .  #",
+        ".  #  #  #  #  #",
+        "r  #  y  #  r  #",
+        ".  =r .  #  R  #",
+        ".  #  #  #  #  #",
+        ".  y  r  .  r  ."
+      ],
+      "stack": ["red", "red", "yellow", "red", "yellow"]
+    },
+    {
+      "title": "The Big Map",
+      "hint": "Nine packages, one way through. Take your time.",
+      "no_revisit": true,
+      "map": [
+        "r r . P . . p p .",
+        "# # # # # # # # #",
+        "S . . y # . # p #",
+        "# . . g # . # y #",
+        "# # # # # # # # #",
+        "# . # . # y # y #",
+        "# # # . # # > # ^",
+        "# . . . # . # . #",
+        "# # # # # # # # #",
+        "# . # . # . # . #",
+        "# # # # # # # . #"
+      ],
+      "stack": ["yellow", "green", "yellow", "yellow", "yellow", "purple", "purple", "red", "red"]
+    },
+    {
+      "title": "Cul-de-Sac",
+      "no_revisit": true,
+      "map": [
+        "# # > > #",
+        "# y # r #",
+        "# # # # #",
+        "# b # . #",
+        "S . # r #",
+        "# # # # #",
+        ". y . . b"
+      ],
+      "stack": ["red", "yellow", "blue", "red", "blue", "yellow"]
+    },
+    {
+      "title": "Sort It Out",
+      "no_revisit": true,
+      "map": [
+        "# # @ # # # #",
+        "# y # . v y #",
+        "# # # # # # #",
+        "@ . S . # p #",
+        "# . # P # b #",
+        "# # # # # # #",
+        "# . # . # . p",
+        "# # > # # # #",
+        "b . p . . . ."
+      ],
+      "stack": ["purple", "blue", "yellow", "blue", "yellow", "purple"]
+    },
+    {
+      "title": "The Scenic Route",
+      "no_revisit": true,
+      "map": [
+        "# # # # # # #",
+        ". . # . S . #",
+        "# # # # # # #",
+        "# b # . # y #",
+        "# . # # # p ^",
+        ". . # b # . #",
+        ". . # b # . #",
+        "# # # # + # #",
+        "# . r . # y v",
+        "# # # # # # #"
+      ],
+      "gift": {"at": [1, 7], "item": "soup_bowl"},
+      "stack": ["red", "blue", "yellow", "purple", "yellow", "blue", "blue"]
+    },
+    {
+      "title": "Short Cut",
+      "no_revisit": true,
+      "map": [
+        "# < # # #",
+        "v r # . #",
+        "# y # . #",
+        "# r # S #",
+        "# b # . #",
+        "# # # # #",
+        ". . . y y"
+      ],
+      "stack": ["blue", "red", "red", "yellow", "yellow", "yellow"]
+    },
+    {
+      "title": "Toll Booth",
+      "no_revisit": true,
+      "map": [
+        ".  #  #  #  =r #",
+        ".  #  y  #  b  #",
+        ".  #  #  #  #  <",
+        ".  #  y  #  r  #",
+        "R  #  #  #  #  #",
+        "y  #  r  #  .  #",
+        ".  #  #  #  S  #"
+      ],
+      "stack": ["red", "blue", "yellow", "yellow", "yellow"]
+    },
+    {
+      "title": "Ring Road",
+      "no_revisit": true,
+      "map": [
+        "# # # # # # #",
+        "# r # . # b #",
+        "# # v # # p #",
+        "# . # . # . #",
+        "# S # # # # #",
+        "# . # . v . #",
+        "# # # # + # #",
+        ". p # . # b #",
+        ". . # r # . #",
+        "# # # b # # #"
+      ],
+      "stack": ["purple", "red", "blue", "purple", "blue", "blue", "red"]
+    }
+  ]
+}

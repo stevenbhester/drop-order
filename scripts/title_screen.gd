@@ -2,10 +2,15 @@ class_name TitleScreen
 extends Control
 ## The title: "Last Mile" over a little looping street where the van does its round forever, flinging the top
 ## package to each house as it passes and reloading at the depot. Play goes to the next unfinished level, Levels
-## to the level select. The studio card (StudioCard) plays over it once a launch.
+## to the level select. The studio card (StudioCard) plays over it once a launch. Top left, the version badge
+## (a "NEW" sticker until its patch notes have been read) opens the patch notes.
 
 signal play_pressed
 signal levels_pressed
+signal daily_pressed
+signal garage_pressed
+signal options_pressed
+signal notes_pressed
 
 ## The loop's half extents and corner radius (its centre line), and the road's width.
 const LOOP := Vector2(330, 270)
@@ -44,8 +49,11 @@ var _title: Label
 var _tagline: Label
 var _play: Button
 var _next_label: Label
-var _levels_btn: Button
+var _row: HBoxContainer
 var _footer: Label
+var _gear: JuicyButton
+var _badge: Control
+var _badge_press := 0.0
 var _t := 0.0
 
 
@@ -90,17 +98,69 @@ func _ready() -> void:
 	add_child(_play)
 	_next_label = _label(_next_text(), 40, Palette.TEXT_SOFT)
 
-	_levels_btn = Button.new()
-	_levels_btn.text = "Levels"
-	_levels_btn.custom_minimum_size = Vector2(440, 140)
-	_levels_btn.add_theme_font_size_override("font_size", 54)
-	_levels_btn.pressed.connect(_on_levels)
-	add_child(_levels_btn)
+	# Levels, Daily (its streak as a flame in the button; it breathes if today's isn't done) and Garage.
+	_row = HBoxContainer.new()
+	_row.add_theme_constant_override("separation", 22)
+	add_child(_row)
+	_row.add_child(_small("grid", "Levels", _on_levels))
+	var daily := _small("calendar", "Daily", func():
+		Sfx.play("click")
+		daily_pressed.emit())
+	var today := Daily.today()
+	var streak := Progress.streak(today)
+	# The streak burns inside the button; if today's is still to do, the button breathes.
+	daily.flame = streak
+	_row.add_child(daily)
+	if not Progress.daily_record(today).get("done", false):
+		daily.ready.connect(daily.breathe.bind(true), CONNECT_DEFERRED)
+	_row.add_child(_small("paint", "Garage", func():
+		Sfx.play("click")
+		garage_pressed.emit()))
 
 	_footer = _label("a Door Bowl game", 34, Palette.TEXT_SOFT)
 
+	_gear = JuicyButton.new()
+	_gear.icon_name = "gear"
+	_gear.custom_minimum_size = Vector2(112, 102)
+	_gear.size = Vector2(112, 102)
+	_gear.pressed.connect(func():
+		Sfx.play("click")
+		options_pressed.emit())
+	add_child(_gear)
+
+	_badge = Control.new()
+	_badge.size = Vector2(250, 102)
+	_badge.mouse_filter = Control.MOUSE_FILTER_STOP
+	_badge.draw.connect(_draw_badge)
+	_badge.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+			_badge.accept_event()
+			if e.pressed:
+				_badge_press = 1.0
+			elif _badge_press > 0.0:
+				_badge_press = 0.0
+				Sfx.play("click")
+				Sfx.haptic(12, 0.6)
+				notes_pressed.emit())
+	add_child(_badge)
+
 	_fit()
 	get_viewport().size_changed.connect(_fit)
+	# Play breathes, to invite the tap.
+	_play.pivot_offset = _play.custom_minimum_size / 2.0
+	var breath := _play.create_tween().set_loops()
+	breath.tween_property(_play, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	breath.tween_property(_play, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _small(icon: String, text: String, cb: Callable) -> JuicyButton:
+	var b := JuicyButton.new()
+	b.icon_name = icon
+	b.label = text
+	b.font_px = 40
+	b.custom_minimum_size = Vector2(300, 130)
+	b.pressed.connect(cb)
+	return b
 
 
 func _label(text: String, font_size: int, color: Color, font: Font = null) -> Label:
@@ -161,9 +221,40 @@ func _fit() -> void:
 	_play.position = Vector2((w - _play.custom_minimum_size.x) / 2.0, play_y)
 	_next_label.position = Vector2(0, play_y + 196)
 	_next_label.size = Vector2(w, 0)
-	_levels_btn.position = Vector2((w - _levels_btn.custom_minimum_size.x) / 2.0, play_y + 270)
+	_row.size = Vector2(300 * 3 + 44, 130)
+	_row.position = Vector2((w - _row.size.x) / 2.0, play_y + 270)
 	_footer.position = Vector2(0, maxf(size.y - 110.0, play_y + 440))
 	_footer.size = Vector2(w, 0)
+	_gear.position = Vector2(w - 36 - 112, 40 + UiTheme.insets(get_viewport()).x)
+	_badge.position = Vector2(36, 40 + UiTheme.insets(get_viewport()).x)
+
+
+## The version badge: a tilted ticket stub ("v0.4" and the update's name) with a star sticker, and a bouncing
+## "NEW" sticker while its notes are unread. It sinks a little while pressed.
+func _draw_badge() -> void:
+	var f := UiTheme.font()
+	var sink := 4.0 * _badge_press
+	_badge.draw_set_transform(Vector2(125, 51 + sink), -0.05, Vector2.ONE * (1.0 - 0.04 * _badge_press))
+	var r := Rect2(-118, -38, 236, 76)
+	DrawUtil.rrect(_badge, Rect2(r.position + Vector2(0, 7 - sink), r.size), Palette.ACCENT.darkened(0.3), 24)
+	DrawUtil.rrect(_badge, r, Palette.ACCENT, 24)
+	# The stub's perforation, and the update's name on the right.
+	for k in 5:
+		_badge.draw_circle(Vector2(-30, -28 + k * 14), 3.0, Color(1, 1, 1, 0.45))
+	var v := "v" + Version.NUMBER
+	var vw := f.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
+	_badge.draw_string(f, Vector2(-74 - vw / 2.0, 14), v, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, Color.WHITE)
+	_badge.draw_string(f, Vector2(-16, -4), "WHAT'S", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(1, 1, 1, 0.8))
+	_badge.draw_string(f, Vector2(-16, 24), "NEW?", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color.WHITE)
+	Icons.star(_badge, Vector2(96, -6), 16.0, Palette.STAR_GOLD, _t * 0.8)
+	if Version.unseen():
+		var b := Vector2(108, -34) + Vector2(0, -6.0 * absf(sin(_t * 3.0)))
+		_badge.draw_set_transform(Vector2(125, 51 + sink) + b.rotated(-0.05), 0.25, Vector2.ONE)
+		_badge.draw_circle(Vector2(0, 3), 30.0, Color(0, 0, 0, 0.18))
+		_badge.draw_circle(Vector2.ZERO, 30.0, Color("ff4d6d"))
+		var nw := f.get_string_size("NEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+		_badge.draw_string(f, Vector2(-nw / 2.0, 8), "NEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+	_badge.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -187,6 +278,7 @@ func _on_levels() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_scene.queue_redraw()
+	_badge.queue_redraw()
 	if _pause > 0.0:
 		_pause -= delta
 		_since_go = 0.0

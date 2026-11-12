@@ -31,7 +31,11 @@ func play(sound: String, pitch := 1.0, db := 0.0) -> void:
 	a.play()
 
 
-## Light haptic tap on phones; no-op on desktop.
-func haptic(ms: int) -> void:
-	if OS.has_feature("mobile"):
-		Input.vibrate_handheld(ms)
+## A haptic tap on phones, scaled by the haptics option (0 turns them off); no-op on desktop. `ms` is how
+## long the old full-strength buzz was; `strength` (0..1) how hard this one is next to the others.
+func haptic(ms: int, strength := 1.0) -> void:
+	var h: float = Progress.haptics
+	if h <= 0.01 or not OS.has_feature("mobile"):
+		return
+	var amp := clampf((0.3 + 0.7 * h) * clampf(strength, 0.1, 1.0), 0.05, 1.0)
+	Input.vibrate_handheld(maxi(int(ms * (0.6 + 0.8 * h)), 8), amp)
