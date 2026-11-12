@@ -118,9 +118,11 @@ as a little flame inside the Daily button.
   order they'll go out.
   It works like a real van: the last one in is first out, so a collected parcel comes in at the mouth
   and pushes the others back. On delivery the next package drops out of the mouth into the van, then
-  flies on to the house. Packages are wider than tall, and each colour is its own class with a faint
+  flies on to the house. Packages are longer than they're wide, the long side along the chute (so
+  it stays thin beside the board), and each colour is its own class with a faint
   stamp, just for flavour (the colour is what matters): red gifts (a pale ribbon), yellow biohazard,
-  blue caution, purple mystery, green organic, orange hot. Houses next in line glow softly in their colour. Tap a package and the houses waiting for
+  blue caution, purple mystery, green organic, orange hot. The places that want them match: red
+  homes, yellow labs, blue factories, purple towers, green barns, orange diners. Houses next in line glow softly in their colour. Tap a package and the houses waiting for
   that colour wave. No level starts with more than 12 aboard or needs more than 12 at once; if a wrong
   turn past a warehouse overloads the van, the extra wait behind a "+N" at the back of the chute, and
   you can drag along the chute to scroll through them.

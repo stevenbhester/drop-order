@@ -19,10 +19,11 @@ extends Node2D
 ## less lying along it (where the length is tight).
 const NEXT_UP := 1.5
 const NEXT_SCALE := 1.16
-## Parcels are wider than tall.
+## Parcels are longer than they're wide; the long side runs along the chute (tall in an upright one,
+## wide in one lying along the board), so the chute itself stays thin.
 const ASPECT := 1.36
 ## The tallest a parcel gets (upright / on its side), and the smallest before the chute starts hiding some.
-const MAX_UP := 64.0
+const MAX_UP := 62.0
 const MAX_SIDE := 70.0
 const MIN_H := 38.0
 const LINE_A := 0.26
@@ -41,8 +42,8 @@ var reach := 0.0:
 			reach = v
 			queue_redraw()
 
-var ph := 56.0               # parcel height
-var pw := 76.0               # parcel width
+var ph := 56.0               # a parcel's short side: across the chute
+var pw := 76.0               # its long side: along the chute (so the chute stays thin either way)
 var box := 60.0              # the step between places along the chute (for scrolling)
 var boxes: Array = []        # PackageBox, index 0 = bottom (last out)
 var colors: Array = []       # colour names, parallel to boxes
@@ -72,11 +73,22 @@ func _side() -> Vector2:
 
 
 func _along_item() -> float:
-	return ph if vertical else pw
+	return pw
 
 
 func _across_item() -> float:
-	return pw if vertical else ph
+	return ph
+
+
+## A parcel as drawn: standing tall in an upright chute, lying wide in one along the board.
+func _item_size() -> Vector2:
+	return Vector2(ph, pw) if vertical else Vector2(pw, ph)
+
+
+func _dress(b: PackageBox) -> void:
+	var sz := _item_size()
+	b.size = sz.y
+	b.aspect = sz.x / sz.y
 
 
 ## From the mouth's centre to the first place inside, then the step between places.
@@ -129,8 +141,7 @@ func reshape(avail: float, upright: bool, toward: float) -> void:
 		return
 	_shape(avail, upright, toward)
 	for b in boxes:
-		b.size = ph
-		b.aspect = pw / ph
+		_dress(b)
 		b.queue_redraw()
 	_view = 0
 	_place(false)
@@ -204,7 +215,7 @@ func mouth_global() -> Vector2:
 
 
 func mouth_size() -> Vector2:
-	return Vector2(pw, ph) * _ns() * global_scale
+	return _item_size() * _ns() * global_scale
 
 
 # ---------------------------------------------------------------- places
@@ -269,8 +280,7 @@ func _rest_scale(i: int) -> float:
 func _add(c: String) -> PackageBox:
 	var b := PackageBox.new()
 	b.color = Palette.pkg(c)
-	b.size = ph
-	b.aspect = pw / ph
+	_dress(b)
 	add_child(b)
 	boxes.append(b)
 	colors.append(c)
@@ -498,7 +508,7 @@ func tap_at(local: Vector2) -> String:
 		if not b.visible:
 			continue
 		var at := _slot(i)
-		var half := Vector2(pw, ph) * 0.5 * _rest_scale(i) + Vector2(ph, ph) * 0.08
+		var half := _item_size() * 0.5 * _rest_scale(i) + Vector2(ph, ph) * 0.08
 		if Rect2(at - half, half * 2.0).has_point(local):
 			var tw := b.create_tween()
 			var up := _side() * ph * 0.22
@@ -566,7 +576,7 @@ func _draw() -> void:
 				draw_line(p0, p1, Color(gold, 0.85), lw * 1.5)
 	# The mouth: a gold-framed window round the next package with a slow glow pulsing round it, a gold flap
 	# on the board's side that swings out when a package drops through, and a gold NEXT tag.
-	var m := (Vector2(_across_item(), _along_item()) if vertical else Vector2(_along_item(), _across_item())) * _ns()
+	var m := _item_size() * _ns()
 	var mr := Rect2(-m / 2.0, m).grow(ph * 0.12)
 	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 3.2)
 	if not boxes.is_empty():

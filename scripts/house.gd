@@ -123,27 +123,24 @@ func _draw() -> void:
 	if done:
 		wall = wall.lerp(Color("eeeeee"), 0.5)
 		roof = roof.lerp(Color("b9b9b9"), 0.5)
-
-	DrawUtil.rrect(self, Rect2(-w * 0.62, -s * 0.05, w * 1.24, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
-	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.05)
-	# Roof with rounded corners (fill + thick round outline).
-	var eave := s * 0.07
-	var pts := PackedVector2Array([
-		Vector2(-w / 2 - eave, -h + s * 0.03),
-		Vector2(0, -h - s * 0.3),
-		Vector2(w / 2 + eave, -h + s * 0.03),
-	])
-	draw_colored_polygon(pts, roof)
-	var outline := PackedVector2Array(pts)
-	outline.append(pts[0])
-	draw_polyline(outline, roof, s * 0.05, true)
-	for p in pts:
-		draw_circle(p, s * 0.025, roof)
-	# Door and windows.
-	DrawUtil.rrect(self, Rect2(-s * 0.07, -s * 0.21, s * 0.14, s * 0.21), roof.darkened(0.28), s * 0.04)
+	var ink := roof.darkened(0.28)
 	var glass := Color("e9e9e9") if done else Color("fff1b8")
-	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.07, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
-	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.18, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
+	DrawUtil.rrect(self, Rect2(-w * 0.62, -s * 0.05, w * 1.24, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
+	# Each colour is a different kind of place (its packages' class): same footprint, same light walls and
+	# coloured roof, so it's still the colour you read.
+	match Palette.kind_of(color):
+		"biohazard":
+			_lab(s, w, h, wall, roof, ink, glass)
+		"caution":
+			_factory(s, w, h, wall, roof, ink, glass)
+		"mystery":
+			_tower(s, w, h, wall, roof, ink, glass)
+		"organic":
+			_barn(s, w, h, wall, roof, ink, glass)
+		"hot":
+			_diner(s, w, h, wall, roof, ink, glass)
+		_:
+			_home(s, w, h, wall, roof, ink, glass)
 
 	if order > 1 and not done:
 		var bc := Vector2(w * 0.5, -h - s * 0.16)
@@ -174,3 +171,111 @@ func _draw() -> void:
 			c + Vector2(0.07, -0.045) * s * k,
 		])
 		draw_polyline(chk, Color.WHITE, s * 0.035 * k, true)
+
+
+# ---------------------------------------------------------------- buildings (origin at the base)
+
+## A filled shape with rounded corners (fill plus a round outline in the same colour).
+func _soft_poly(pts: PackedVector2Array, col: Color, rad: float) -> void:
+	draw_colored_polygon(pts, col)
+	var outline := PackedVector2Array(pts)
+	outline.append(pts[0])
+	draw_polyline(outline, col, rad * 2.0, true)
+	for p in pts:
+		draw_circle(p, rad, col)
+
+
+## Gifts: a home with a gable roof.
+func _home(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.05)
+	var eave := s * 0.07
+	_soft_poly(PackedVector2Array([Vector2(-w / 2 - eave, -h + s * 0.03), Vector2(0, -h - s * 0.3), Vector2(w / 2 + eave, -h + s * 0.03)]), roof, s * 0.025)
+	DrawUtil.rrect(self, Rect2(-s * 0.07, -s * 0.21, s * 0.14, s * 0.21), ink, s * 0.04)
+	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.07, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
+	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.18, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
+
+
+## Biohazard: a lab, flat-roofed with an observatory dome and a wide window band.
+func _lab(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	# Lab glass is cool blue (warm glass would vanish on its cream walls).
+	if glass != Color("e9e9e9"):
+		glass = Color("bfe0ff")
+	var hh := h * 1.06
+	DrawUtil.rrect(self, Rect2(-w / 2, -hh, w, hh), wall, s * 0.04)
+	# The dome, then the roof slab over its foot.
+	var dc := Vector2(-w * 0.08, -hh - s * 0.02)
+	draw_circle(dc, s * 0.16, roof)
+	# The telescope slit, open to the sky.
+	draw_line(dc + Vector2(0, -s * 0.14), dc + Vector2(0, -s * 0.03), glass, s * 0.045, true)
+	DrawUtil.rrect(self, Rect2(-w / 2 - s * 0.04, -hh - s * 0.05, w + s * 0.08, s * 0.08), roof, s * 0.03)
+	# A vent pipe on the right.
+	DrawUtil.rrect(self, Rect2(w * 0.28, -hh - s * 0.14, s * 0.06, s * 0.1), ink, s * 0.02)
+	# Window band and a glass door.
+	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.06, -hh + s * 0.07, w - s * 0.12, s * 0.09), glass, s * 0.025)
+	DrawUtil.rrect(self, Rect2(-s * 0.08, -s * 0.18, s * 0.16, s * 0.18), ink, s * 0.03)
+	draw_line(Vector2(0, -s * 0.17), Vector2(0, 0), Color(glass, 0.6), s * 0.015)
+
+
+## Caution: a factory with a sawtooth roof, a smokestack and a roller door.
+func _factory(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	# The stack first, behind the roof.
+	DrawUtil.rrect(self, Rect2(w * 0.22, -h - s * 0.34, s * 0.1, s * 0.34), ink, s * 0.03)
+	DrawUtil.rrect(self, Rect2(w * 0.22 - s * 0.01, -h - s * 0.34, s * 0.12, s * 0.035), roof, s * 0.015)
+	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.04)
+	var teeth := 3
+	var tw := (w + s * 0.06) / teeth
+	var x0 := -w / 2 - s * 0.03
+	for i in teeth:
+		var a := x0 + i * tw
+		_soft_poly(PackedVector2Array([Vector2(a, -h + s * 0.02), Vector2(a, -h - s * 0.15), Vector2(a + tw, -h + s * 0.02)]), roof, s * 0.018)
+	# Skylights in the teeth' steep sides... kept simple: a row of small windows, and the roller door.
+	for i in 3:
+		DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.06 + i * (w - s * 0.12) / 3.0, -h + s * 0.07, (w - s * 0.12) / 3.0 - s * 0.03, s * 0.07), glass, s * 0.02)
+	var door := Rect2(-s * 0.1, -s * 0.2, s * 0.2, s * 0.2)
+	DrawUtil.rrect(self, door, ink, s * 0.03)
+	for k in 3:
+		draw_line(Vector2(door.position.x + s * 0.02, -s * 0.15 + k * s * 0.05), Vector2(door.end.x - s * 0.02, -s * 0.15 + k * s * 0.05), Color(wall, 0.35), s * 0.012)
+
+
+## Mystery: a narrow tower with a tall pointed roof and a round window.
+func _tower(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	var tw := w * 0.72
+	var th := h * 1.2
+	DrawUtil.rrect(self, Rect2(-tw / 2, -th, tw, th), wall, s * 0.04)
+	var eave := s * 0.06
+	_soft_poly(PackedVector2Array([Vector2(-tw / 2 - eave, -th + s * 0.03), Vector2(s * 0.02, -th - s * 0.36), Vector2(tw / 2 + eave, -th + s * 0.03)]), roof, s * 0.022)
+	draw_circle(Vector2(s * 0.02, -th - s * 0.37), s * 0.035, ink)
+	draw_circle(Vector2(0, -th + s * 0.15), s * 0.065, glass)
+	# An arched door.
+	DrawUtil.rrect(self, Rect2(-s * 0.065, -s * 0.2, s * 0.13, s * 0.2), ink, s * 0.065)
+
+
+## Organic: a barn with a gambrel roof, a hay-loft window and a big X door.
+func _barn(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.04)
+	var e := s * 0.06
+	_soft_poly(PackedVector2Array([Vector2(-w / 2 - e, -h + s * 0.03), Vector2(-w / 2 + s * 0.02, -h - s * 0.14), Vector2(0, -h - s * 0.27),
+		Vector2(w / 2 - s * 0.02, -h - s * 0.14), Vector2(w / 2 + e, -h + s * 0.03)]), roof, s * 0.022)
+	DrawUtil.rrect(self, Rect2(-s * 0.05, -h - s * 0.14, s * 0.1, s * 0.09), glass, s * 0.02)
+	var door := Rect2(-s * 0.11, -s * 0.24, s * 0.22, s * 0.24)
+	DrawUtil.rrect(self, door, ink, s * 0.03)
+	var line := Color(wall, 0.7)
+	draw_line(door.position + Vector2(s * 0.025, s * 0.025), door.end - Vector2(s * 0.025, s * 0.01), line, s * 0.018, true)
+	draw_line(Vector2(door.end.x - s * 0.025, door.position.y + s * 0.025), Vector2(door.position.x + s * 0.025, door.end.y - s * 0.01), line, s * 0.018, true)
+
+
+## Hot: a diner, low and wide, with a rounded roof, a stripe and a big front window.
+func _diner(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
+	var dw := w * 1.1
+	var dh := h * 0.92
+	# A little chimney behind the roof.
+	DrawUtil.rrect(self, Rect2(-dw * 0.32, -dh - s * 0.2, s * 0.07, s * 0.14), ink, s * 0.02)
+	var arch := PackedVector2Array()
+	for i in 13:
+		var a := PI + PI * i / 12.0
+		arch.append(Vector2(cos(a) * (dw / 2 + s * 0.04), -dh + s * 0.02 + sin(a) * s * 0.17))
+	draw_colored_polygon(arch, roof)
+	DrawUtil.rrect(self, Rect2(-dw / 2, -dh, dw, dh), wall, s * 0.05)
+	DrawUtil.rrect(self, Rect2(-dw / 2, -dh + s * 0.03, dw, s * 0.05), roof, s * 0.02)
+	DrawUtil.rrect(self, Rect2(-dw / 2 + s * 0.06, -dh + s * 0.12, dw * 0.46, s * 0.1), glass, s * 0.03)
+	DrawUtil.rrect(self, Rect2(dw * 0.14, -s * 0.2, s * 0.13, s * 0.2), ink, s * 0.035)

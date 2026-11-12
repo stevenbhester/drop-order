@@ -10,7 +10,7 @@ const NAME := "The Chute Update"
 const NOTES := [
 	{"version": "0.4", "name": "The Chute Update", "notes": [
 		"Your load rides in a package chute now. Pick left, right, top or bottom in Options.",
-		"Every colour is its own kind of package: gifts, biohazard, caution, mystery, organic and hot stuff.",
+		"Every colour is its own kind of package (gifts, biohazard, caution, mystery, organic, hot stuff) and its own kind of place: a home, a lab, a factory, a tower, a barn, a diner.",
 		"Deliveries drop out of the chute into the van, then fly to the house.",
 		"Challenge levels! Eight extra-spicy levels get hazard tape on the map, a big intro, and 500 Dollaroos for crushing them.",
 		"The start is a pit stop. A checkered flag in the chute means you finish back there.",

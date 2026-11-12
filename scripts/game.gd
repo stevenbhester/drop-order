@@ -1381,19 +1381,22 @@ func _launch_package(h: int, step: int) -> void:
 	var house: House = board.house_nodes[h]
 	var to := house.base_pos + Vector2(0, -board.tile * 0.35)
 	var mouth := board.to_local(stack_view.mouth_global())
-	var big: float = stack_view.mouth_size().y / board.scale.x
+	var ms := stack_view.mouth_size()
+	var big: float = ms.y / board.scale.x
 	var out := board.to_local(stack_view.mouth_global() + stack_view._side() * stack_view.ph * 1.6)
 	stack_view.pop_top(true)
 	van.set_top(stack_view.top_color())
 	var pkg := _make_flyer(level.houses[h].color, mouth)
 	var small := pkg.size
 	pkg.size = big
+	pkg.aspect = ms.x / ms.y
 	pkg.z_index = 30
 	Sfx.play("whoosh", randf_range(0.95, 1.1), -10)
 	var tw := create_tween()
-	tw.tween_method(_drop.bind(pkg, mouth, out, small / big), 0.0, 1.0, DROP_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_method(_drop.bind(pkg, mouth, out, small / big, ms.x / ms.y), 0.0, 1.0, DROP_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
 		pkg.size = small
+		pkg.aspect = StackView.ASPECT
 		pkg.scale = Vector2.ONE
 		pkg.queue_redraw()
 		van.nudge())
@@ -1432,11 +1435,14 @@ func _collect_parcel(k: int) -> void:
 
 ## Out of the chute's mouth (a little hop out the spout first) and down into the van, shrinking to board size.
 ## Where it ends up (the van, wherever it's got to) is where its flight to the house starts.
-func _drop(t: float, pkg: PackageBox, from: Vector2, out: Vector2, shrink: float) -> void:
+func _drop(t: float, pkg: PackageBox, from: Vector2, out: Vector2, shrink: float, aspect0: float) -> void:
 	var to := van.position
 	var u := 1.0 - t
 	pkg.position = from * u * u + out * 2.0 * u * t + to * t * t
 	pkg.scale = Vector2.ONE * lerpf(1.0, shrink, t)
+	# Tall in an upright chute, wide on the board: it turns over on the way.
+	pkg.aspect = lerpf(aspect0, StackView.ASPECT, t)
+	pkg.queue_redraw()
 	pkg.rotation = 0.4 * sin(PI * t)
 	pkg.set_meta("from", pkg.position)
 

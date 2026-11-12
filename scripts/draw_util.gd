@@ -22,7 +22,7 @@ static func package(ci: CanvasItem, c: Vector2, s: float, col: Color, shadow := 
 	parcel(ci, c, Vector2(s, s), col, shadow)
 
 
-## A package `size` across (wider than tall in the chute), in its colour, with its class's mark:
+## A package `size` across (longer than wide in the chute), in its colour, with its class's mark:
 ## red is a gift (ribbon and bow), yellow biohazard, blue caution, purple a mystery, green organic, orange hot.
 static func parcel(ci: CanvasItem, c: Vector2, size: Vector2, col: Color, shadow := true) -> void:
 	var r := Rect2(c - size * 0.5, size)
