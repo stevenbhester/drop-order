@@ -15,11 +15,14 @@ extends Node2D
 ## chute to scroll through them; it slides back when let go.
 ## Origin is the centre of the mouth. Mirrors Sim's stack (index 0 = bottom = last out).
 
+## How much bigger the next package (in the mouth) is than the rest: a lot standing up beside the board,
+## less lying along it (where the length is tight).
+const NEXT_UP := 1.5
 const NEXT_SCALE := 1.16
 ## Parcels are wider than tall.
 const ASPECT := 1.36
 ## The tallest a parcel gets (upright / on its side), and the smallest before the chute starts hiding some.
-const MAX_UP := 74.0
+const MAX_UP := 64.0
 const MAX_SIDE := 70.0
 const MIN_H := 38.0
 const LINE_A := 0.26
@@ -54,6 +57,10 @@ var _flap := 0.0             # the mouth's flap swings open as a package drops o
 
 # ---------------------------------------------------------------- shape
 
+func _ns() -> float:
+	return NEXT_UP if vertical else NEXT_SCALE
+
+
 ## Along the chute, toward the back (away from the mouth).
 func _back() -> Vector2:
 	return Vector2(0, -1) if vertical else Vector2(-1, 0)
@@ -74,7 +81,7 @@ func _across_item() -> float:
 
 ## From the mouth's centre to the first place inside, then the step between places.
 func _gap0() -> float:
-	return _along_item() * (NEXT_SCALE * 0.5 + 0.5) + ph * 0.34
+	return _along_item() * (_ns() * 0.5 + 0.5) + ph * 0.34
 
 
 func _step() -> float:
@@ -83,12 +90,12 @@ func _step() -> float:
 
 ## From the mouth's centre to its front edge.
 func _front() -> float:
-	return _along_item() * NEXT_SCALE * 0.5 + ph * 0.14
+	return _along_item() * _ns() * 0.5 + ph * 0.14
 
 
 ## Room for the "NEXT" label.
 func _lab() -> float:
-	return ph * 0.46
+	return ph * 0.6
 
 
 ## How far back the tube's last place is, with `places` places.
@@ -102,7 +109,7 @@ func _length(places: int) -> float:
 
 
 func _across_full() -> float:
-	return _across_item() * NEXT_SCALE + ph * 0.5
+	return _across_item() * _ns() + ph * 0.5
 
 
 ## `avail` is the room along the chute's length; `capacity` the most it'll ever carry; `upright` stands it
@@ -197,7 +204,7 @@ func mouth_global() -> Vector2:
 
 
 func mouth_size() -> Vector2:
-	return Vector2(pw, ph) * NEXT_SCALE * global_scale
+	return Vector2(pw, ph) * _ns() * global_scale
 
 
 # ---------------------------------------------------------------- places
@@ -256,7 +263,7 @@ func _slot(i: int) -> Vector2:
 
 
 func _rest_scale(i: int) -> float:
-	return NEXT_SCALE if i == boxes.size() - 1 else 1.0
+	return _ns() if i == boxes.size() - 1 else 1.0
 
 
 func _add(c: String) -> PackageBox:
@@ -299,7 +306,7 @@ func _swing_flap() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _roll != 0.0 or _flap != 0.0 or finish_flag:
+	if _roll != 0.0 or _flap != 0.0 or finish_flag or not boxes.is_empty():
 		queue_redraw()
 
 
@@ -469,7 +476,7 @@ func nod() -> void:
 	if boxes.is_empty():
 		return
 	var nb: PackageBox = boxes.back()
-	var rest := Vector2.ONE * NEXT_SCALE
+	var rest := Vector2.ONE * _ns()
 	var tw := nb.create_tween()
 	tw.tween_property(nb, "scale", rest * 1.12, 0.07)
 	tw.tween_property(nb, "scale", rest, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -557,12 +564,16 @@ func _draw() -> void:
 				var p0 := rim_a.lerp(rim_b, float(i) / n)
 				var p1 := rim_a.lerp(rim_b, float(i + 1) / n)
 				draw_line(p0, p1, Color(gold, 0.85), lw * 1.5)
-	# The mouth: a soft gold bay around the next package, a gold lip on the board's side, and a flap that
-	# swings out when a package drops through.
-	var m := (Vector2(_across_item(), _along_item()) if vertical else Vector2(_along_item(), _across_item())) * NEXT_SCALE
+	# The mouth: a gold-framed window round the next package with a slow glow pulsing round it, a gold flap
+	# on the board's side that swings out when a package drops through, and a gold NEXT tag.
+	var m := (Vector2(_across_item(), _along_item()) if vertical else Vector2(_along_item(), _across_item())) * _ns()
 	var mr := Rect2(-m / 2.0, m).grow(ph * 0.12)
+	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 3.2)
 	if not boxes.is_empty():
-		DrawUtil.rrect(self, mr.grow(ph * 0.05), Color(gold, 0.22), ph * 0.3)
+		DrawUtil.rrect(self, mr.grow(ph * (0.1 + 0.07 * pulse)), Color(gold, 0.14 + 0.12 * pulse), ph * 0.42)
+	DrawUtil.rrect(self, Rect2(mr.position + Vector2(0, lw * 1.6), mr.size).grow(lw * 1.4), Color(gold.darkened(0.3), 0.5), ph * 0.32 + lw)
+	DrawUtil.rrect(self, mr.grow(lw * 1.4), Color(gold, 0.95), ph * 0.32 + lw)
+	DrawUtil.rrect(self, mr, Palette.SURFACE.lerp(gold, 0.16), ph * 0.32)
 	var sd := _side()
 	var edge := mr.size.x / 2.0 if vertical else mr.size.y / 2.0
 	var along_dir := -back
@@ -571,21 +582,23 @@ func _draw() -> void:
 	var hinge := lip_c - along_dir * half_lip
 	var tip := hinge + along_dir * half_lip * 2.0
 	tip = hinge + (tip - hinge).rotated(-signf(sd.x + sd.y) * (1.0 if vertical else -1.0) * _flap * 0.9)
-	draw_line(hinge, tip, Color(gold, 0.95), lw * 1.6, true)
-	draw_circle(hinge, lw * 1.1, Color(gold, 0.95))
-	# A thin floor on the other side, so the mouth reads as a bay.
-	var floor_c := -sd * (edge + lw * 0.2)
-	draw_line(floor_c - along_dir * half_lip, floor_c + along_dir * half_lip, line, lw, true)
+	if _flap > 0.01:
+		draw_line(hinge, tip, Color(gold.darkened(0.15), 0.95), lw * 2.2, true)
+		draw_circle(hinge, lw * 1.3, Color(gold, 0.95))
+	# The NEXT tag: a gold pill under the window (above or below it when the chute lies along the board).
 	var nfs := int(ph * 0.3)
 	var nw := f.get_string_size("NEXT", HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
-	var lab: Vector2
+	var tag_h := ph * 0.42
+	var tag_c: Vector2
 	if vertical:
-		lab = Vector2(-nw / 2.0, _front() + nfs * 0.95)
+		tag_c = Vector2(0, mr.end.y + lw * 1.4 + ph * 0.06 + tag_h / 2.0)
 	elif spout > 0.0:
-		lab = Vector2(-nw / 2.0, -_across_full() / 2.0 - nfs * 0.25)
+		tag_c = Vector2(0, mr.position.y - lw * 1.4 - ph * 0.06 - tag_h / 2.0)
 	else:
-		lab = Vector2(-nw / 2.0, _across_full() / 2.0 + nfs * 0.9)
-	draw_string(f, lab, "NEXT", HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(Palette.TEXT, 0.62))
+		tag_c = Vector2(0, mr.end.y + lw * 1.4 + ph * 0.06 + tag_h / 2.0)
+	var tag := Rect2(tag_c - Vector2(nw / 2.0 + ph * 0.22, tag_h / 2.0), Vector2(nw + ph * 0.44, tag_h))
+	DrawUtil.rrect(self, tag, gold, tag_h / 2.0)
+	draw_string(f, tag_c + Vector2(-nw / 2.0, nfs * 0.36), "NEXT", HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color("3a2a12"))
 	# More aboard than fits: "+N" where they're tucked away.
 	var fit := _fit()
 	for end in [[fit.behind, _places - 1], [fit.front, 1]]:

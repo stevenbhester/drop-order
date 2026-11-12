@@ -113,12 +113,14 @@ as a little flame inside the Daily button.
 - **The load** rides in a **package chute**: standing up beside the board (left by default) with its
   mouth at the bottom, or lying along the top or bottom of the board with its mouth at the right end
   (Options → Package chute; sideways play always has it on top). The **next** package sits in the
-  mouth, a little bigger, lit gold, over "NEXT"; the rest queue up the tube in the order they'll go out.
+  mouth in a gold-framed window with a gold NEXT tag (half again as big as the rest when the chute
+  stands beside the board, its mouth up by the board's bottom row); the rest queue up the tube in the
+  order they'll go out.
   It works like a real van: the last one in is first out, so a collected parcel comes in at the mouth
   and pushes the others back. On delivery the next package drops out of the mouth into the van, then
-  flies on to the house. Packages are wider than tall, and each colour is its own class with its own
-  mark: red gifts (ribbon and bow), yellow biohazard, blue caution, purple mystery, green organic,
-  orange hot. Houses next in line glow softly in their colour. Tap a package and the houses waiting for
+  flies on to the house. Packages are wider than tall, and each colour is its own class with a faint
+  stamp, just for flavour (the colour is what matters): red gifts (a pale ribbon), yellow biohazard,
+  blue caution, purple mystery, green organic, orange hot. Houses next in line glow softly in their colour. Tap a package and the houses waiting for
   that colour wave. No level starts with more than 12 aboard or needs more than 12 at once; if a wrong
   turn past a warehouse overloads the van, the extra wait behind a "+N" at the back of the chute, and
   you can drag along the chute to scroll through them.

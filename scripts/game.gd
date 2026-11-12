@@ -33,8 +33,10 @@ const DRIVE_SPEED := 7.0         # tiles per second at cruise
 const REWIND_SPEED := 16.0
 const RAMP := 0.6                # tiles spent accelerating / braking
 const TOP_BAR := 170.0
-## Between an upright chute and the board.
+## Between an upright chute and the board, and how far its mouth sits up off the buttons (so the next
+## package is up by the board's bottom row, not down among the controls).
 const CHUTE_GAP := 14.0
+const CHUTE_LIFT := 44.0
 ## The least room kept for the level's name and hint, above the truck (upright).
 const TEXT_MIN := 110.0
 ## The D-pad's size: three keys across, two down.
@@ -366,7 +368,7 @@ func _chute_shape() -> Array:
 	var vp := get_viewport_rect().size
 	match _chute_side():
 		"left", "right":
-			var room := vp.y - _header_bottom() - _controls_h() - _bottom_inset - 50.0
+			var room := vp.y - _header_bottom() - _controls_h() - _bottom_inset - 50.0 - CHUTE_LIFT
 			return [room, true, 1.0 if _chute_side() == "left" else -1.0]
 		"bottom":
 			return [vp.x - 80.0, false, -1.0]
@@ -663,7 +665,7 @@ func _layout() -> void:
 	var text_w := vp.x - 40.0
 	# Upright or underneath, the chute (its label included) ends a little over the buttons, clear of their
 	# badges.
-	var chute_bottom := block_top - 26.0
+	var chute_bottom := block_top - 26.0 - (CHUTE_LIFT if _chute_upright() else 0.0)
 	if side == "bottom":
 		stack_view.position.y = chute_bottom - ce.y + co.y
 		floor_y = chute_bottom - ce.y - 14.0
