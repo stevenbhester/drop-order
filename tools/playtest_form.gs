@@ -9,21 +9,19 @@
  *   4. Open the Execution log (it opens by itself): it shows the link to send playtesters, and the
  *      link to edit the form. Both are also in your Google Drive.
  *
- * About three minutes for a playtester: seven taps, the rest optional. Each question is there because
- * its answer decides something:
- *   How far / still playing / why they stopped -> where players drop off, and why.
- *   Difficulty / confusing levels               -> the difficulty curve and the tutorials.
- *   Steering grid                               -> whether Draw, the D-pad, or both stay.
- *   Which parts they enjoyed                    -> which modes get more content.
- *   Gas                                         -> keep, soften or drop the energy system.
- *   Real ads or purchases                       -> which way to go when the placeholders get replaced.
- *   Recommend (0-10)                            -> one number to compare build to build.
+ * Three pages, most important first. Google Forms only keeps answers that get submitted, so each page
+ * ends with "keep going, or send my answers now?": someone short on time sends page 1 and it still counts.
+ *   Page 1 (a minute): how far, still playing, difficulty, recommend 0-10, what kind of puzzle player
+ *     they are, and the one thing they'd change. Enough to judge a build, and who it's landing with.
+ *   Page 2 (a minute of taps): why they stopped, Draw vs D-pad, which modes they enjoyed, the gas
+ *     system, and real ads vs purchases once the placeholders go.
+ *   Page 3 (optional): confusing levels or symbols, and their name.
  */
 function createLastMilePlaytestForm() {
   const form = FormApp.create('Last Mile playtest (3 minutes)');
   form.setDescription(
-    'Thanks for playtesting Last Mile! This takes about 3 minutes: mostly taps, and every text box is ' +
-    'optional. Your answers decide what gets built next, so honest beats nice.\n\n' +
+    'Thanks for playtesting Last Mile! The first page takes about a minute and covers what matters most. ' +
+    'After that you can send your answers, or keep going for two more short pages. Honest beats nice.\n\n' +
     'Found a bug? In the game, Options > Feedback / Bug report is quickest: it sends a screenshot and ' +
     'the game\'s log too.');
   form.setConfirmationMessage(
@@ -32,9 +30,10 @@ function createLastMilePlaytestForm() {
   form.setCollectEmail(false);
   form.setAllowResponseEdits(false);
   form.setLimitOneResponsePerUser(false); // no Google sign-in needed to answer
-  form.setProgressBar(false);
+  form.setProgressBar(true);
   form.setShowLinkToRespondAgain(false);
 
+  // ---- Page 1: what matters most ----------------------------------------------------------------
   form.addMultipleChoiceItem()
     .setTitle('How far did you get?')
     .setChoiceValues(['Levels 1 to 10', '11 to 20', '21 to 40', '41 to 60', '61 to 90', '91 to 100',
@@ -46,19 +45,47 @@ function createLastMilePlaytestForm() {
     .setChoiceValues(['Yes, most days', 'Now and then', 'No, I stopped'])
     .setRequired(true);
 
-  form.addCheckboxItem()
-    .setTitle('If you stopped or slowed down, what did it?')
-    .setHelpText('Pick any.')
-    .setChoiceValues(['Got stuck on a level', 'It got too hard', 'It got repetitive', 'Ran out of gas',
-      'The controls got frustrating', 'Life got busy', 'I finished it'])
-    .showOtherOption(true);
-
   form.addScaleItem()
     .setTitle('How did the difficulty feel overall?')
     .setHelpText('3 is just right.')
     .setBounds(1, 5)
     .setLabels('Way too easy', 'Way too hard')
     .setRequired(true);
+
+  form.addScaleItem()
+    .setTitle('How likely are you to recommend Last Mile to a friend?')
+    .setBounds(0, 10)
+    .setLabels('Not at all', 'Already have')
+    .setRequired(true);
+
+  form.addMultipleChoiceItem()
+    .setTitle('Which sounds most like you and puzzle games on your phone?')
+    .setChoiceValues([
+      'I don\'t really play games on my phone',
+      'A few minutes here and there (solitaire, Candy Crush, word games)',
+      'Puzzles are part of my day (Wordle, NYT Games, daily streaks)',
+      'I go looking for clever puzzle games (Monument Valley, Mini Metro, Baba Is You)',
+    ])
+    .setRequired(true);
+
+  form.addParagraphTextItem()
+    .setTitle('If you could change one thing, what would it be?');
+
+  const more1 = form.addMultipleChoiceItem()
+    .setTitle('Got another minute? The next page is all taps.')
+    .setHelpText('Either way, your answers so far are saved once you send them.');
+
+  // ---- Page 2: the decisions ---------------------------------------------------------------------
+  const page2 = form.addPageBreakItem()
+    .setTitle('A few more taps')
+    .setHelpText('About a minute.');
+
+  form.addCheckboxItem()
+    .setTitle('If you stopped or slowed down, what did it?')
+    .setHelpText('Pick any.')
+    .setChoiceValues(['Got stuck on a level', 'It got too hard', 'It got repetitive', 'Ran out of gas',
+      'The controls got frustrating', 'Life got busy', 'I finished it'])
+    .showOtherOption(true);
 
   form.addGridItem()
     .setTitle('Steering: how did each feel?')
@@ -85,22 +112,31 @@ function createLastMilePlaytestForm() {
       'Free, with small in-app purchases (gas, cosmetics)', 'I wouldn\'t pay or watch ads for it'])
     .setRequired(true);
 
-  form.addScaleItem()
-    .setTitle('How likely are you to recommend Last Mile to a friend?')
-    .setBounds(0, 10)
-    .setLabels('Not at all', 'Already have')
-    .setRequired(true);
+  const more2 = form.addMultipleChoiceItem()
+    .setTitle('One last page: two optional boxes. Keep going?');
+
+  // ---- Page 3: optional extras -------------------------------------------------------------------
+  const page3 = form.addPageBreakItem()
+    .setTitle('Last bit')
+    .setHelpText('Both optional.');
 
   form.addParagraphTextItem()
     .setTitle('Was any level or symbol confusing or unfair?')
     .setHelpText('The level number helps, if you remember it.');
 
-  form.addParagraphTextItem()
-    .setTitle('If you could change one thing, what would it be?');
-
   form.addTextItem()
     .setTitle('Your name')
     .setHelpText('Only so Steven can say thanks or ask a follow-up. Leave it blank to stay anonymous.');
+
+  // The checkpoints: keep going to the next page, or send now (the Next button becomes Submit).
+  more1.setChoices([
+    more1.createChoice('Yes, keep going', page2),
+    more1.createChoice('No, send my answers now', FormApp.PageNavigationType.SUBMIT),
+  ]).setRequired(true);
+  more2.setChoices([
+    more2.createChoice('Yes', page3),
+    more2.createChoice('No, send my answers now', FormApp.PageNavigationType.SUBMIT),
+  ]).setRequired(true);
 
   // Answers land in a spreadsheet as well as the form's own summary.
   const sheet = SpreadsheetApp.create('Last Mile playtest answers');
