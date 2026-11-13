@@ -1,10 +1,11 @@
 {
-	"build": 13,
+	"build": 14,
 	"name": "The Long Road",
 	"notes": [
-		"Options links to the privacy policy (short version: the game keeps almost nothing).",
-		"Options also shows which build you're on."
+		"Fixed: tapping a symbol for its reminder could freeze the game.",
+		"3 hints per level. Out? A quick (pretend, skippable) ad makes them unlimited, or switch on Unlimited hints in Options.",
+		"The way on to the next part is a road off the map, with a gate that opens once you've delivered everything."
 	],
-	"ready_at": 1794604700,
+	"ready_at": 1794611365,
 	"version": "0.7"
 }
