@@ -94,6 +94,9 @@ func _ready() -> void:
 		if a.begins_with("--chest=") and screen is LevelSelect:
 			# Debug: open a milestone chest on the map straight away (for screenshots).
 			(screen as LevelSelect)._open_chest.call_deferred(a.trim_prefix("--chest=").to_int())
+	if args.has("--feedback"):
+		# Debug: open the feedback card straight away (for screenshots).
+		open_feedback.call_deferred()
 	if args.has("--notes"):
 		# Debug: open the patch notes straight away (for screenshots).
 		open_notes.call_deferred()
@@ -105,11 +108,27 @@ func _ready() -> void:
 ## The options card, over whatever's showing. The game passes itself so it can pause its input meanwhile.
 func open_options(from: Node = null) -> OptionsMenu:
 	var m := OptionsMenu.new()
+	m.feedback_pressed.connect(open_feedback.bind(from))
 	add_child(m)
 	if from is Game:
 		(from as Game).modal = m
 		m.closed.connect(func(): (from as Game).modal = null)
 	return m
+
+
+## Feedback / Bug report: once the options card is gone, a screenshot of what's on screen, then the report.
+func open_feedback(from: Node = null) -> void:
+	await get_tree().create_timer(0.22).timeout
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	var card := FeedbackCard.new()
+	card.shot = img
+	card.where = Feedback.where_of(screen)
+	if from is Game:
+		(from as Game).modal = card
+		card.closed.connect(func(): (from as Game).modal = null)
+	add_child(card)
+	print("[feedback] opened at %s" % card.where)
 
 
 ## What's new: the patch notes (from the title's version badge).
@@ -370,3 +389,5 @@ func _swap(next: Node) -> void:
 			create_tween().tween_property(_cover, "color:a", 0.0, 0.22)
 	screen = next
 	_put(next)
+	# A breadcrumb for bug reports (the log rides along with them).
+	print("[screen] %s" % Feedback.where_of(next))

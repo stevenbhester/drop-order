@@ -7,6 +7,8 @@ extends CanvasLayer
 ## re-lays its controls out for the D-pad and the hand.
 
 signal closed
+## Feedback / Bug report was picked (the card closes; Main takes a screenshot and opens the report).
+signal feedback_pressed
 
 const ROW_H := 116.0
 
@@ -98,6 +100,17 @@ func _build() -> void:
 	_gap(6)
 	_rows.add_child(_slider("Sound", "volume", "sound", ["Off", "Loud"]))
 	_rows.add_child(_slider("Haptics", "haptics", "buzz", ["None", "Max"]))
+	_gap(10)
+	var fb := JuicyButton.new()
+	fb.label = "Feedback / Bug report"
+	fb.icon_name = "peek"
+	fb.font_px = 40
+	fb.custom_minimum_size = Vector2(0, 110)
+	fb.pressed.connect(func():
+		Sfx.play("click")
+		feedback_pressed.emit()
+		_close())
+	_rows.add_child(fb)
 
 
 func _gap(h: float) -> void:

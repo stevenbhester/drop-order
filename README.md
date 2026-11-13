@@ -216,6 +216,14 @@ as a little flame inside the Daily button.
   tick on the phone, and a way that's blocked shakes and buzzes twice. Hint/Undo/Retry sit on the far
   side, and Hint takes two taps there ("Sure?") so a stray thumb can't spend a star. Arrow keys and
   Enter do the same on a keyboard.
+- **Feedback / Bug report** (bottom of Options): "Tell Steven". Bug or idea, a few words, and
+  "Include a screenshot" (ticked, with a preview of what was on screen). **Submit to Steven** sends it,
+  with the game's recent log (file logging is on, iOS included) and device and game details, to the
+  sign-up server (`POST /lm/feedback`), which files it as an issue in the private repo
+  `stevenbhester/last-mile-feedback` (screenshot and full log stored alongside). The game never holds a
+  GitHub token. A parcel hops to a mailbox until the server confirms; then "Got it!" with the report id,
+  or what went wrong and Try again. `-- --feedback` opens it straight away; `--feedback-url=` points it
+  at a test server.
 - **Options** (the gear: bottom left in a level, top corner of the title and map): steering (draw or
   D-pad), which hand the D-pad is for, where the package chute goes, the route preview, colorblind mode, **night mode**, **play sideways** (landscape: the board in the
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic
@@ -252,6 +260,7 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |
 | `scripts/roadworks.gd` | Roadworks on a road tile (counts down deliveries, then clears) |
 | `tools/twist_levels.gd`, `make_mega.gd` | Design aids: add ice/lockers/roadworks to generated levels and rate difficulty (`--rate`); add exits for parted routes |

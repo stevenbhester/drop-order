@@ -16,11 +16,16 @@ config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 boot_splash/bg_color=Color(0.075, 0.05, 0.11, 1)
 boot_splash/show_image=false
+boot_splash/image="res://assets/launch/launch.png"
 
 [autoload]
 
 Sfx="*res://scripts/sfx.gd"
 Progress="*res://scripts/progress.gd"
+
+[debug]
+
+file_logging/enable_file_logging=true
 
 [display]
 

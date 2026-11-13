@@ -48,7 +48,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autofeedback"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -70,6 +70,23 @@ func _ready() -> void:
 		"autodrag":
 			for p in pieces:
 				await _drag(p)
+		"autofeedback":
+			# A report goes all the way out (point it at a test server with --feedback-url=).
+			var main := get_tree().root.get_node_or_null("Main")
+			var card := FeedbackCard.new()
+			card.shot = get_viewport().get_texture().get_image()
+			card.where = Feedback.where_of(g)
+			get_tree().root.add_child(card)
+			await get_tree().process_frame
+			card._text.text = "Autotest: the van drove off the edge of the map on level %d." % g.level.number
+			card._submit()
+			var waited := 0.0
+			while card._stage == FeedbackCard.Stage.SENDING and waited < 20.0:
+				await get_tree().create_timer(0.2).timeout
+				waited += 0.2
+			print("AUTOTEST feedback: stage=%s id=%s status=%s" % [FeedbackCard.Stage.keys()[card._stage], card._report_id, card._status_text])
+			get_tree().quit()
+			return
 		"autoexplain":
 			# Every symbol on the board explains itself (a line for each), and the card closes on a tap.
 			var kinds := {}

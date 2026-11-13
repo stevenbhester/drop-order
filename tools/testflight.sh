@@ -38,6 +38,8 @@ if [[ ! $BUILD =~ '^[0-9]+$' ]]; then
 	exit 1
 fi
 echo "==> Last Mile $VERSION, build $BUILD"
+# The game names its build in bug reports (Version.BUILD): keep it in step with this archive.
+sed -i '' "s/^const BUILD := .*/const BUILD := $BUILD/" scripts/version.gd
 
 echo "==> Building the daily-reminder plugin"
 tools/build_notify_plugin.sh
