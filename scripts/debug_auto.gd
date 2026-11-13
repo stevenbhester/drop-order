@@ -79,6 +79,9 @@ func _ready() -> void:
 			get_tree().root.add_child(card)
 			await get_tree().process_frame
 			card._text.text = "Autotest: the van drove off the edge of the map on level %d." % g.level.number
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--feedback-text="):
+					card._text.text = a.trim_prefix("--feedback-text=")
 			card._submit()
 			var waited := 0.0
 			while card._stage == FeedbackCard.Stage.SENDING and waited < 20.0:
