@@ -2212,10 +2212,10 @@ func _out_of_hints_tip() -> void:
 	_ui_root.add_child(_tip)
 
 
-## Out of hints: a pretend ad (one of three videos, skippable straight away), then they're unlimited for
-## the rest of this level.
+## Out of hints: a pretend ad (one of PromoAd's three spots, skippable straight away), then they're unlimited
+## for the rest of this level.
 func _play_hint_ad() -> void:
-	var ad := VideoAd.new()
+	var ad := PromoAd.new()
 	modal = ad
 	_overlay(ad)
 	ad.finished.connect(func():

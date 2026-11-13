@@ -95,7 +95,7 @@ func _build() -> void:
 	_rows.add_child(_choice("Steering", "drive_mode", [["draw", "Draw", "finger"], ["dpad", "D-pad", "dpad"]]))
 	_rows.add_child(_choice("D-pad hand", "left_hand", [[false, "Right", "right"], [true, "Left", "left"]]))
 	_rows.add_child(_sides())
-	_rows.add_child(_toggle("Package trail", "trail", "trail"))
+	_rows.add_child(_toggle("Package trail", "trail", "trail", "your next packages follow the van on drones"))
 	_rows.add_child(_toggle("Route preview", "peek", "peek"))
 	_rows.add_child(_toggle("Unlimited hints", "unlimited_hints", "bulb", "no ads needed (a hint still costs a star)"))
 	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))

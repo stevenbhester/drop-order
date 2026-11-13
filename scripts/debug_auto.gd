@@ -157,7 +157,7 @@ func _ready() -> void:
 		"autohintad":
 			# With the Unlimited hints option on, hints don't count down. Off: three, and the third leaves a
 			# tip by the Hint button (it shows for real players; Progress.auto is lifted for it here); the
-			# fourth plays a video ad, skipped straight away, and hints are free for the rest of the level.
+			# fourth plays a pretend ad, skipped straight away, and hints are free for the rest of the level.
 			var notes := []
 			Progress.unlimited_hints = true
 			g._on_hint_pressed()
@@ -175,11 +175,11 @@ func _ready() -> void:
 			notes.append("tip=%s" % tipped)
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.5).timeout
-			var ad: VideoAd = g.modal as VideoAd
-			var playing: bool = ad != null and ad._player != null and ad._player.is_playing()
+			var ad: PromoAd = g.modal as PromoAd
+			var playing: bool = ad != null and ad.kind != "" and ad._t > 0.0
 			notes.append("ad=%s" % playing)
 			if ad:
-				await _click(ad._root.get_children().filter(func(c): return c is JuicyButton)[0])
+				await _click(ad._skip)
 				await get_tree().create_timer(0.5).timeout
 			notes.append("unlimited=%s watched=%s" % [g.hints_unlimited, Progress.hint_ad_watched])
 			var before: int = g.hints_left

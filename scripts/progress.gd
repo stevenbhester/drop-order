@@ -75,8 +75,8 @@ var peek := false
 ## Colorblind mode ("aka Paul mode"): bold class marks on packages, and the same mark on a sign on every
 ## building and gate, so nothing depends on telling colours apart.
 var colorblind := false
-## The package trail: the next few packages on drones behind the van (on unless switched off).
-var trail := true
+## The package trail: the next few packages on drones behind the van (off unless switched on).
+var trail := false
 ## Side roads: challenges beaten (id -> true) and milestone chests opened (level number -> true).
 var side_done := {}
 var chests := {}
@@ -235,7 +235,8 @@ func _load() -> void:
 			side_bonus_day[str(k)] = int(sbd[k])
 	peek = bool(d.get("peek", false))
 	colorblind = bool(d.get("colorblind", false))
-	trail = bool(d.get("trail", true))
+	# Saves from before 0.7 build 15 had the trail on by default: it starts off once for everyone.
+	trail = bool(d.get("trail", false)) and int(d.get("prefs_v", 0)) >= 1
 	var sd = d.get("side_done", {})
 	if sd is Dictionary:
 		side_done = sd
@@ -256,7 +257,7 @@ func _save() -> void:
 		var st := {}
 		for k in stars:
 			st[str(k)] = stars[k]
-		f.store_string(JSON.stringify({"levels_v": 2, "completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
+		f.store_string(JSON.stringify({"levels_v": 2, "prefs_v": 1, "completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,

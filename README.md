@@ -247,11 +247,14 @@ as a little flame inside the Daily button.
 - **Hint** shows the next stretch to drive (and costs a star). At a dead end it says so instead
   ("no way to win from here: Retry") and costs nothing; it never restarts anything itself. Each level
   comes with **3 hints** (the count is on the button). Out of them, Hint plays a pretend ad instead: one of
-  the three trailers (`assets/ads/video/*.ogv`, rendered with `OGV=1 tools/ads/render.sh` and
-  `OGV=1 tools/ads/render_gta.sh`), at random, with Skip there from the first frame. Watched or skipped,
-  hints are then unlimited for the rest of the level. When the last hint goes, a tip by the button says
-  so (only the first three times, and never once they've watched an ad). **Unlimited hints** in Options
-  skips all that (a hint still costs a star). `-- --video-ad[=0|1|2]` plays one straight away.
+  three short spots for Last Mile itself, drawn live in code with the game's own van, houses and sounds
+  (`scripts/promo_ad.gd`; the ideas of the three trailers): **fun** (every package has someone waiting),
+  **bait** (a clickbait parody: 99% FAIL THIS LEVEL!, an IQ meter) and **trash** (breaking news about GTA
+  VI, "NO GAME DARES???", a fancam, a message for Rockstar). At random, never the same twice running, and
+  Skip is there from the first frame. Watched or skipped, hints are then unlimited for the rest of the
+  level. When the last hint goes, a tip by the button says so (only the first three times, and never once
+  they've watched an ad). **Unlimited hints** in Options skips all that (a hint still costs a star).
+  `-- --promo-ad[=fun|bait|trash]` plays one straight away.
 - If the van has nowhere left to go before the level is done, you're stuck: Undo (if unused) or Retry.
 - Part 2: **pickups** put their parcel on top of your stack as you pass. They look nothing like houses: a
   plain dark loading dock inside a chunky dashed outline in the parcels' colour, with big bouncing
@@ -281,7 +284,7 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's (or speedrun zone's) exit: the road on off the map and its gate; the package trail (drones behind the van) |
-| `scripts/video_ad.gd`, `assets/ads/video/` | The pretend video ads that unlock unlimited hints |
+| `scripts/promo_ad.gd` | The pretend Last Mile ads (fun, bait, trash) that unlock unlimited hints |
 | `scripts/update_check.gd`, `update_card.gd` | "A new version is out!": reads `release/latest.json` from GitHub and offers a newer TestFlight build |
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |

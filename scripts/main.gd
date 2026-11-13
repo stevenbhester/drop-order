@@ -98,12 +98,12 @@ func _ready() -> void:
 			# Debug: open a milestone chest on the map straight away (for screenshots).
 			(screen as LevelSelect)._open_chest.call_deferred(a.trim_prefix("--chest=").to_int())
 	for a in args:
-		if a.begins_with("--video-ad"):
-			# Debug: play a pretend video ad over whatever's showing (--video-ad=N picks which).
+		if a.begins_with("--promo-ad"):
+			# Debug: play one of the pretend Last Mile ads over whatever's showing (--promo-ad=fun|bait|trash).
+			var ad := PromoAd.new()
 			if a.contains("="):
-				VideoAd._last = -1
-				VideoAd.force = a.trim_prefix("--video-ad=").to_int()
-			add_child.call_deferred(VideoAd.new())
+				ad.kind = a.trim_prefix("--promo-ad=")
+			add_child.call_deferred(ad)
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
 		open_feedback.call_deferred()
