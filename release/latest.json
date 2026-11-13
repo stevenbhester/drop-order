@@ -1,11 +1,11 @@
 {
-	"build": 14,
+	"build": 15,
 	"name": "The Long Road",
 	"notes": [
-		"Fixed: tapping a symbol for its reminder could freeze the game.",
-		"3 hints per level. Out? A quick (pretend, skippable) ad makes them unlimited, or switch on Unlimited hints in Options.",
-		"The way on to the next part is a road off the map, with a gate that opens once you've delivered everything."
+		"New pretend ads when you're out of hints: three little Last Mile spots, drawn in the game (skip any time).",
+		"Ice now sits on junctions, where it actually stops you turning (it was mostly on straight roads before).",
+		"The package trail behind the van is off by default (Options to switch it on)."
 	],
-	"ready_at": 1794611365,
+	"ready_at": 1794617826,
 	"version": "0.7"
 }
