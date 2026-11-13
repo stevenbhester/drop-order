@@ -730,7 +730,7 @@
     },
     {
       "title": "Bulk Order",
-      "hint": "Warehouses (\u00d7N) load everything at once. Make room first.",
+      "hint": "Warehouses (+N) load everything at once. Make room first.",
       "no_revisit": true,
       "preview": true,
       "map": [

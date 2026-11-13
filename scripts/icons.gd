@@ -146,6 +146,16 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 			ci.draw_polyline(PackedVector2Array([c + Vector2(0.2, -0.42) * s, c + Vector2(0.2, -0.02) * s, c + Vector2(0.34, 0.08) * s]), col, s * 0.08, true)
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.14, -0.34) * s, Vector2(0.28, 0.2) * s), col, s * 0.05)
 			DrawUtil.rrect(ci, Rect2(c + Vector2(0.0, 0.16) * s, Vector2(0.3, 0.22) * s), col, s * 0.05)
+		"side_auto":
+			# A phone with the chute's spot to the side or along the top (dotted: either).
+			var ph2 := Rect2(c + Vector2(-0.24, -0.42) * s, Vector2(0.48, 0.84) * s)
+			DrawUtil.rrect(ci, ph2, col, s * 0.09)
+			var in2 := ph2.grow(-s * 0.06)
+			DrawUtil.rrect(ci, in2, Color(Palette.CARD, 1.0) if col.a > 0.0 else col, s * 0.05)
+			for k in 4:
+				DrawUtil.rrect(ci, Rect2(in2.position + Vector2(s * 0.04, s * 0.16 + k * s * 0.13), Vector2(s * 0.08, s * 0.08)), col, s * 0.02)
+				if k < 3:
+					DrawUtil.rrect(ci, Rect2(in2.position + Vector2(s * 0.16 + k * s * 0.07, s * 0.04), Vector2(s * 0.05, s * 0.07)), col, s * 0.02)
 		"side_left", "side_right", "side_top", "side_bottom":
 			# A phone with the chute's bar where it'd go.
 			var ph := Rect2(c + Vector2(-0.24, -0.42) * s, Vector2(0.48, 0.84) * s)

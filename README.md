@@ -89,6 +89,11 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
   saved after every part (come back later and you pick up there); the top bar shows "Part 2 of 4" over a
   mini-map of the parts. Hints and undos are allowed. **Twin Towns** (after 12, 2 parts side by side,
   wins the Blueprint paint) and **The Big Map** (after 27, a 2×2 loop of 4, wins Gold Rush).
+- **Power-ups:** every side road (mega routes too) hands one out once a day when you win it: spare gas
+  tanks (up to 3, shown as little cans by the gauge, used only when the tank's empty), or free hints or
+  free undos for 10–15 minutes ("FREE" on the button; they cost no star).
+- **The driver's logbook:** each side road's first win finds a page, shown over the map and kept in the
+  Garage. A line at a time, they hint at who the driver is and who the Dispatcher might be.
 - **Treasure chests** at levels 10, 20, 30, 40 and 50: once that level's beaten, tap the chest to open
   it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40 and 50
   a hat.
@@ -135,11 +140,17 @@ as a little flame inside the Daily button.
   undraws several tiles).
 - **Lift your finger and the van drives that segment.** Then press the van again to keep going
   from where it stopped.
-- **The load** rides in a **package chute**: standing up beside the board (left by default), it reads
-  like a puzzle game's "next" column: NEXT and the next package at the top, level with the board's
+- **What's this?** Tap (or hold) any symbol on the board (a one-way arrow, bridge, gate, spinner,
+  pickup, house, exit, pit stop, present, torn-up road) for a one-line reminder with a little looping
+  picture of the rule. Any tap or drag closes it. The second level with one-way streets says so
+  ("Forgot what a symbol does? Tap it for a reminder").
+- **The load** rides in a **package chute**. Auto (the default) puts it wherever gives the map the most
+  room: beside the board on most small maps, along the top on wide ones like Death Valley (the first
+  time it moves, a tip points it out). Standing up beside the board, it reads like a puzzle game's
+  "next" column: NEXT and the next package at the top, level with the board's
   top, and the rest queued down under it in the order they'll go out. Along the top or bottom of the
-  board it lies on its side with its mouth at the right end (Options → Package chute; sideways play
-  always has it on top). The next package sits in a gold-framed window with a gold NEXT tag (half
+  board it lies on its side with its mouth at the right end (Options → Package chute: Auto, or pin it left,
+  right, top or bottom; sideways play always has it on top). The next package sits in a gold-framed window with a gold NEXT tag (half
   again as big as the rest in the side chute).
   It works like a real van: the last one in is first out, so a collected parcel comes in at the mouth
   and pushes the others along. On delivery the next package drops out of the mouth into the van, then
@@ -188,9 +199,13 @@ as a little flame inside the Daily button.
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic
   strength from none to max. Everything is saved and applies straight away.
 - **Undo** (bottom right) rewinds your last segment, including its deliveries. **Once per attempt.**
+- **Hint** shows the next stretch to drive (and costs a star). At a dead end it says so instead
+  ("no way to win from here: Retry") and costs nothing; it never restarts anything itself.
 - If the van has nowhere left to go before the level is done, you're stuck: Undo (if unused) or Retry.
-- Part 2: **parcel shops** (striped awning, their stock bouncing in the window) put their parcel on top
-  of your stack as you pass;
+- Part 2: **pickups** put their parcel on top of your stack as you pass. They look nothing like houses: a
+  plain dark loading dock inside a chunky dashed outline in the parcels' colour, with big bouncing
+  parcels out front, one for each it'll hand over, and a green "+N" (houses show "×N" for what they
+  want). Planned to be collected, they hold still and fade; once collected, the dock's empty with a tick;
   **colour gates** lift only while your top package matches (they react as you draw);
   on **depot** levels (garage icon) you must finish parked where you started;
   **sorting hubs** (turntable) swap your top two packages.
@@ -215,6 +230,8 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `scripts/symbol_card.gd`, `tip_bubble.gd` | "What's this?" explainers for board symbols; one-time tips pointing at things |
+| `scripts/logbook_card.gd` | A page of the driver's logbook (found on side roads; listed in the Garage) |
 | `ads/playable/` | The playable ad (one MRAID 2.0 HTML file for Tapjoy and co.; see its README) |
 | `scripts/portrait_host.gd` | Sideways play: a portrait column in the middle of the screen for menus and pop-ups |
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |

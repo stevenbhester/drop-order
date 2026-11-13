@@ -112,6 +112,18 @@ var daily_day := -1
 ## A side challenge (SideRoads): its definition, or empty for a normal level. Its `twist` changes the rules.
 var side := {}
 var _fogged := false
+## Where Auto put the chute for this screen ("" = not decided yet).
+var _auto_side := ""
+## One-time tips waiting for the screen to settle ({text, target (a Callable giving a screen point), tap}),
+## and the one showing.
+var _tips: Array = []
+var _tip: TipBubble
+var _alive := 0.0
+## A press on a symbol (not the van): {tile, pos, t}. Released in place (or held) it explains the symbol.
+var _sym_press := {}
+var _sym_card: SymbolCard
+## A side road's power-up, said on the finish ("" for none).
+var _bonus_line := ""
 ## Mega routes: which part this is, and (arriving from the last part) the way the camera pans in from.
 var part := 0
 var pan_from := Vector2i.ZERO
@@ -170,6 +182,20 @@ func _ready() -> void:
 		_show_challenge.call_deferred()
 	if not side.is_empty():
 		_start_side()
+	_queue_tips()
+	if OS.get_cmdline_user_args().has("--explain"):
+		# Debug: show each kind of symbol's explainer in turn (for screenshots).
+		var seen := {}
+		var tw := create_tween()
+		tw.tween_interval(0.8)
+		for y in level.height:
+			for x in level.width:
+				var sym := _symbol_at(Vector2i(x, y))
+				if sym.is_empty() or seen.has(sym["kind"]):
+					continue
+				seen[sym["kind"]] = true
+				tw.tween_callback(_explain.bind(Vector2i(x, y)))
+				tw.tween_interval(1.6)
 	DebugAuto.maybe_run(self)
 
 
@@ -306,6 +332,106 @@ func _twist_fail(msg: String) -> void:
 	retry_button.breathe(true)
 
 
+# ---------------------------------------------------------------- what's this?
+
+## What's on a tile that can be explained: {kind, color (Color), name, count, at (the spot to point at)},
+## or {} for nothing.
+func _symbol_at(t: Vector2i) -> Dictionary:
+	if not level.in_bounds(t):
+		return {}
+	var at := board.center(t)
+	for h in level.houses.size():
+		var hd = level.houses[h]
+		if hd.pos == t:
+			var left: int = hd.order - int(sim_state["fills"][h])
+			var k := "house_done" if left <= 0 else ("houses" if left > 1 else "house")
+			return {"kind": k, "color": Palette.pkg(hd.color), "name": _color_word(hd.color), "count": left, "at": at}
+	for k in level.shops.size():
+		var sd = level.shops[k]
+		if sd.pos == t:
+			var left: int = sd.count - int(sim_state["picked"][k])
+			var kind := "pickup_done" if left <= 0 else ("warehouse" if left > 1 else "pickup")
+			return {"kind": kind, "color": Palette.pkg(sd.color), "name": _color_word(sd.color), "count": left, "at": at}
+	if level.oneway.has(t):
+		return {"kind": "oneway", "at": at}
+	if level.bridges.has(t):
+		return {"kind": "bridge", "at": at}
+	if level.gates.has(t):
+		return {"kind": "gate", "color": Palette.pkg(level.gates[t]), "name": _color_word(level.gates[t]), "at": at}
+	if level.hubs.has(t):
+		return {"kind": "hub", "at": at}
+	if level.has_exit() and t == level.exit:
+		return {"kind": "exit", "at": at}
+	if level.return_depot and t == level.start and route.size() > 1:
+		return {"kind": "pitstop", "at": at}
+	if board.gift and not gift_taken and t == level.gift:
+		return {"kind": "gift", "at": at}
+	if level.no_revisit and route.size() > 1 and t != route.back() and route.has(t):
+		return {"kind": "wreck", "at": at}
+	return {}
+
+
+## A colour's name for the explainer (with its package class, so it reads without colour too).
+func _color_word(c: String) -> String:
+	var cls := {"red": "gift", "yellow": "biohazard", "blue": "caution", "purple": "mystery", "green": "organic", "orange": "hot"}
+	return "%s (%s)" % [c, cls.get(c, "")] if Progress.colorblind else c
+
+
+func _explain(t: Vector2i) -> void:
+	var sym := _symbol_at(t)
+	if sym.is_empty():
+		return
+	if _sym_card and is_instance_valid(_sym_card):
+		_sym_card.close()
+	if _tip and is_instance_valid(_tip):
+		_tip.dismiss()
+	var card := SymbolCard.new()
+	card.kind = sym["kind"]
+	card.col = sym.get("color", Color.WHITE)
+	card.col_name = sym.get("name", "")
+	card.count = int(sym.get("count", 1))
+	card.target = board.get_global_transform_with_canvas() * Vector2(sym["at"])
+	_sym_card = card
+	modal = card
+	card.closed.connect(func(): modal = null)
+	_ui_root.add_child(card)
+
+
+# ---------------------------------------------------------------- tips
+
+## The one-time tips this level might show: the queue moving (Auto), and "tap a symbol for a reminder".
+func _queue_tips() -> void:
+	if Progress.auto:
+		return
+	# The second time a level has one-way streets: tap a symbol for a reminder.
+	if not level.oneway.is_empty() and daily_day < 0:
+		if not Progress.oneway_levels.has(level.number):
+			Progress.oneway_levels[level.number] = true
+		if Progress.oneway_levels.size() >= 2 and not Progress.symbol_tip_seen:
+			Progress.symbol_tip_seen = true
+			var arrow: Vector2i = level.oneway.keys()[0]
+			_tips.append({"text": "Forgot what a symbol does?\nTap it for a reminder.", "target": func(): return board.get_global_transform_with_canvas() * board.center(arrow), "tap": true})
+		Progress.save_now()
+	if Progress.stack_side == "auto" and not Progress.landscape:
+		# The first time Auto moves the queue from where it was last level, say so.
+		var was := Progress.last_auto_side
+		var now_side := _chute_side()
+		Progress.last_auto_side = now_side
+		if was != "" and was != now_side and not Progress.queue_moved_seen:
+			Progress.queue_moved_seen = true
+			var msg := "Big map! Your package queue\nmoved up here to make room." if now_side == "top" else "Your package queue's\nover here this time."
+			_tips.append({"text": msg, "target": func(): return stack_view.global_position, "tap": false})
+		Progress.save_now()
+
+
+func _show_tip(t: Dictionary) -> void:
+	_tip = TipBubble.new()
+	_tip.text = t["text"]
+	_tip.target = (t["target"] as Callable).call()
+	_tip.tap = t.get("tap", false)
+	_ui_root.add_child(_tip)
+
+
 ## A challenge level (a big step up): hazard tape, a stamp, the bonus on offer.
 func _show_challenge() -> void:
 	var ci := ChallengeIntro.new()
@@ -370,6 +496,14 @@ func _process(delta: float) -> void:
 	if stars_ctl and (Progress.momentum > 0 or _twist() == "mega") and state != State.WON:
 		stars_ctl.queue_redraw()
 	_side_tick(delta)
+	_alive += delta
+	# Holding a symbol explains it too (no need to let go).
+	if not _sym_press.is_empty() and _alive - float(_sym_press["t"]) > 0.4:
+		var tile: Vector2i = _sym_press["tile"]
+		_sym_press = {}
+		_explain(tile)
+	if not _tips.is_empty() and (_tip == null or not is_instance_valid(_tip)) and not _busy_modal() and _alive > 1.0 and state == State.IDLE:
+		_show_tip(_tips.pop_front())
 	# The trail follows what's really aboard (while a route's being planned, the chute shows the future).
 	if convoy and state != State.DRAWING:
 		convoy.set_colors(stack_view.colors)
@@ -417,9 +551,16 @@ func _build_world() -> void:
 			load = []
 			for i in n:
 				load.append(["purple", "red", "blue", "yellow", "green", "orange"][(i * 5 + 2) % 6])
+	# Sized first as if beside the board; Auto then picks its spot (and reshapes it) when the tile's fitted.
+	var auto := Progress.stack_side == "auto" and not Progress.landscape
+	if auto:
+		_auto_side = "left"
 	var shape := _chute_shape()
 	stack_view.setup(load, shape[0], cap, shape[1], shape[2])
 	stack_view.finish_flag = level.return_depot
+	if auto:
+		_auto_side = ""
+		_chute_side()
 	var tile := _fit_tile()
 	_tile = tile
 
@@ -517,7 +658,29 @@ func _layout_sideways(vp: Vector2, top: float, bsz: Vector2) -> void:
 
 ## Where the chute goes: the option upright; always along the top sideways.
 func _chute_side() -> String:
-	return "top" if Progress.landscape else Progress.stack_side
+	if Progress.landscape:
+		return "top"
+	if Progress.stack_side != "auto":
+		return Progress.stack_side
+	if _auto_side == "":
+		_auto_side = _pick_auto_side()
+	return _auto_side
+
+
+## Auto (the default): beside the board on the left, unless along the top gives the board clearly more
+## room (wide maps, like the Death Valley ones).
+func _pick_auto_side() -> String:
+	var tiles := {}
+	for side in ["left", "top"]:
+		_auto_side = side
+		var sh := _chute_shape()
+		stack_view.reshape(sh[0], sh[1], sh[2])
+		tiles[side] = _fit_tile()
+	var pick := "left" if tiles["left"] >= tiles["top"] * 0.96 else "top"
+	_auto_side = pick
+	var shape := _chute_shape()
+	stack_view.reshape(shape[0], shape[1], shape[2])
+	return pick
 
 
 func _chute_upright() -> bool:
@@ -761,6 +924,7 @@ func _draw_stars() -> void:
 
 func _layout() -> void:
 	var vp := get_viewport_rect().size
+	_auto_side = ""
 	var shape := _chute_shape()
 	stack_view.reshape(shape[0], shape[1], shape[2])
 	# The board was built at one tile size; scale it to whatever fits the current layout.
@@ -985,13 +1149,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			stack_view.drag(_load_drag.view, by)
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		var lp: Vector2 = board.make_input_local(event).position
+		# A tap (or a hold) on a symbol, away from the van: what's that?
+		if event.pressed and (state == State.IDLE or state == State.FAILED or state == State.WON) and _symbol_at(board.tile_at(lp)).size() > 0 \
+				and (dpad_mode or state != State.IDLE or not _on_van(lp)):
+			_sym_press = {"tile": board.tile_at(lp), "pos": event.position, "t": _alive}
+			return
+		if not event.pressed and not _sym_press.is_empty():
+			var sp := _sym_press
+			_sym_press = {}
+			if event.position.distance_to(sp["pos"]) < 24.0:
+				_explain(sp["tile"])
+			return
 		if dpad_mode:
 			return
-		var lp: Vector2 = board.make_input_local(event).position
 		if event.pressed:
 			_press(lp)
 		else:
 			_release()
+	elif event is InputEventMouseMotion and not _sym_press.is_empty():
+		if event.position.distance_to(_sym_press["pos"]) > 24.0:
+			_sym_press = {}
 	elif event is InputEventMouseMotion and state == State.DRAWING and not dpad_mode:
 		# Self-tests inject their own drags: ignore the real cursor wandering over the window meanwhile.
 		if Progress.auto and not (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
@@ -1010,11 +1188,16 @@ func _point_out(color_name: String) -> void:
 			fx.ring(house.base_pos + Vector2(0, -board.tile * 0.3), Palette.pkg(color_name), board.tile * 0.6)
 
 
+func _on_van(lp: Vector2) -> bool:
+	var here: Vector2i = route.back()
+	return board.tile_at(lp) == here or lp.distance_to(board.center(here)) < board.tile * 0.75
+
+
 func _press(lp: Vector2) -> void:
 	if state != State.IDLE:
 		return
 	var here: Vector2i = route.back()
-	var on_van := board.tile_at(lp) == here or lp.distance_to(board.center(here)) < board.tile * 0.75
+	var on_van := _on_van(lp)
 	if not on_van:
 		if Rect2(Vector2.ZERO, board.size_px()).grow(board.tile).has_point(lp):
 			van.nudge()
@@ -1144,6 +1327,9 @@ func _refresh_tags() -> void:
 	if board.exit_zone:
 		board.exit_zone.open = Sim.all_delivered(level, sim_state)
 	var st: Dictionary = seg_states.back() if (state == State.DRAWING and not seg_states.is_empty()) else sim_state
+	# Pickups the planned route will empty hold still and fade.
+	for k in board.shop_nodes.size():
+		board.shop_nodes[k].planned = state == State.DRAWING and int(st["picked"][k]) > int(sim_state["picked"][k])
 	var top := Sim.top_color(level, st)
 	for h in level.houses.size():
 		var house: House = board.house_nodes[h]
@@ -1746,6 +1932,8 @@ func _after_segment() -> void:
 
 ## Undos to hand: the free one for this attempt plus any spares earned from the ad.
 func undos_available() -> int:
+	if Progress.free_undos():
+		return 99
 	return undo_left + Progress.undo_bank
 
 
@@ -1792,11 +1980,14 @@ func _watch_ad() -> void:
 func undo() -> void:
 	if not can_undo():
 		return
-	if undo_left > 0:
+	if Progress.free_undos():
+		pass                        # a side road's power-up: undos are free (and cost no star)
+	elif undo_left > 0:
 		undo_left -= 1
+		undo_used = true
 	else:
 		Progress.use_bank_undo()
-	undo_used = true
+		undo_used = true
 	stars_ctl.queue_redraw()
 	var snap: Dictionary = history.pop_back()
 	deliveries.resize(snap.get("deliv", deliveries.size()))
@@ -1905,10 +2096,14 @@ func _update_undo() -> void:
 		undo_button.dim = true
 	else:
 		undo_button.badge_icon = ""
-		undo_button.badge_color = COUNT_BLUE
-		undo_button.badge = str(n)
+		undo_button.badge_color = Palette.GOOD if Progress.free_undos() else COUNT_BLUE
+		undo_button.badge = "FREE" if Progress.free_undos() else str(n)
 		undo_button.dim = not can_undo()
 	undo_button.queue_redraw()
+	if hint_button:
+		hint_button.badge = "FREE" if Progress.free_hints() else ""
+		hint_button.badge_color = Palette.GOOD
+		hint_button.queue_redraw()
 
 
 # ---------------------------------------------------------------- hints
@@ -1935,23 +2130,23 @@ func _on_hint_pressed() -> void:
 		return
 	_hint_armed = 0.0
 	hint_button.label = "Hint"
-	if dpad_mode and state == State.DRAWING:
-		_cancel_plan()
 	Sfx.play("click")
+	# A dead end (stuck, or no win left from here): the hint says so and points at Retry (or Undo). It
+	# never restarts anything itself, and costs no star; after a restart, a hint shows the first step.
 	if state == State.FAILED:
-		_point_at_way_out()
+		_dead_end_hint()
 		return
-	if state != State.IDLE:
+	if state != State.IDLE and not (dpad_mode and state == State.DRAWING):
 		return
-	hint_used = true
-	stars_ctl.queue_redraw()
 	var path := Solver.solve_from(level, route, sim_state)
 	if path.size() < 2:
-		Sfx.play("bonk", 0.9, -4)
-		van.shake()
-		_say("No way through from here.\nUndo or Retry.")
-		_point_at_way_out()
+		_dead_end_hint()
 		return
+	if dpad_mode and state == State.DRAWING:
+		_cancel_plan()
+	if not Progress.free_hints():
+		hint_used = true
+	stars_ctl.queue_redraw()
 	# The next move: straight on from the van until the route turns.
 	var run: Array = [path[0], path[1]]
 	for i in range(2, path.size()):
@@ -1971,6 +2166,14 @@ func _on_hint_pressed() -> void:
 	Sfx.play("hint")
 	Sfx.haptic(10)
 	_say("Try this way.")
+
+
+func _dead_end_hint() -> void:
+	Sfx.play("bonk", 0.9, -4)
+	van.shake()
+	_say("Dead end: there's no way to win from here.\n" + ("Undo, or Retry to start over." if can_undo() else "Retry to start over."), Palette.ACCENT.darkened(0.12))
+	retry_button.breathe(true)
+	_point_at_way_out()
 
 
 func _point_at_way_out() -> void:
@@ -2075,6 +2278,9 @@ func _win() -> void:
 		# A side challenge: its ride, the first time.
 		if Progress.win_side(str(side.get("id", ""))):
 			side_prize = str(side.get("reward", ""))
+			if side.has("log"):
+				Progress.pending_log = str(side.get("id", ""))
+		_bonus_line = Progress.side_power_up(str(side.get("id", "")), side.get("bonus", {}))
 		if _twist() == "mega":
 			Progress.set_mega_part(str(side.get("id", "")), 0)
 	elif daily_day >= 0:
@@ -2150,6 +2356,7 @@ func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, misse
 	finish.last_level = index + 1 >= total or not side.is_empty()
 	finish.side_title = str(side.get("title", ""))
 	finish.side_kind = "MEGA ROUTE" if _twist() == "mega" else "SIDE ROAD"
+	finish.bonus_line = _bonus_line
 	# Sideways the finish lives in its own portrait column, so rewards can't fly across to the wallet.
 	finish.coin_chip = null if Progress.landscape else coin_chip
 	finish.gas_chip = null if Progress.landscape else gas_chip

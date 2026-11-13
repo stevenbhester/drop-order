@@ -178,7 +178,7 @@ func _sides() -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	var row := _row("Package chute", "chute")
-	var note := _label("always on top sideways" if Progress.landscape else "", 30, Palette.TEXT_SOFT)
+	var note := _label("always on top sideways" if Progress.landscape else ("Auto: whatever gives the map most room" if Progress.stack_side == "auto" else ""), 26, Palette.TEXT_SOFT)
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(note)
@@ -186,13 +186,13 @@ func _sides() -> VBoxContainer:
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
 	col.add_child(box)
-	for o in [["left", "Left"], ["right", "Right"], ["top", "Top"], ["bottom", "Bottom"]]:
+	for o in [["auto", "Auto"], ["left", "Left"], ["right", "Right"], ["top", "Top"], ["bottom", "Bottom"]]:
 		var on: bool = Progress.stack_side == o[0]
 		var b := JuicyButton.new()
 		b.label = o[1]
 		b.icon_name = "side_" + o[0]
-		b.font_px = 34
-		b.icon_scale = 0.8
+		b.font_px = 30
+		b.icon_scale = 0.7
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size = Vector2(0, 96)
 		b.bg = Palette.ACCENT if on else Color(0, 0, 0, 0)
@@ -203,6 +203,7 @@ func _sides() -> VBoxContainer:
 				return
 			Sfx.play("click")
 			Sfx.haptic(12, 0.6)
+			Progress.stack_chosen = true
 			Progress.set_option("stack_side", value))
 		box.add_child(b)
 	return col

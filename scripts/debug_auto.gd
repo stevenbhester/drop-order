@@ -48,7 +48,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -70,6 +70,27 @@ func _ready() -> void:
 		"autodrag":
 			for p in pieces:
 				await _drag(p)
+		"autoexplain":
+			# Every symbol on the board explains itself (a line for each), and the card closes on a tap.
+			var kinds := {}
+			var bad := 0
+			for y in g.level.height:
+				for x in g.level.width:
+					var sym: Dictionary = g._symbol_at(Vector2i(x, y))
+					if sym.is_empty():
+						continue
+					g._explain(Vector2i(x, y))
+					await get_tree().process_frame
+					var card: SymbolCard = g._sym_card
+					if card == null or card.line() == "":
+						bad += 1
+					else:
+						kinds[sym["kind"]] = true
+					card.close()
+					await get_tree().create_timer(0.2).timeout
+			print("AUTOTEST explain L%d: kinds=%s bad=%d closed=%s" % [g.level.number, kinds.keys(), bad, g.modal == null])
+			get_tree().quit()
+			return
 		"autotwist":
 			# A side road's twist actually bites (run with --side=<id>).
 			var tw: String = g._twist()
@@ -114,7 +135,7 @@ func _ready() -> void:
 			# and the words; then the level's played out from the last spot.
 			var ok := true
 			var vr := g.get_viewport_rect()
-			for side in ["top", "right", "bottom", "left"]:
+			for side in ["top", "right", "bottom", "auto", "left"]:
 				Progress.stack_side = side
 				g._on_settings()
 				await get_tree().process_frame

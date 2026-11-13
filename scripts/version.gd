@@ -4,10 +4,19 @@ extends RefCounted
 ## first). Bump NUMBER and add a release to the top of NOTES with each TestFlight version; the build number
 ## lives in export_presets.cfg (tools/testflight.sh bumps it).
 
-const NUMBER := "0.5"
-const NAME := "Side Roads"
+const NUMBER := "0.6"
+const NAME := "Road Signs"
 
 const NOTES := [
+	{"version": "0.6", "name": "Road Signs", "notes": [
+		"Forgot what a symbol means? Tap it (or hold it) for a one-line reminder with a little picture.",
+		"Pickups look nothing like houses now: a dark loading dock in a chunky dashed outline, big bouncing packages, and +N for how many they give.",
+		"Pickups empty out and show a tick once collected (and fade while your planned route is going to take them).",
+		"Package queue: Auto (the new default) puts it wherever gives the map the most room. You can still pin it left, right, top or bottom.",
+		"Hints don't restart anything: at a dead end they tell you so (Retry to start over), and cost no star.",
+		"Side roads hand out power-ups once a day: spare gas tanks (used only when you run dry), or free hints or undos for a while.",
+		"The driver's logbook: each side road's first win finds a page. Who's the Dispatcher?",
+	]},
 	{"version": "0.5", "name": "Side Roads", "notes": [
 		"Mega routes: big deliveries in parts. Clear a part, drive into its exit and the map pans on to the next. Saved as you go. Twin Towns (2 parts) and The Big Map (4) each win a paint job.",
 		"Package trail: the next three packages follow the van on little drones (Options, Package trail).",

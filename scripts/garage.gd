@@ -61,6 +61,21 @@ func _ready() -> void:
 		for id in Cosmetics.ORDER:
 			if Cosmetics.kind_of(id) == kind:
 				grid.add_child(_tile(id))
+	# The driver's logbook: a page for each side road beaten.
+	var lhead := Label.new()
+	lhead.text = "Logbook  %d / %d" % [Progress.logs.size(), SideRoads.defs().size()]
+	lhead.add_theme_font_size_override("font_size", 48)
+	lhead.add_theme_color_override("font_color", Palette.TEXT_SOFT)
+	col.add_child(lhead)
+	for d in SideRoads.defs():
+		var id := str(d.get("id", ""))
+		var page := Control.new()
+		page.custom_minimum_size = Vector2(0, 250)
+		var found := Progress.logs.has(id)
+		var title := "Page %d · %s" % [LogbookCard.page_of(id), str(d.get("title", "")) if found else "???"]
+		var body := str(d.get("log", "")) if found else "Beat the side road %s to find this page." % ("after level %d" % int(d.get("after", 0)))
+		page.draw.connect(func(): LogbookCard.draw_page(page, Rect2(Vector2(0, 0), page.size - Vector2(0, 16)), title, body, 30))
+		col.add_child(page)
 	_fx = Fx.new()
 	add_child(_fx)
 	Progress.changed.connect(queue_redraw)

@@ -19,9 +19,20 @@ static func rrect(ci: CanvasItem, r: Rect2, col: Color, radius: float) -> void:
 
 ## How many a stop wants (or a warehouse has left): a chunky white pill with a rim in the stop's colour,
 ## centred on `c`, sized for a building `s` tall. Big enough to read at a glance on a phone.
-static func count_badge(ci: CanvasItem, c: Vector2, s: float, n: int, col: Color) -> void:
+static func count_badge(ci: CanvasItem, c: Vector2, s: float, n: int, col: Color, prefix := "×") -> void:
 	var f := UiTheme.font()
-	var txt := "×%d" % n
+	var txt := "%s%d" % [prefix, n]
+	if prefix == "+":
+		# A pickup's "+N": green and white, so it can't be mistaken for a house's "×N".
+		var fs2 := int(s * 0.27)
+		var tw2 := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
+		var h2 := s * 0.36
+		var r2 := Rect2(c - Vector2(maxf(h2, tw2 + s * 0.14), h2) / 2.0, Vector2(maxf(h2, tw2 + s * 0.14), h2))
+		rrect(ci, Rect2(r2.position + Vector2(0, s * 0.03), r2.size).grow(s * 0.025), Color(0, 0, 0, 0.18), h2)
+		rrect(ci, r2.grow(s * 0.025), Color.WHITE, h2)
+		rrect(ci, r2, Palette.GOOD, h2)
+		ci.draw_string(f, c + Vector2(-tw2 / 2.0, fs2 * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color.WHITE)
+		return
 	var fs := int(s * 0.27)
 	var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var h := s * 0.36

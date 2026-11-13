@@ -1,9 +1,10 @@
 class_name Shop
 extends Node2D
-## Parcel shop: has a parcel waiting that the van collects (onto the top of its stack) as it
-## drives past. A warehouse (stock > 1) holds several: a little stack of them sits on the roof with a
-## "×N" for how many are left, and they all come aboard as the van passes. Origin at the building's base,
-## like House.
+## A pickup: a loading dock with parcels waiting that the van collects (onto the top of its stack) as it
+## drives past. A warehouse (stock > 1) holds several, with a green "+N" for how many it'll hand over; they
+## all come aboard as the van passes. Pickups look nothing like the places that want packages: a plain dark
+## dock inside a chunky dashed outline in its parcels' colour, and big bouncing parcels out front, one for
+## each it gives. Once emptied it shows a tick. Origin at the building's base, like House.
 
 var color := Color.RED
 var size := 180.0
@@ -18,6 +19,12 @@ var parcel_t := 1.0:              # 1 = parcel waiting, 0 = collected
 	set(v):
 		parcel_t = v
 		queue_redraw()
+## The route being planned will collect these: they hold still and fade.
+var planned := false:
+	set(v):
+		if v != planned:
+			planned = v
+			queue_redraw()
 var _t := randf() * TAU
 var _tw: Tween
 
@@ -29,7 +36,7 @@ func _process(delta: float) -> void:
 
 
 func parcel_pos() -> Vector2:
-	return base_pos + Vector2(0, -size * 0.62)
+	return base_pos + Vector2(0, -size * 0.5)
 
 
 func collect() -> void:
@@ -58,49 +65,55 @@ func _pop() -> void:
 
 func _draw() -> void:
 	var s := size
-	var w := s * 0.7
-	var h := s * 0.34
 	var empty := parcel_t <= 0.0
-	var wall := Color("f4efe6") if not empty else Color("e6e2db")
-	var trim := color if not empty else color.lerp(Color("b9b9b9"), 0.55)
-	DrawUtil.rrect(self, Rect2(-w * 0.58, -s * 0.05, w * 1.16, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
-	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.04)
-	# flat roof slab
-	DrawUtil.rrect(self, Rect2(-w / 2 - s * 0.03, -h - s * 0.07, w + s * 0.06, s * 0.09), Palette.VAN_CAB, s * 0.03)
-	# striped awning
-	var stripes := 6
-	var aw := (w + s * 0.04) / stripes
-	for k in stripes:
-		var col := trim if k % 2 == 0 else Color.WHITE
-		var r := Rect2(-w / 2 - s * 0.02 + k * aw, -h + s * 0.01, aw, s * 0.09)
-		draw_rect(r, col)
-		draw_circle(Vector2(r.position.x + aw / 2, r.end.y), aw / 2, col)
-	# A big shop window with the parcel(s) bouncing about inside, and a door.
-	var win := Rect2(-w / 2 + s * 0.05, -h * 0.72, w * 0.62, h * 0.62)
-	DrawUtil.rrect(self, win.grow(s * 0.012), Palette.VAN_CAB, s * 0.03)
-	DrawUtil.rrect(self, win, Color("e6f3fc") if not empty else Color("d9dee3"), s * 0.025)
-	if not empty:
-		var n := mini(left, 3)
-		for i in n:
-			var ph := _t * 4.2 + i * 2.1
-			var hop := absf(sin(ph))
-			var ms := s * 0.15 * (1.0 if i == 0 else 0.82)
-			var mx := win.position.x + win.size.x * (0.5 + 0.28 * sin(_t * 1.3 + i * 2.4)) 
-			var floor_y := win.end.y - s * 0.012
-			var sq := 1.0 - 0.22 * (1.0 - hop) * (1.0 - hop)
-			var py := floor_y - ms * 0.5 * sq - hop * win.size.y * 0.42
-			draw_set_transform(Vector2(mx, py), sin(ph * 0.5) * 0.3, Vector2(1.0 / sq, sq))
-			DrawUtil.package(self, Vector2.ZERO, ms, color.darkened(0.05 * i), false)
+	var w := s * 0.74
+	var h := s * 0.2
+	# The loading zone: a chunky dashed outline in its parcels' colour (only pickups have one).
+	var zone := Rect2(-s * 0.44, -s * 0.74, s * 0.88, s * 0.82)
+	var rim := color if not empty else Color(0.6, 0.6, 0.62)
+	DrawUtil.rrect(self, zone.grow(s * 0.045), Color(rim, 0.95), s * 0.16)
+	DrawUtil.rrect(self, zone, Color(0.97, 0.96, 0.93, 0.92) if not empty else Color(0.92, 0.92, 0.9, 0.9), s * 0.12)
+	var dash := s * 0.09
+	var x := zone.position.x + s * 0.06
+	while x < zone.end.x - s * 0.06:
+		draw_line(Vector2(x, zone.position.y - s * 0.022), Vector2(minf(x + dash * 0.5, zone.end.x - s * 0.06), zone.position.y - s * 0.022), Color.WHITE, s * 0.03)
+		draw_line(Vector2(x, zone.end.y + s * 0.022), Vector2(minf(x + dash * 0.5, zone.end.x - s * 0.06), zone.end.y + s * 0.022), Color.WHITE, s * 0.03)
+		x += dash
+	# The dock itself: plain and dark, so the parcels stand out.
+	var dock := Rect2(-w / 2, -h - s * 0.02, w, h)
+	DrawUtil.rrect(self, Rect2(dock.position + Vector2(0, s * 0.03), dock.size), Color(0, 0, 0, 0.18), s * 0.05)
+	DrawUtil.rrect(self, dock, Color("3a3f4d"), s * 0.05)
+	for k in 2:
+		draw_line(Vector2(-w * 0.32, dock.position.y + s * 0.06 + k * s * 0.06), Vector2(w * 0.32, dock.position.y + s * 0.06 + k * s * 0.06), Color(1, 1, 1, 0.12), s * 0.02)
+	if empty:
+		# Collected: empty, with a tick.
+		var c := Vector2(0, -h * 0.5 - s * 0.02)
+		draw_circle(c, s * 0.15, Palette.CHECK)
+		draw_polyline(PackedVector2Array([c + Vector2(-0.065, 0.0) * s, c + Vector2(-0.02, 0.045) * s, c + Vector2(0.07, -0.045) * s]), Color.WHITE, s * 0.035, true)
+		return
+	# Its parcels, big and bouncing, out front: one for each it'll hand over (up to five shown). While the
+	# route being planned is going to take them, they hold still and fade, like a ghost tick.
+	var n := clampi(left, 1, 5)
+	var rows := [n] if n <= 2 else [mini(n, 3), n - mini(n, 3)]
+	var ph := s * (0.44 if n == 1 else (0.34 if n == 2 else 0.25))
+	var pw := ph * StackView.ASPECT
+	var a := 0.45 if planned else 1.0
+	var k := 0
+	for r in rows.size():
+		var cnt: int = rows[r]
+		for i in cnt:
+			var hop := 0.0 if planned else absf(sin(_t * 4.0 + k * 1.7))
+			var cx := (i - (cnt - 1) / 2.0) * (pw * 0.86) + (r * pw * 0.2 if rows.size() > 1 and cnt < rows[0] else 0.0)
+			var cy := -h * 0.55 - ph * 0.5 - r * ph * 0.82 - hop * s * 0.07
+			var sq := 1.0 - 0.18 * (1.0 - hop) * (1.0 - hop) if not planned else 1.0
+			draw_set_transform(Vector2(cx, cy + ph * 0.5 * (1.0 - sq)), 0.0, Vector2(1.0 / sq, sq) * parcel_t)
+			DrawUtil.parcel(self, Vector2.ZERO, Vector2(pw, ph), Color(color, a), false)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.2, -s * 0.19, s * 0.13, s * 0.19), Palette.VAN_CAB, s * 0.03)
-	if parcel_t > 0.0:
-		var bob := -absf(sin(_t * 2.6)) * s * 0.045
-		var c := Vector2(0, -h - s * 0.21 + bob)
-		if stock > 1 and left > 1:
-			# A warehouse: a little pile on the roof, and how many are left.
-			DrawUtil.package(self, c + Vector2(-s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.08))
-			DrawUtil.package(self, c + Vector2(s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.04))
-			DrawUtil.package(self, c + Vector2(0, -s * 0.07), s * 0.22 * parcel_t, color)
-			DrawUtil.count_badge(self, Vector2(s * 0.27, -s * 0.6), s, left, color)
-		else:
-			DrawUtil.package(self, c, s * 0.24 * parcel_t, color)
+			k += 1
+	# How many it gives: a green "+N".
+	if left > 1:
+		DrawUtil.count_badge(self, Vector2(s * 0.3, -s * 0.66), s, left, Palette.GOOD, "+")
+	if planned:
+		var gc := Vector2(-s * 0.28, -s * 0.62)
+		draw_circle(gc, s * 0.12, Color(1, 1, 1, 0.85))
+		draw_polyline(PackedVector2Array([gc + Vector2(-0.05, 0.0) * s, gc + Vector2(-0.015, 0.035) * s, gc + Vector2(0.055, -0.035) * s]), Color(Palette.CHECK, 0.9), s * 0.03, true)

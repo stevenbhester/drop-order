@@ -31,6 +31,8 @@ var last_level := false
 ## A side road's title (the label says SIDE ROAD instead of the level number).
 var side_title := ""
 var side_kind := "SIDE ROAD"
+## A side road's power-up ("Free hints for 10 minutes"), or "".
+var bonus_line := ""
 ## First win on a challenge level.
 var crushed := false
 var coin_chip: CoinChip
@@ -321,6 +323,8 @@ func _draw() -> void:
 			_centered("NEW %s!  %s" % [kind, Cosmetics.name_of(new_item)], Vector2(v.x / 2.0, y + 66.0), int(46 * k), Cosmetics.tint(new_item).lightened(0.3))
 		elif missed_item:
 			_centered("Something shiny was on the road...", Vector2(v.x / 2.0, y + 66.0), int(36 * k), Color(1, 1, 1, 0.65))
+		if bonus_line != "":
+			_centered("BONUS: " + bonus_line + "!", Vector2(v.x / 2.0, y - 66.0), int(40 * k), Color("9ff0c4"))
 	draw_rect(Rect2(Vector2.ZERO, v), Color(1, 1, 1, maxf(0.0, 0.8 - _t * 7.0)))
 
 

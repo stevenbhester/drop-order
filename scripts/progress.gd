@@ -44,7 +44,26 @@ var landscape := false
 var left_hand := false
 var volume := 1.0
 var haptics := 0.7
-var stack_side := "left"
+var stack_side := "auto"
+## The player picked a chute spot themselves (else it's Auto), and the "your queue moved" tip's been shown.
+var stack_chosen := false
+var queue_moved_seen := false
+## Where Auto put the queue last level (to notice it moving).
+var last_auto_side := ""
+## Levels with one-way streets played so far (the second gets the "tap a symbol" tip), and whether it's shown.
+var oneway_levels := {}
+var symbol_tip_seen := false
+## Side-road power-ups: spare gas tanks (only used once the tank's empty; at most MAX_RESERVE), and
+## free hints / free undos until these times (Unix seconds). A side road hands one out once a day.
+const MAX_RESERVE := 3
+var reserve_gas := 0
+var free_hints_until := 0.0
+var free_undos_until := 0.0
+var side_bonus_day := {}           # side road id -> the day it last handed out its power-up
+## The driver's logbook: pages found (side road id -> true; a side road's first win finds its page), and
+## one just found that the map should show.
+var logs := {}
+var pending_log := ""
 var peek := false
 ## Colorblind mode ("aka Paul mode"): bold class marks on packages, and the same mark on a sign on every
 ## building and gate, so nothing depends on telling colours apart.
@@ -128,6 +147,14 @@ func _apply_preset(preset: String) -> void:
 				# Today's daily already solved, with v attempts.
 				daily[Daily.key(Daily.today())] = {"attempts": maxi(v, 1), "done": true, "ok": v <= Daily.MAX_REDOS + 1, "stars": 3, "time": 83.0,
 					"order": ["red", "blue", "blue", "yellow", "purple", "red"]}
+			"oneway":
+				# oneway:1 (a level with one-way streets already seen: the next one shows the symbol tip).
+				if v > 0:
+					oneway_levels[-1] = true
+			"log":
+				# log:<side road id> (its logbook page found, and waiting to be shown on the map).
+				logs[kv[1]] = true
+				pending_log = kv[1]
 			"sides":
 				# Every side road already beaten (their intros stay away).
 				if v > 0:
@@ -174,9 +201,26 @@ func _load() -> void:
 	left_hand = bool(d.get("left_hand", false))
 	volume = clampf(float(d.get("volume", 1.0)), 0.0, 1.0)
 	haptics = clampf(float(d.get("haptics", 0.7)), 0.0, 1.0)
-	stack_side = str(d.get("stack_side", "left"))
-	if not stack_side in ["left", "right", "top", "bottom"]:
-		stack_side = "left"
+	stack_side = str(d.get("stack_side", "auto"))
+	# Saves from before Auto had "left" as the default: only a choice made since counts.
+	if not bool(d.get("stack_chosen", false)) or not stack_side in ["auto", "left", "right", "top", "bottom"]:
+		stack_side = "auto"
+	queue_moved_seen = bool(d.get("queue_moved_seen", false))
+	stack_chosen = bool(d.get("stack_chosen", false))
+	last_auto_side = str(d.get("last_auto_side", ""))
+	for n in d.get("oneway_levels", []):
+		oneway_levels[int(n)] = true
+	symbol_tip_seen = bool(d.get("symbol_tip_seen", false))
+	reserve_gas = clampi(int(d.get("reserve_gas", 0)), 0, MAX_RESERVE)
+	free_hints_until = float(d.get("free_hints_until", 0.0))
+	free_undos_until = float(d.get("free_undos_until", 0.0))
+	for k in d.get("logs", []):
+		logs[str(k)] = true
+	pending_log = str(d.get("pending_log", ""))
+	var sbd = d.get("side_bonus_day", {})
+	if sbd is Dictionary:
+		for k in sbd:
+			side_bonus_day[str(k)] = int(sbd[k])
 	peek = bool(d.get("peek", false))
 	colorblind = bool(d.get("colorblind", false))
 	trail = bool(d.get("trail", true))
@@ -204,7 +248,8 @@ func _save() -> void:
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
-			"stack_side": stack_side, "peek": peek, "seen_version": seen_version,
+			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen,
+			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "logs": logs.keys(), "pending_log": pending_log, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
 			"mega": mega}))
 
@@ -270,6 +315,8 @@ func reset() -> void:
 	side_done.clear()
 	chests.clear()
 	mega.clear()
+	logs.clear()
+	pending_log = ""
 	_save()
 	changed.emit()
 
@@ -308,10 +355,15 @@ func seconds_to_next() -> int:
 	return maxi(1, int(ceil(gas_t + GAS_SECONDS - _now())))
 
 
-## Uses a tank. False (and nothing spent) when there are none.
+## Uses a tank (a spare one if the tank's empty). False (and nothing spent) when there are none at all.
 func spend_gas() -> bool:
 	tick()
 	if gas <= 0:
+		if reserve_gas > 0:
+			reserve_gas -= 1
+			_save()
+			changed.emit()
+			return true
 		return false
 	if gas >= MAX_GAS:
 		gas_t = _now()
@@ -410,15 +462,60 @@ func set_option(key: String, value: Variant) -> void:
 	settings_changed.emit()
 
 
+## Saves straight away (for flags set outside the usual changes, like a tip being shown).
+func save_now() -> void:
+	_save()
+
+
+func free_hints() -> bool:
+	return _now() < free_hints_until
+
+
+func free_undos() -> bool:
+	return _now() < free_undos_until
+
+
+## Seconds of free hints / undos left (0 when none).
+func free_left(what: String) -> int:
+	return maxi(0, int(ceil((free_hints_until if what == "hints" else free_undos_until) - _now())))
+
+
+## A side road won: its power-up, once a day per road. Returns a line saying what it gave ("" for none).
+func side_power_up(id: String, bonus: Dictionary) -> String:
+	var today := Daily.today()
+	if bonus.is_empty() or int(side_bonus_day.get(id, -1)) == today:
+		return ""
+	side_bonus_day[id] = today
+	var kind := str(bonus.get("kind", ""))
+	var n := int(bonus.get("amount", 1))
+	var said := ""
+	match kind:
+		"reserve":
+			var got := mini(n, MAX_RESERVE - reserve_gas)
+			reserve_gas += got
+			said = "+%d spare gas tank%s" % [got, "" if got == 1 else "s"] if got > 0 else "Spare tanks full!"
+		"hints":
+			free_hints_until = maxf(free_hints_until, _now()) + n * 60.0
+			said = "Free hints for %d minutes" % n
+		"undos":
+			free_undos_until = maxf(free_undos_until, _now()) + n * 60.0
+			said = "Free undos for %d minutes" % n
+	_save()
+	changed.emit()
+	return said
+
+
 ## A side road (SideRoads definition) opens once the level it branches off is beaten.
 func side_open(d: Dictionary) -> bool:
 	return is_complete(int(d.get("after", 0)))
 
 
-## A side challenge beaten. True the first time.
+## A side challenge beaten. True the first time (its logbook page is found then).
 func win_side(id: String) -> bool:
 	var first := not side_done.has(id)
 	side_done[id] = true
+	if first:
+		logs[id] = true
 	_save()
 	changed.emit()
 	return first
