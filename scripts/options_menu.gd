@@ -2,13 +2,16 @@ class_name OptionsMenu
 extends CanvasLayer
 ## The options card: how you steer (draw or D-pad), which hand the D-pad is for, where the package chute
 ## goes (left, right, top or bottom), the route preview chip, colorblind mode (aka Paul mode), night mode, horizontal play, sound volume and
-## haptic strength. Every change is saved straight away (Progress.set_option) and
+## haptic strength, then Feedback / Bug report and a link to the privacy policy. Every change is saved straight away (Progress.set_option) and
 ## takes effect live: Main re-themes for night mode and turns the screen for horizontal play, the game
 ## re-lays its controls out for the D-pad and the hand.
 
 signal closed
 ## Feedback / Bug report was picked (the card closes; Main takes a screenshot and opens the report).
 signal feedback_pressed
+
+## The game's privacy policy, on the Last Mile site.
+const PRIVACY_URL := "https://www.stevenhester.com/last-mile/privacy/"
 
 const ROW_H := 116.0
 
@@ -111,6 +114,24 @@ func _build() -> void:
 		feedback_pressed.emit()
 		_close())
 	_rows.add_child(fb)
+	# What the game keeps (almost nothing), on the web; and which build this is, for bug chats.
+	var foot := HBoxContainer.new()
+	foot.alignment = BoxContainer.ALIGNMENT_CENTER
+	foot.add_theme_constant_override("separation", 22)
+	var privacy := LinkButton.new()
+	privacy.text = "Privacy policy"
+	privacy.underline = LinkButton.UNDERLINE_MODE_ALWAYS
+	privacy.add_theme_font_size_override("font_size", 34)
+	for k in ["font_color", "font_hover_color", "font_focus_color"]:
+		privacy.add_theme_color_override(k, Palette.TEXT_SOFT)
+	privacy.add_theme_color_override("font_pressed_color", Palette.ACCENT)
+	privacy.focus_mode = Control.FOCUS_NONE
+	privacy.pressed.connect(func():
+		Sfx.play("click")
+		OS.shell_open(PRIVACY_URL))
+	foot.add_child(privacy)
+	foot.add_child(_label("v%s (build %d)" % [Version.NUMBER, Version.BUILD], 30, Palette.TEXT_SOFT))
+	_rows.add_child(foot)
 
 
 func _gap(h: float) -> void:

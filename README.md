@@ -64,7 +64,9 @@ side roads, and a speedrun mode.
   bundle ID `com.stevenhester.lastmile`. After each successful upload the script raises the build
   number in `export_presets.cfg`, since Apple won't accept the same one twice.
 - **"A new version is out!":** each archive also writes `release/latest.json` (the build, version,
-  name and first three patch notes, via `tools/release_note.gd`). Once that's pushed, players' games
+  name and up to three notes, via `tools/release_note.gd`): `Version.BUILD_NOTES` if it has any (what
+  changed since the last build; the card then says "A fresh build is out!"), else the version's top
+  patch notes. Once that's pushed, players' games
   read it from GitHub at launch (and when they come back after half an hour or more). If it's a newer
   build than theirs, the title shows an update card with an **Update in TestFlight** button, and the
   version badge wears an UPDATE sticker. A build is only offered an hour after its archive, so Apple has
@@ -233,7 +235,8 @@ as a little flame inside the Daily button.
   `stevenbhester/last-mile-feedback` (screenshot and full log stored alongside). The game never holds a
   GitHub token. A parcel hops to a mailbox until the server confirms; then "Got it!" with the report id,
   or what went wrong and Try again. `-- --feedback` opens it straight away; `--feedback-url=` points it
-  at a test server.
+  at a test server. Under it, a **Privacy policy** link (https://www.stevenhester.com/last-mile/privacy/,
+  in the `stevenhester-com` repo) and the version and build number.
 - **Options** (the gear: bottom left in a level, top corner of the title and map): steering (draw or
   D-pad), which hand the D-pad is for, where the package chute goes, the route preview, colorblind mode, **night mode**, **play sideways** (landscape: the board in the
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic

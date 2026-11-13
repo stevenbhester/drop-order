@@ -1,7 +1,7 @@
 extends SceneTree
 ## Writes release/latest.json, which tells players' games a newer build is in TestFlight (UpdateCheck reads
-## it from GitHub). tools/testflight.sh runs this after each archive, from Version's number, name and the top
-## of its notes. The build is offered from `ready_at` (unix time): an hour after the archive by default, to give
+## it from GitHub). tools/testflight.sh runs this after each archive, from Version's number, name and
+## BUILD_NOTES (or, if that's empty, the top of the version's notes). The build is offered from `ready_at` (unix time): an hour after the archive by default, to give
 ## the upload time to go through Apple's processing.
 ##   godot --headless --path . --script res://tools/release_note.gd -- --build=12 [--ready-in=3600]
 
@@ -15,7 +15,10 @@ func _initialize() -> void:
 			build = a.trim_prefix("--build=").to_int()
 		elif a.begins_with("--ready-in="):
 			ready_in = a.trim_prefix("--ready-in=").to_int()
-	var notes: Array = V.NOTES[0]["notes"] if V.NOTES[0]["version"] == V.NUMBER else []
+	# This build's own notes if it has any, else the version's top ones.
+	var notes: Array = V.BUILD_NOTES
+	if notes.is_empty() and V.NOTES[0]["version"] == V.NUMBER:
+		notes = V.NOTES[0]["notes"]
 	var d := {
 		"version": V.NUMBER,
 		"name": V.NAME,

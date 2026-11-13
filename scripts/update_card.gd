@@ -73,7 +73,9 @@ func _ready() -> void:
 	_van.set_top("green")
 	stage.resized.connect(func(): _van.position = Vector2(stage.size.x / 2.0, 115))
 
-	var title := _label("A new version is out!", 64, Palette.TEXT)
+	# The same version, just a later build: say so.
+	var same := str(info.get("version", "")) == Version.NUMBER
+	var title := _label("A fresh build is out!" if same else "A new version is out!", 64, Palette.TEXT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(title)
@@ -148,7 +150,10 @@ func _heading() -> HBoxContainer:
 		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 38).x
 		pill.draw_string(f, Vector2((pill.size.x - tw) / 2.0, 45), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color.WHITE))
 	row.add_child(pill)
-	var nm := _label(str(info.get("name", "")), 46, Palette.TEXT)
+	var nm_text := str(info.get("name", ""))
+	if str(info.get("version", "")) == Version.NUMBER:
+		nm_text += " · build %d" % int(info.get("build", 0))
+	var nm := _label(nm_text, 46, Palette.TEXT)
 	nm.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(nm)
 	return row
