@@ -49,6 +49,8 @@ static func parked(L: LevelData, route: Array) -> bool:
 static func is_won(L: LevelData, s: Dictionary, route: Array) -> bool:
 	if not all_delivered(L, s):
 		return false
+	if L.has_exit():
+		return route.back() == L.exit
 	return parked(L, route) if L.return_depot else true
 
 

@@ -26,6 +26,8 @@ signal retry_requested(index: int)   # the same level again: gas already paid he
 signal daily_menu_requested
 signal segment_finished
 signal options_requested
+## A mega route's part is done (not the last): Main saves it and pans on to the next part that way.
+signal part_finished(dir: Vector2i)
 
 enum State { IDLE, DRAWING, DRIVING, REWINDING, WON, FAILED }
 
@@ -58,6 +60,7 @@ var state := State.IDLE
 var board: Board
 var van: Van
 var stack_view: StackView
+var convoy: Convoy
 ## The route preview chip (only with the option on).
 var peek: PeekBubble
 var confetti: Confetti
@@ -109,6 +112,9 @@ var daily_day := -1
 ## A side challenge (SideRoads): its definition, or empty for a normal level. Its `twist` changes the rules.
 var side := {}
 var _fogged := false
+## Mega routes: which part this is, and (arriving from the last part) the way the camera pans in from.
+var part := 0
+var pan_from := Vector2i.ZERO
 ## Seconds spent playing, from the first touch to the win (menus and the ad don't count).
 var play_time := 0.0
 var timing := false
@@ -173,11 +179,44 @@ func _twist() -> String:
 	return str(side.get("twist", ""))
 
 
+## A side road with a twist: no hints, no undos. (Mega routes allow both.)
+func _strict_side() -> bool:
+	return not side.is_empty() and _twist() != "mega"
+
+
+func _parts() -> int:
+	return SideRoads.part_count(side)
+
+
+## A mega route's part done (all delivered, parked on the exit): saved, a cheer, the van drives off the
+## edge, and Main pans on to the next part.
+func _part_done() -> void:
+	state = State.WON
+	timing = false
+	_clear_hint()
+	Progress.set_mega_part(str(side.get("id", "")), part + 1)
+	Progress.momentum += 1
+	Sfx.play("win")
+	Sfx.haptic(30)
+	var dir := level.exit_dir()
+	fx.say(board.size_px() / 2.0, "PART %d DONE!" % (part + 1), Palette.GOOD.darkened(0.15), int(board.tile * 0.5))
+	fx.burst(van.position, Color("38d9a9"), 16, board.tile * 3.0, board.tile * 0.1)
+	_say("Part %d of %d done! On to the next..." % [part + 1, _parts()], Palette.GOOD.darkened(0.2))
+	var tw := create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		van.target_rotation = Vector2(dir).angle()
+		Sfx.play("whoosh", 1.1, -6.0))
+	tw.tween_property(van, "position", van.position + Vector2(dir) * board.tile * 1.6, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_interval(0.15)
+	tw.tween_callback(func(): part_finished.emit(dir))
+
+
 ## A side challenge starts: its intro (until it's been beaten), the clock for "melt", the fog countdown.
 func _start_side() -> void:
 	if _twist() == "melt":
 		timing = true
-	if ChallengeIntro.should_show_side(side):
+	if part == 0 and ChallengeIntro.should_show_side(side):
 		var ci := ChallengeIntro.new()
 		ci.level = level
 		ci.side = side
@@ -220,6 +259,8 @@ func _side_status() -> void:
 		"fog":
 			var peek := float(side.get("peek", 6)) - play_time_total()
 			t = "Fog in %d" % int(ceil(peek)) if not _fogged and peek > 0.0 else "In the fog"
+		"mega":
+			t = "Part %d of %d" % [part + 1, _parts()]
 	level_label.text = t
 	var warn := (_twist() == "fuel" and _fuel_left() <= 2) or (_twist() == "melt" and _melt_left() < 10.0)
 	level_label.add_theme_color_override("font_color", Palette.CRASH if warn else Palette.TEXT)
@@ -296,6 +337,15 @@ func _intro() -> void:
 	if Progress.auto:
 		return
 	var rest := board.position
+	if pan_from != Vector2i.ZERO:
+		# On from the last part of a mega route: the camera pans across to this one.
+		var vp := get_viewport_rect().size
+		board.position = rest + Vector2(pan_from) * Vector2(vp.x, vp.y) * 0.9
+		var pt := create_tween()
+		pt.tween_property(board, "position", rest, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		Sfx.play("whoosh", 0.75, -4.0)
+		stack_view.rebuild(stack_view.colors.duplicate())
+		return
 	board.position = rest + Vector2(0, 50)
 	board.modulate.a = 0.0
 	var bt := create_tween().set_parallel()
@@ -317,9 +367,12 @@ func _intro() -> void:
 ## While the van waits, houses that want the package now on top give a little hop every couple of
 ## seconds, and the top package in the load nods along: a gentle "this one goes here".
 func _process(delta: float) -> void:
-	if stars_ctl and Progress.momentum > 0 and state != State.WON:
+	if stars_ctl and (Progress.momentum > 0 or _twist() == "mega") and state != State.WON:
 		stars_ctl.queue_redraw()
 	_side_tick(delta)
+	# The trail follows what's really aboard (while a route's being planned, the chute shows the future).
+	if convoy and state != State.DRAWING:
+		convoy.set_colors(stack_view.colors)
 	if timing and state != State.WON and not _busy_modal():
 		play_time += delta
 	if state != State.IDLE or _busy_modal():
@@ -381,11 +434,17 @@ func _build_world() -> void:
 			ghost.pts.append(board.center(p))
 		board.add_child(ghost)
 
+	# The package trail (an option): the next few packages on drones behind the van.
+	convoy = Convoy.new()
+	convoy.tile = tile
+	convoy.visible = Progress.trail
+	board.add_child(convoy)
 	van = Van.new()
 	van.size = tile
 	van.position = board.center(level.start)
 	van.target_rotation = _initial_heading()
 	board.add_child(van)
+	convoy.van = van
 	van.set_top(Sim.top_color(level, sim_state))
 	van.inviting = true
 
@@ -681,6 +740,9 @@ func _action(icon: String, text: String, on_press: Callable) -> JuicyButton:
 
 ## The stars still on offer this attempt, under the level name.
 func _draw_stars() -> void:
+	if _twist() == "mega":
+		_draw_parts_map()
+		return
 	var lit := 3 - int(hint_used) - int(undo_used)
 	var c := stars_ctl.size / 2.0
 	for i in 3:
@@ -824,6 +886,30 @@ func _layout() -> void:
 	hint_label.max_lines_visible = hint_lines
 	hint_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_place_peek()
+
+
+## A mega route's parts as a little map (like a big puzzle's grid of small ones): done ones ticked, this
+## one lit, the rest to come.
+func _draw_parts_map() -> void:
+	var grid: Array = side.get("grid", [_parts(), 1])
+	var cell := 22.0
+	var gap := 5.0
+	var gw: float = grid[0] * cell + (grid[0] - 1) * gap
+	var gh: float = grid[1] * cell + (grid[1] - 1) * gap
+	var o := stars_ctl.size / 2.0 - Vector2(gw, gh) / 2.0
+	var parts: Array = side.get("parts", [])
+	for k in parts.size():
+		var at: Array = parts[k].get("at", [k, 0])
+		var r := Rect2(o + Vector2(at[0], at[1]) * (cell + gap), Vector2(cell, cell))
+		if k < part:
+			DrawUtil.rrect(stars_ctl, r, Palette.GOOD, 6)
+			stars_ctl.draw_polyline(PackedVector2Array([r.get_center() + Vector2(-5, 0), r.get_center() + Vector2(-1, 4), r.get_center() + Vector2(6, -4)]), Color.WHITE, 3.0, true)
+		elif k == part:
+			var pulse := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0 * 4.0)
+			DrawUtil.rrect(stars_ctl, r.grow(2.0 * pulse), Color(Palette.ACCENT, 0.35), 8)
+			DrawUtil.rrect(stars_ctl, r, Palette.ACCENT, 6)
+		else:
+			DrawUtil.rrect(stars_ctl, r, Color(Palette.TEXT, 0.14), 6)
 
 
 ## How tall `text` wraps to at `px` in `width`.
@@ -1055,6 +1141,8 @@ func _unblock() -> void:
 ## Houses waiting for the package that'll be next out of the van (as things stand at the end of the route
 ## being planned, or right now if none is) show a little parcel; houses the plan will fill show a ghost tick.
 func _refresh_tags() -> void:
+	if board.exit_zone:
+		board.exit_zone.open = Sim.all_delivered(level, sim_state)
 	var st: Dictionary = seg_states.back() if (state == State.DRAWING and not seg_states.is_empty()) else sim_state
 	var top := Sim.top_color(level, st)
 	for h in level.houses.size():
@@ -1221,6 +1309,8 @@ func set_dpad_mode(on: bool) -> void:
 ## An option changed: steering, the hand, night mode (Main re-themes), or orientation (size_changed does it).
 func _on_settings() -> void:
 	set_dpad_mode(Progress.drive_mode == "dpad")
+	if convoy:
+		convoy.visible = Progress.trail
 	_layout()
 
 
@@ -1448,6 +1538,7 @@ func _arrive(k: int) -> void:
 	board.update_gates(Sim.top_color(level, sim_state))
 	if level.return_depot and board.depot:
 		board.depot.calling = Sim.all_delivered(level, sim_state)
+
 	if board.gift and not gift_taken and tile == level.gift:
 		_take_gift()
 	_refresh_tags()
@@ -1628,7 +1719,9 @@ func _shake_board(amount := 1.0) -> void:
 
 
 func _after_segment() -> void:
-	if Sim.is_won(level, sim_state, route):
+	if Sim.is_won(level, sim_state, route) and _twist() == "mega" and part < _parts() - 1:
+		_part_done()
+	elif Sim.is_won(level, sim_state, route):
 		_win()
 	elif _twist() == "one_shot":
 		_twist_fail("No brakes means one run: the whole route in one go.")
@@ -1663,7 +1756,7 @@ func can_undo() -> bool:
 func _on_undo_pressed() -> void:
 	if _busy_modal():
 		return
-	if not side.is_empty():
+	if _strict_side():
 		Sfx.play("bonk", 1.1, -6.0)
 		_say("No undos on side roads!")
 		return
@@ -1796,7 +1889,7 @@ func _rewind_tick(d: float, tiles: Array) -> void:
 func _update_undo() -> void:
 	if undo_button == null:
 		return
-	if not side.is_empty():
+	if _strict_side():
 		# Side roads: no undos (or hints).
 		undo_button.badge = ""
 		undo_button.badge_icon = ""
@@ -1823,7 +1916,7 @@ func _update_undo() -> void:
 func _on_hint_pressed() -> void:
 	if _busy_modal():
 		return
-	if not side.is_empty():
+	if _strict_side():
 		Sfx.play("bonk", 1.1, -6.0)
 		_say("No hints on side roads!")
 		return
@@ -1982,6 +2075,8 @@ func _win() -> void:
 		# A side challenge: its ride, the first time.
 		if Progress.win_side(str(side.get("id", ""))):
 			side_prize = str(side.get("reward", ""))
+		if _twist() == "mega":
+			Progress.set_mega_part(str(side.get("id", "")), 0)
 	elif daily_day >= 0:
 		var first: bool = not Progress.daily_record(daily_day).get("done", false)
 		Progress.daily_done(daily_day, earned, play_time, deliveries)
@@ -2054,6 +2149,7 @@ func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, misse
 	finish.daily = daily_day >= 0
 	finish.last_level = index + 1 >= total or not side.is_empty()
 	finish.side_title = str(side.get("title", ""))
+	finish.side_kind = "MEGA ROUTE" if _twist() == "mega" else "SIDE ROAD"
 	# Sideways the finish lives in its own portrait column, so rewards can't fly across to the wallet.
 	finish.coin_chip = null if Progress.landscape else coin_chip
 	finish.gas_chip = null if Progress.landscape else gas_chip

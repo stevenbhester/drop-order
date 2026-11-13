@@ -159,6 +159,13 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 				"side_top": bar.size.y = s * 0.1
 				"side_bottom": bar = Rect2(bar.position.x, bar.end.y - s * 0.1, bar.size.x, s * 0.1)
 			DrawUtil.rrect(ci, bar, col, s * 0.03)
+		"trail":
+			# A van with three little packages trailing behind it.
+			DrawUtil.rrect(ci, Rect2(c + Vector2(0.06, -0.15) * s, Vector2(0.38, 0.3) * s), col, s * 0.08)
+			for k in 3:
+				var r := s * (0.11 - k * 0.022)
+				var x := 0.0 - k * 0.2 - 0.02
+				DrawUtil.rrect(ci, Rect2(c + Vector2(x * s - r, -r * 0.8), Vector2(r * 2.0, r * 1.6)), col, r * 0.4)
 		"eye":
 			# An eye.
 			var lid := PackedVector2Array()

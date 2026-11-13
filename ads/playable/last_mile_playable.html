@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Last Mile</title>
+<!-- Playable ad for Tapjoy and other MRAID 2.0 networks (ironSource, AppLovin, Unity, Liftoff...).
+     One self-contained file: no external requests, no fonts or images to fetch. The network's SDK
+     injects mraid.js; the tag below is the standard hook for it (harmless in a plain browser). -->
+<script src="mraid.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #f3ead9;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  canvas { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(function () {
+"use strict";
+
+// ---------------------------------------------------------------- settings
+// Where the CTA goes. Swap in the App Store / Play links once the game is live; until then, the landing
+// page (it collects beta sign-ups). Networks that set their own click URL use mraid.open's argument too.
+var CTA_URL = "https://www.stevenhester.com/last-mile/?utm_source=tapjoy&utm_campaign=playable";
+var MAX_SECONDS = 50;           // then the end card, whatever happens
+
+// The game's own palette.
+var C = {
+  bg: "#f3ead9", grass: "#a8d98a", block: "#9ed17f", road: "#596273", roadEdge: "#444b59",
+  text: "#3b3346", soft: "rgba(59,51,70,0.6)", accent: "#ff7a59", gold: "#ffc53d", good: "#35c27a",
+  vanBody: "#fffaf2", vanCab: "#3b4a6b", glass: "#9cc4ea", wreck: "#2b2f3a",
+  red: "#ff5d5d", blue: "#4d8dff", yellow: "#ffc53d", green: "#2fbf71", purple: "#a26bf5"
+};
+
+// Levels, in the game's map format: S the van, # road, . grass, letters houses (r b y g p).
+// `stack` is bottom first, top last (the top goes first).
+var LEVELS = [
+  { say: "Drag from the van along the road!", tip: "Pass a house with its package on top to deliver it.",
+    ghost: true, map: [
+      ". . . . .",
+      ". # # # .",
+      ". # . b .",
+      "r # . . .",
+      ". # . . .",
+      ". S . . ."], stack: ["blue", "red"] },
+  { say: "Top package goes first.", tip: "The road tears up behind you. Which way round?",
+    ghost: false, map: [
+      ". # # # .",
+      ". # . # .",
+      "b # . # r",
+      "y # # # .",
+      ". . # . .",
+      ". . S . ."], stack: ["yellow", "blue", "red"] }
+];
+// Level 2: red's on top. Round to the left passes blue and yellow too early (not theirs yet) and the
+// torn-up road won't let you back; round to the right: red, then blue, then yellow last.
+
+// ---------------------------------------------------------------- state
+var cv = document.getElementById("c"), g = cv.getContext("2d");
+var W = 0, H = 0, DPR = 1;
+var started = false, paused = false, ended = false;
+var t0 = 0, now = 0, last = 0;
+var lvIndex = 0, L = null;
+var fails = 0, totalFails = 0;
+var plan = [];          // tiles being drawn (starts at the van)
+var drawing = false;
+var drive = null;       // {path, i, u}
+var flyers = [];        // packages flying to houses
+var bursts = [];        // confetti
+var says = [];          // floating words
+var shake = {};         // house index -> time left
+var banner = null;      // {text, col, until}
+var ghostT = 0;
+var endT = 0;
+var touched = false;
+var layout = null;
+var audio = null;
+
+function parse(def) {
+  var rows = def.map.map(function (r) { return r.trim().split(/\s+/); });
+  var lv = { w: rows[0].length, h: rows.length, road: {}, houses: [], start: null, stack: def.stack.slice(),
+    say: def.say, tip: def.tip, ghost: def.ghost, wreck: {}, van: null, done: false, solution: [] };
+  var names = { r: "red", b: "blue", y: "yellow", g: "green", p: "purple" };
+  for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++) {
+    var tk = rows[y][x];
+    if (tk === "#" || tk === "S") lv.road[x + "," + y] = true;
+    if (tk === "S") lv.start = { x: x, y: y };
+    if (names[tk]) lv.houses.push({ x: x, y: y, color: names[tk], done: false, tick: 0 });
+  }
+  lv.van = { x: lv.start.x, y: lv.start.y, px: lv.start.x, py: lv.start.y, rot: -Math.PI / 2 };
+  lv.solution = solve(lv);
+  return lv;
+}
+
+function key(p) { return p.x + "," + p.y; }
+function adj(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1; }
+function isRoad(lv, x, y) { return !!lv.road[x + "," + y]; }
+function top(lv) { return lv.stack[lv.stack.length - 1]; }
+
+// The van arrives on a tile: houses beside it take the package on top while it's theirs.
+function arrive(lv, s, p) {
+  var events = [], again = true;
+  while (again && s.stack.length) {
+    again = false;
+    for (var i = 0; i < lv.houses.length; i++) {
+      var h = lv.houses[i];
+      if (!s.done[i] && adj(h, p) && h.color === s.stack[s.stack.length - 1]) {
+        s.stack.pop(); s.done[i] = true; events.push(i); again = true;
+      }
+    }
+  }
+  return events;
+}
+
+// The shortest winning route (for the hint finger): a tiny search over no-revisit routes.
+function solve(lv) {
+  var best = null;
+  function dfs(route, seen, s) {
+    if (best && route.length >= best.length) return;
+    var p = route[route.length - 1];
+    var dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    for (var d = 0; d < 4; d++) {
+      var n = { x: p.x + dirs[d][0], y: p.y + dirs[d][1] };
+      if (!isRoad(lv, n.x, n.y) || seen[key(n)]) continue;
+      var st = { stack: s.stack.slice(), done: s.done.slice() };
+      arrive(lv, st, n);
+      route.push(n); seen[key(n)] = true;
+      if (st.done.every(function (v) { return v; })) best = route.slice();
+      else dfs(route, seen, st);
+      route.pop(); delete seen[key(n)];
+    }
+  }
+  var s0 = { stack: lv.stack.slice(), done: lv.houses.map(function () { return false; }) };
+  var seen = {}; seen[key(lv.start)] = true;
+  dfs([{ x: lv.start.x, y: lv.start.y }], seen, s0);
+  return best || [];
+}
+
+function load(i) {
+  lvIndex = i;
+  L = parse(LEVELS[i]);
+  plan = []; drive = null; flyers = []; fails = 0; ghostT = 0;
+  // The level's instruction stays up until the player starts drawing.
+  banner = { text: L.say, col: C.text, until: Infinity, sub: L.tip, sticky: true };
+}
+
+// ---------------------------------------------------------------- layout
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 3);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  layout = null;
+}
+
+function lay() {
+  if (layout && layout.w === L.w && layout.h === L.h) return layout;
+  var portrait = H >= W;
+  var headH = portrait ? H * 0.2 : H * 0.18;
+  var footH = portrait ? H * 0.12 : H * 0.1;
+  var availH = H - headH - footH;
+  var chuteCols = 1.35;
+  var availW = W * (portrait ? 0.94 : 0.7);
+  var tile = Math.min(availW / (L.w + 0.3 + chuteCols + 0.25), availH / (L.h + 0.35));
+  var boardW = tile * (L.w + 0.3), boardH = tile * (L.h + 0.35);
+  var total = tile * chuteCols + tile * 0.25 + boardW;
+  var x0 = (W - total) / 2;
+  layout = { w: L.w, h: L.h, tile: tile, headH: headH, footH: footH,
+    chute: { x: x0, y: headH + (availH - boardH) / 2, w: tile * chuteCols, h: boardH },
+    board: { x: x0 + tile * chuteCols + tile * 0.25, y: headH + (availH - boardH) / 2, w: boardW, h: boardH } };
+  return layout;
+}
+
+function center(p) {
+  var l = lay();
+  return { x: l.board.x + l.tile * (0.15 + p.x + 0.5), y: l.board.y + l.tile * (0.15 + p.y + 0.5) };
+}
+
+function tileAt(x, y) {
+  var l = lay();
+  var tx = Math.floor((x - l.board.x) / l.tile - 0.15), ty = Math.floor((y - l.board.y) / l.tile - 0.15);
+  return { x: tx, y: ty };
+}
+
+// ---------------------------------------------------------------- drawing helpers
+function rr(x, y, w, h, r, col) {
+  r = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  g.fillStyle = col; g.fill();
+}
+function circle(x, y, r, col) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = col; g.fill(); }
+function font(px, weight) { return (weight || 800) + " " + Math.round(px) + "px ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Nunito', system-ui, sans-serif"; }
+function text(s, x, y, px, col, align, outline) {
+  g.font = font(px);
+  // Never wider than the screen: shrink to fit.
+  var w = g.measureText(s).width;
+  if (w > W * 0.92) { px = px * W * 0.92 / w; g.font = font(px); }
+  g.textAlign = align || "center"; g.textBaseline = "middle";
+  if (outline) { g.lineWidth = outline; g.strokeStyle = "#2b2233"; g.lineJoin = "round"; g.strokeText(s, x, y); }
+  g.fillStyle = col; g.fillText(s, x, y);
+}
+function shade(hex, k) {
+  var n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
+  var f = function (v) { return Math.max(0, Math.min(255, Math.round(k < 0 ? v * (1 + k) : v + (255 - v) * k))); };
+  return "rgb(" + f(r) + "," + f(gg) + "," + f(b) + ")";
+}
+
+function parcel(x, y, w, h, col) {
+  var m = Math.min(w, h);
+  rr(x - w / 2, y - h / 2 + m * 0.09, w, h, m * 0.2, "rgba(0,0,0,0.18)");
+  rr(x - w / 2, y - h / 2, w, h, m * 0.2, shade(col, -0.12));
+  rr(x - w / 2, y - h / 2, w, h - m * 0.1, m * 0.2, col);
+  rr(x - w / 2 + m * 0.1, y - h / 2 + m * 0.08, m * 0.14, m * 0.08, m * 0.04, "rgba(255,255,255,0.4)");
+}
+
+// Each colour's building (the game's: red home, blue factory, yellow lab...).
+function building(h, s) {
+  var c = center(h);
+  var bx = c.x, by = c.y + s * 0.3;
+  var col = C[h.color], wall = shade(col, 0.72), roof = col, ink = shade(col, -0.28);
+  if (h.done) { wall = "#eeeeee"; roof = shade(col, 0.35); }
+  var sh = shake[houses_i(h)] || 0;
+  bx += Math.sin(sh * 70) * s * 0.06 * (sh / 0.3);
+  var w = s * 0.62, ht = s * 0.4;
+  rr(bx - w * 0.62, by - s * 0.05, w * 1.24, s * 0.11, s * 0.05, "rgba(0,0,0,0.13)");
+  rr(bx - w / 2, by - ht, w, ht, s * 0.05, wall);
+  g.fillStyle = roof;
+  g.beginPath();
+  if (h.color === "blue") {
+    for (var k = 0; k < 3; k++) { var a = bx - w / 2 - s * 0.03 + k * (w + s * 0.06) / 3; g.moveTo(a, by - ht + s * 0.02); g.lineTo(a, by - ht - s * 0.15); g.lineTo(a + (w + s * 0.06) / 3, by - ht + s * 0.02); }
+    g.fill(); rr(bx + w * 0.22, by - ht - s * 0.32, s * 0.1, s * 0.32, s * 0.03, ink);
+  } else if (h.color === "yellow") {
+    g.arc(bx - w * 0.08, by - ht - s * 0.02, s * 0.16, Math.PI, 0); g.fill();
+    rr(bx - w / 2 - s * 0.04, by - ht - s * 0.05, w + s * 0.08, s * 0.08, s * 0.03, roof);
+  } else {
+    g.moveTo(bx - w / 2 - s * 0.07, by - ht + s * 0.03); g.lineTo(bx, by - ht - s * 0.3); g.lineTo(bx + w / 2 + s * 0.07, by - ht + s * 0.03);
+    g.closePath(); g.fill();
+  }
+  rr(bx - s * 0.07, by - s * 0.21, s * 0.14, s * 0.21, s * 0.04, ink);
+  if (h.done) {
+    var t = Math.min(1, (now - h.tick) / 0.25);
+    circle(bx + w * 0.45, by - ht - s * 0.17, s * 0.15 * t, C.good);
+    g.strokeStyle = "#fff"; g.lineWidth = s * 0.035; g.lineCap = "round"; g.beginPath();
+    g.moveTo(bx + w * 0.45 - s * 0.065 * t, by - ht - s * 0.17); g.lineTo(bx + w * 0.45 - s * 0.02 * t, by - ht - s * 0.125 * t);
+    g.lineTo(bx + w * 0.45 + s * 0.07 * t, by - ht - s * 0.215); g.stroke();
+  } else if (L.stack.length && top(L) === h.color) {
+    // Next in line: a soft glow in its colour.
+    var p = 0.5 + 0.5 * Math.sin(now * 3.2);
+    g.globalAlpha = 0.18 + 0.1 * p; circle(bx, by - s * 0.24, s * 0.48, col); g.globalAlpha = 1;
+  }
+}
+function houses_i(h) { return L.houses.indexOf(h); }
+
+function van(x, y, rot, s, cargo) {
+  g.save(); g.translate(x, y); g.rotate(rot);
+  var Lh = s * 0.74, Wd = s * 0.46;
+  rr(-Lh / 2 - 3, -Wd / 2 - 1, Lh + 6, Wd + 8, Wd * 0.32, "rgba(0,0,0,0.2)");
+  for (var sx of [-0.28, 0.28]) for (var sy of [-1, 1]) rr(Lh * sx - Lh * 0.1, sy * Wd * 0.5 - Wd * 0.09, Lh * 0.2, Wd * 0.18, Wd * 0.06, "#2b2f38");
+  rr(-Lh / 2, -Wd / 2, Lh, Wd, Wd * 0.28, C.vanBody);
+  var cab = Lh * 0.3;
+  rr(Lh / 2 - cab, -Wd / 2, cab, Wd, Wd * 0.28, C.vanCab);
+  rr(Lh / 2 - cab + Wd * 0.06, -Wd * 0.36, cab * 0.42, Wd * 0.72, Wd * 0.1, C.glass);
+  circle(Lh / 2 - Wd * 0.06, -Wd * 0.32, Wd * 0.07, "#ffe28a"); circle(Lh / 2 - Wd * 0.06, Wd * 0.32, Wd * 0.07, "#ffe28a");
+  if (cargo) parcel(-Lh * 0.13, 0, Wd * 0.62 * 1.2, Wd * 0.62, C[cargo]);
+  g.restore();
+}
+
+// ---------------------------------------------------------------- frame
+function draw() {
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+  var l = lay(), s = l.tile;
+  // Soft background blobs.
+  g.globalAlpha = 0.35;
+  circle(W * 0.15, H * 0.12, W * 0.22, "#f7dcc7"); circle(W * 0.9, H * 0.85, W * 0.3, "#f6e3b4");
+  g.globalAlpha = 1;
+  // The board: grass, blocks, road, the wrecked road behind you.
+  var b = l.board;
+  rr(b.x, b.y + s * 0.08, b.w, b.h, s * 0.3, "rgba(92,74,51,0.18)");
+  rr(b.x, b.y, b.w, b.h, s * 0.3, C.grass);
+  for (var y = 0; y < L.h; y++) for (var x = 0; x < L.w; x++) {
+    var c = center({ x: x, y: y });
+    if (isRoad(L, x, y)) {
+      rr(c.x - s * 0.5, c.y - s * 0.5, s, s, s * 0.12, C.road);
+      // Join to road neighbours so it reads as streets.
+      if (isRoad(L, x + 1, y)) g.fillRect(c.x, c.y - s * 0.5, s, s);
+      if (isRoad(L, x, y + 1)) g.fillRect(c.x - s * 0.5, c.y, s, s);
+    } else if (!L.houses.some(function (h) { return h.x === x && h.y === y; })) {
+      rr(c.x - s * 0.42, c.y - s * 0.42, s * 0.84, s * 0.84, s * 0.14, C.block);
+    }
+  }
+  g.fillStyle = C.road;
+  for (var y2 = 0; y2 < L.h; y2++) for (var x2 = 0; x2 < L.w; x2++) {
+    if (!isRoad(L, x2, y2)) continue;
+    var c2 = center({ x: x2, y: y2 });
+    g.strokeStyle = "rgba(255,255,255,0.32)"; g.lineWidth = s * 0.035; g.setLineDash([s * 0.12, s * 0.12]);
+    g.beginPath();
+    if (isRoad(L, x2 + 1, y2)) { g.moveTo(c2.x, c2.y); g.lineTo(c2.x + s, c2.y); }
+    if (isRoad(L, x2, y2 + 1)) { g.moveTo(c2.x, c2.y); g.lineTo(c2.x, c2.y + s); }
+    g.stroke(); g.setLineDash([]);
+    if (L.wreck[x2 + "," + y2]) {
+      // Torn-up road: rubble.
+      for (var k = 0; k < 5; k++) {
+        var a = (x2 * 7 + y2 * 13 + k * 3.1);
+        rr(c2.x + Math.sin(a) * s * 0.3 - s * 0.1, c2.y + Math.cos(a * 1.3) * s * 0.3 - s * 0.08, s * 0.2, s * 0.16, s * 0.04, C.wreck);
+      }
+    }
+  }
+  // The route being drawn, tinted with the package on top.
+  if (plan.length > 1) {
+    g.strokeStyle = "#ffffff"; g.lineWidth = s * 0.26; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); var p0 = center(plan[0]); g.moveTo(p0.x, p0.y);
+    for (var i = 1; i < plan.length; i++) { var pc = center(plan[i]); g.lineTo(pc.x, pc.y); }
+    g.stroke();
+    g.strokeStyle = C[top(L)] || C.accent; g.lineWidth = s * 0.16; g.stroke();
+  }
+  // Ghost finger (the tutorial, or after a couple of wrong turns).
+  if (!drawing && !drive && (L.ghost || fails >= 1) && L.solution.length > 1 && !L.done) {
+    var path = L.ghost ? L.solution : L.solution.slice(0, 4);
+    var tg = ((now - ghostT) % 3.2) / 2.4;
+    if (tg <= 1) {
+      var f = tg * (path.length - 1), fi = Math.min(path.length - 2, Math.floor(f));
+      var a1 = center(path[fi]), a2 = center(path[fi + 1]), u = f - fi;
+      var fx = a1.x + (a2.x - a1.x) * u, fy = a1.y + (a2.y - a1.y) * u;
+      g.globalAlpha = 0.8; circle(fx, fy, s * 0.2, "#ffffff"); circle(fx, fy, s * 0.12, C.accent); g.globalAlpha = 1;
+    }
+  }
+  for (var hi = 0; hi < L.houses.length; hi++) building(L.houses[hi], s);
+  // The van (inviting rings while it waits).
+  var v = L.van, vc = center({ x: v.px, y: v.py });
+  if (!drive && !drawing && !L.done) {
+    for (var r0 of [0, 0.5]) { var kk = ((now / 1.3) + r0) % 1; g.strokeStyle = "rgba(255,255,255," + (0.75 * (1 - kk)) + ")"; g.lineWidth = s * 0.04; g.beginPath(); g.arc(vc.x, vc.y, s * (0.36 + 0.22 * kk), 0, Math.PI * 2); g.stroke(); }
+  }
+  van(vc.x, vc.y, v.rot, s, L.stack.length ? top(L) : null);
+  // Flying packages.
+  for (var fi2 = 0; fi2 < flyers.length; fi2++) {
+    var fl = flyers[fi2], u2 = Math.min(1, (now - fl.t) / 0.35);
+    var x3 = fl.a.x + (fl.b.x - fl.a.x) * u2, y3 = fl.a.y + (fl.b.y - fl.a.y) * u2 - Math.sin(Math.PI * u2) * s * 0.7;
+    parcel(x3, y3, s * 0.32, s * 0.24, C[fl.color]);
+  }
+  drawChute(l);
+  // Confetti and words.
+  for (var bi = 0; bi < bursts.length; bi++) {
+    var bu = bursts[bi], age = now - bu.t;
+    g.globalAlpha = Math.max(0, 1 - age / 1.1);
+    rr(bu.x + bu.vx * age, bu.y + bu.vy * age + 400 * age * age, 8, 8, 2, bu.col);
+  }
+  g.globalAlpha = 1;
+  for (var si = 0; si < says.length; si++) {
+    var sy2 = says[si], ag = now - sy2.t;
+    g.globalAlpha = Math.max(0, 1 - ag / 1.2);
+    text(sy2.text, sy2.x, sy2.y - ag * 40, s * 0.32, sy2.col, "center", 6);
+  }
+  g.globalAlpha = 1;
+  drawHeader(l);
+  drawFooter(l);
+  if (ended) drawEnd();
+}
+
+// The load as the game's chute: NEXT on top in a gold window, the rest queued under it.
+function drawChute(l) {
+  var ch = l.chute, s = l.tile, cx = ch.x + ch.w / 2;
+  rr(cx - s * 0.32, ch.y + s * 0.9, s * 0.64, ch.h - s * 0.95, s * 0.2, "rgba(255,250,242,0.55)");
+  g.strokeStyle = "rgba(59,51,70,0.26)"; g.lineWidth = 2;
+  g.strokeRect(cx - s * 0.32, ch.y + s * 0.9, s * 0.64, ch.h - s * 0.95);
+  rr(cx - s * 0.36, ch.y + s * 0.32, s * 0.72, s * 0.62, s * 0.18, C.gold);
+  rr(cx - s * 0.32, ch.y + s * 0.36, s * 0.64, s * 0.54, s * 0.15, "#fff4dc");
+  rr(cx - s * 0.3, ch.y + s * 0.02, s * 0.6, s * 0.24, s * 0.12, C.gold);
+  text("NEXT", cx, ch.y + s * 0.14, s * 0.15, "#3a2a12");
+  var st = L.stack;
+  for (var i = st.length - 1, k = 0; i >= 0; i--, k++) {
+    if (k === 0) parcel(cx, ch.y + s * 0.63, s * 0.36 * 1.36 * 0.9, s * 0.36, C[st[i]]);
+    else parcel(cx, ch.y + s * 0.95 + k * s * 0.42, s * 0.44, s * 0.32, C[st[i]]);
+  }
+}
+
+function drawHeader(l) {
+  text("LAST MILE", W / 2, l.headH * 0.28, Math.min(W * 0.1, l.headH * 0.3), C.text);
+  if (banner && now < banner.until) {
+    var a = Math.min(1, (banner.until - now) / 0.3);
+    g.globalAlpha = a;
+    text(banner.text, W / 2, l.headH * 0.62, Math.min(W * 0.058, l.headH * 0.17), banner.col);
+    if (banner.sub) text(banner.sub, W / 2, l.headH * 0.84, Math.min(W * 0.04, l.headH * 0.12), C.soft, "center");
+    g.globalAlpha = 1;
+  } else {
+    text("Level " + (lvIndex + 1) + " of 50", W / 2, l.headH * 0.66, Math.min(W * 0.045, l.headH * 0.13), C.soft);
+  }
+}
+
+// The small "play" pill that's always there.
+function ctaPill() {
+  var w = Math.min(W * 0.42, 220), h = Math.min(H * 0.07, 54);
+  return { x: W - w - 14, y: H - h - 14, w: w, h: h };
+}
+function drawFooter(l) {
+  if (ended) return;
+  var p = ctaPill();
+  rr(p.x, p.y + 4, p.w, p.h, p.h / 2, shade(C.accent, -0.25));
+  rr(p.x, p.y, p.w, p.h, p.h / 2, C.accent);
+  text("PLAY FREE", p.x + p.w / 2, p.y + p.h / 2, p.h * 0.42, "#ffffff");
+}
+
+function endButton() {
+  var w = Math.min(W * 0.7, 360), h = Math.min(H * 0.1, 84);
+  return { x: (W - w) / 2, y: H * 0.7, w: w, h: h };
+}
+function drawEnd() {
+  var a = Math.min(1, (now - endT) / 0.3);
+  g.globalAlpha = 0.9 * a; g.fillStyle = "#1b1530"; g.fillRect(0, 0, W, H); g.globalAlpha = a;
+  // Light rays.
+  g.save(); g.translate(W / 2, H * 0.36);
+  for (var k = 0; k < 12; k++) {
+    g.rotate(Math.PI / 6 + now * 0.01);
+    g.fillStyle = "rgba(255,224,138,0.08)"; g.beginPath(); g.moveTo(0, 0); g.lineTo(-40, -Math.max(W, H)); g.lineTo(40, -Math.max(W, H)); g.fill();
+  }
+  g.restore();
+  var s = Math.min(W, H) * 0.32;
+  van(W / 2, H * 0.36 + Math.sin(now * 3) * 6, -0.25, s, "red");
+  text("LAST MILE", W / 2, H * 0.16, Math.min(W * 0.13, 72), "#fff3c4", "center", 10);
+  text("Draw the route. Mind the stack.", W / 2, H * 0.52, Math.min(W * 0.055, 28), "#ffffff");
+  text("50 levels · daily puzzles · side roads", W / 2, H * 0.58, Math.min(W * 0.042, 21), "rgba(255,255,255,0.7)");
+  var bt = endButton(), pulse = 1 + 0.04 * Math.sin(now * 6);
+  g.save(); g.translate(bt.x + bt.w / 2, bt.y + bt.h / 2); g.scale(pulse, pulse);
+  rr(-bt.w / 2, -bt.h / 2 + 6, bt.w, bt.h, bt.h / 2, shade(C.good, -0.3));
+  rr(-bt.w / 2, -bt.h / 2, bt.w, bt.h, bt.h / 2, C.good);
+  text("PLAY FREE", 0, 0, bt.h * 0.42, "#ffffff");
+  g.restore();
+  g.globalAlpha = 1;
+}
+
+// ---------------------------------------------------------------- play
+function step(dt) {
+  if (!started || paused) return;
+  if (!ended && now - t0 > MAX_SECONDS) toEnd();
+  for (var k in shake) shake[k] = Math.max(0, shake[k] - dt);
+  flyers = flyers.filter(function (f) { return now - f.t < 0.4; });
+  bursts = bursts.filter(function (b) { return now - b.t < 1.2; });
+  says = says.filter(function (s) { return now - s.t < 1.3; });
+  if (drive) {
+    var speed = 7.5;
+    drive.u += dt * speed;
+    while (drive && drive.u >= 1) {
+      drive.u -= 1; drive.i++;
+      var p = drive.path[drive.i];
+      L.wreck[key(drive.path[drive.i - 1])] = true;
+      L.van.x = p.x; L.van.y = p.y;
+      onArrive(p);
+      if (drive.i >= drive.path.length - 1) { L.van.px = p.x; L.van.py = p.y; drive = null; afterDrive(); }
+    }
+    if (drive) {
+      var a = drive.path[drive.i], b = drive.path[drive.i + 1];
+      L.van.px = a.x + (b.x - a.x) * drive.u; L.van.py = a.y + (b.y - a.y) * drive.u;
+      L.van.rot = Math.atan2(b.y - a.y, b.x - a.x);
+    }
+  }
+}
+
+function onArrive(p) {
+  var s = { stack: L.stack, done: L.houses.map(function (h) { return h.done; }) };
+  var ev = arrive(L, s, p);
+  var l = lay();
+  for (var i = 0; i < ev.length; i++) {
+    var h = L.houses[ev[i]];
+    var hc = center(h);
+    flyers.push({ a: center(p), b: { x: hc.x, y: hc.y }, color: h.color, t: now });
+    (function (hh, hc2, col) { setTimeout(function () {
+      hh.done = true; hh.tick = now; blip(660 + 120 * L.houses.filter(function (x) { return x.done; }).length, 0.12);
+      for (var k = 0; k < 10; k++) bursts.push({ x: hc2.x, y: hc2.y, vx: (Math.random() - 0.5) * 300, vy: -Math.random() * 300, col: C[col], t: now });
+      says.push({ text: ["Nice!", "Sweet!", "Great!"][Math.floor(Math.random() * 3)], x: hc2.x, y: hc2.y - l.tile * 0.5, col: C[col], t: now });
+    }, 280); })(h, hc, h.color);
+  }
+  // Wrong package for a house it passes: it shakes its head.
+  for (var j = 0; j < L.houses.length; j++) {
+    var hj = L.houses[j];
+    if (!hj.done && ev.indexOf(j) < 0 && adj(hj, p)) { shake[j] = 0.3; blip(180, 0.08); }
+  }
+}
+
+function afterDrive() {
+  var won = L.houses.every(function (h, i) { return h.done || L.stack.length === 0; }) && L.stack.length === 0;
+  if (won) {
+    L.done = true;
+    setTimeout(function () {
+      blip(880, 0.15); blip(1320, 0.2, 0.12);
+      var l = lay();
+      for (var k = 0; k < 40; k++) bursts.push({ x: W / 2, y: l.board.y + l.board.h / 2, vx: (Math.random() - 0.5) * 900, vy: -Math.random() * 700, col: [C.red, C.blue, C.yellow, C.green, C.purple][k % 5], t: now });
+      banner = { text: "DELIVERED!", col: C.good, until: now + 1.6 };
+      setTimeout(function () { if (lvIndex + 1 < LEVELS.length) load(lvIndex + 1); else toEnd(); }, 1500);
+    }, 380);
+    return;
+  }
+  if (!hasMove()) {
+    fails++; totalFails++;
+    banner = { text: "Stuck! The road's torn up.", col: C.accent, until: now + 1.6, sub: "Try the other way round." };
+    blip(150, 0.25);
+    setTimeout(function () {
+      if (totalFails >= 4) { toEnd(); return; }
+      var f = fails; load(lvIndex); fails = f; ghostT = now;
+    }, 1500);
+  }
+}
+
+function hasMove() {
+  var v = L.van, d = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  for (var i = 0; i < 4; i++) {
+    var n = { x: v.x + d[i][0], y: v.y + d[i][1] };
+    if (isRoad(L, n.x, n.y) && !L.wreck[key(n)]) return true;
+  }
+  return false;
+}
+
+function toEnd() {
+  if (ended) return;
+  ended = true; endT = now; drawing = false; plan = [];
+  try { if (window.mraid && mraid.getState && mraid.getState() !== "loading") { /* end card shown */ } } catch (e) {}
+}
+
+// ---------------------------------------------------------------- input
+function pos(e) {
+  var t = e.touches && e.touches.length ? e.touches[0] : (e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e);
+  return { x: t.clientX, y: t.clientY };
+}
+function inRect(p, r) { return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h; }
+
+function down(e) {
+  e.preventDefault();
+  if (!touched) { touched = true; unlockAudio(); }
+  if (!started) return;
+  var p = pos(e);
+  if (ended) { cta(); return; }
+  if (inRect(p, ctaPill())) { cta(); return; }
+  if (drive || L.done) return;
+  var t = tileAt(p.x, p.y);
+  var near = t.x === L.van.x && t.y === L.van.y;
+  if (!near) {
+    var vc = center(L.van), s = lay().tile;
+    near = Math.hypot(p.x - vc.x, p.y - vc.y) < s * 0.7;
+  }
+  if (near) {
+    drawing = true; plan = [{ x: L.van.x, y: L.van.y }]; blip(520, 0.05);
+    if (banner && banner.sticky) banner.until = now + 0.4;
+  }
+}
+function move(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  var p = pos(e), t = tileAt(p.x, p.y), lastT = plan[plan.length - 1];
+  if (t.x === lastT.x && t.y === lastT.y) return;
+  if (plan.length >= 2 && t.x === plan[plan.length - 2].x && t.y === plan[plan.length - 2].y) { plan.pop(); return; }
+  // Fast swipes: step toward the finger one tile at a time.
+  var guard = 0;
+  while ((t.x !== lastT.x || t.y !== lastT.y) && guard++ < 6) {
+    var dx = Math.sign(t.x - lastT.x), dy = Math.sign(t.y - lastT.y);
+    var n = Math.abs(t.x - lastT.x) >= Math.abs(t.y - lastT.y) ? { x: lastT.x + dx, y: lastT.y } : { x: lastT.x, y: lastT.y + dy };
+    if (!isRoad(L, n.x, n.y) || L.wreck[key(n)] || plan.some(function (q) { return q.x === n.x && q.y === n.y; })) break;
+    plan.push(n); lastT = n; blip(560 + plan.length * 18, 0.03);
+  }
+}
+function up(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  drawing = false;
+  if (plan.length > 1) { drive = { path: plan.slice(), i: 0, u: 0 }; L.van.rot = Math.atan2(plan[1].y - plan[0].y, plan[1].x - plan[0].x); }
+  plan = [];
+}
+
+// ---------------------------------------------------------------- CTA, sound, boot
+function cta() {
+  blip(990, 0.1);
+  try {
+    if (window.mraid && typeof mraid.open === "function") { mraid.open(CTA_URL); return; }
+    if (window.FbPlayableAd && FbPlayableAd.onCTAClick) { FbPlayableAd.onCTAClick(); return; }
+    if (window.ExitApi && ExitApi.exit) { ExitApi.exit(); return; }
+  } catch (err) {}
+  window.open(CTA_URL, "_blank");
+}
+
+// Tiny synthesized blips, only after the player's first touch (no sound before they interact).
+function unlockAudio() {
+  try { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); } catch (e) { audio = null; }
+}
+function blip(freq, dur, delay) {
+  if (!audio || paused) return;
+  try {
+    var o = audio.createOscillator(), gn = audio.createGain(), st = audio.currentTime + (delay || 0);
+    o.type = "triangle"; o.frequency.setValueAtTime(freq, st);
+    gn.gain.setValueAtTime(0.0001, st); gn.gain.exponentialRampToValueAtTime(0.12, st + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, st + dur);
+    o.connect(gn); gn.connect(audio.destination); o.start(st); o.stop(st + dur + 0.02);
+  } catch (e) {}
+}
+
+function frame(ts) {
+  var t = ts / 1000;
+  var dt = last ? Math.min(0.05, t - last) : 0;
+  last = t;
+  if (!paused) now += dt;
+  if (started) { step(dt); draw(); }
+  requestAnimationFrame(frame);
+}
+
+function start() {
+  if (started) return;
+  started = true; t0 = now;
+  load(0);
+}
+
+function setViewable(v) { paused = !v; if (audio) { try { v ? audio.resume() : audio.suspend(); } catch (e) {} } }
+
+function onReady() {
+  try {
+    mraid.addEventListener("viewableChange", function (v) { setViewable(v); if (v) start(); });
+    if (mraid.isViewable()) start();
+  } catch (e) { start(); }
+}
+
+function boot() {
+  resize();
+  window.addEventListener("resize", resize);
+  cv.addEventListener("touchstart", down, { passive: false });
+  cv.addEventListener("touchmove", move, { passive: false });
+  cv.addEventListener("touchend", up, { passive: false });
+  cv.addEventListener("mousedown", down);
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", up);
+  requestAnimationFrame(frame);
+  if (window.mraid) {
+    try {
+      if (mraid.getState() === "loading") mraid.addEventListener("ready", onReady);
+      else onReady();
+    } catch (e) { start(); }
+  } else {
+    start();
+  }
+}
+boot();
+// For automated checks (read-only): where each tile is on screen, and the level's state.
+window.LM_TEST = { center: center, level: function () { return L; }, ended: function () { return ended; } };
+})();
+</script>
+</body>
+</html>

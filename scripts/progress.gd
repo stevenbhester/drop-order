@@ -49,9 +49,13 @@ var peek := false
 ## Colorblind mode ("aka Paul mode"): bold class marks on packages, and the same mark on a sign on every
 ## building and gate, so nothing depends on telling colours apart.
 var colorblind := false
+## The package trail: the next few packages on drones behind the van (on unless switched off).
+var trail := true
 ## Side roads: challenges beaten (id -> true) and milestone chests opened (level number -> true).
 var side_done := {}
 var chests := {}
+## Mega routes: parts finished so far on the current run (id -> count; gone once the route's done).
+var mega := {}
 ## Patch notes last seen from the title screen's version badge (the badge glows for a newer one).
 var seen_version := ""
 ## Wins in a row this session without retrying or abandoning a level. Not saved.
@@ -175,11 +179,16 @@ func _load() -> void:
 		stack_side = "left"
 	peek = bool(d.get("peek", false))
 	colorblind = bool(d.get("colorblind", false))
+	trail = bool(d.get("trail", true))
 	var sd = d.get("side_done", {})
 	if sd is Dictionary:
 		side_done = sd
 	for n in d.get("chests", []):
 		chests[int(n)] = true
+	var mg = d.get("mega", {})
+	if mg is Dictionary:
+		for k in mg:
+			mega[str(k)] = int(mg[k])
 	seen_version = str(d.get("seen_version", ""))
 
 
@@ -196,7 +205,8 @@ func _save() -> void:
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "peek": peek, "seen_version": seen_version,
-			"colorblind": colorblind, "side_done": side_done, "chests": chests.keys()}))
+			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
+			"mega": mega}))
 
 
 func _now() -> float:
@@ -259,6 +269,7 @@ func reset() -> void:
 	momentum = 0
 	side_done.clear()
 	chests.clear()
+	mega.clear()
 	_save()
 	changed.emit()
 
@@ -411,6 +422,20 @@ func win_side(id: String) -> bool:
 	_save()
 	changed.emit()
 	return first
+
+
+## Which part of a mega route to play next (0 when starting fresh).
+func mega_part(id: String) -> int:
+	return int(mega.get(id, 0))
+
+
+## A mega route's part done: the next one's where it picks up (the route done: back to the start).
+func set_mega_part(id: String, k: int) -> void:
+	if k <= 0:
+		mega.erase(id)
+	else:
+		mega[id] = k
+	_save()
 
 
 func chest_open(n: int) -> bool:

@@ -10,6 +10,8 @@ var shop_nodes: Array = []       # Shop, same order as L.shops
 var gate_nodes := {}             # Vector2i -> Gate
 var hub_nodes := {}              # Vector2i -> Hub
 var depot: DepotGlow
+## A mega route's way on to the next part (null on other levels).
+var exit_zone: ExitZone
 var gift: Gift
 var fire: AnimeFire
 var wreck: Wreckage
@@ -55,6 +57,12 @@ func setup(level: LevelData, tile_size: float) -> void:
 	if L.return_depot:
 		wreck.sturdy = L.start
 	add_child(wreck)
+	if L.has_exit():
+		exit_zone = ExitZone.new()
+		exit_zone.tile = tile
+		exit_zone.dir = L.exit_dir()
+		exit_zone.position = center(L.exit)
+		add_child(exit_zone)
 	fire = AnimeFire.new()
 	fire.tile = tile
 	fire.momentum = Progress.momentum

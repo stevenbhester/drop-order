@@ -5,6 +5,9 @@ extends RefCounted
 ##   `after`, open once that level's beaten. Beating it wins a ride. Free to play, no hints or undos.
 ##     fuel: the tank only holds the shortest route · melt: a time limit (`seconds`) · one_shot: plan it all,
 ##     one drive, no stopping · fog: the load's shown for `peek` seconds, then only the next is visible.
+##   mega: a mega route, several `parts` laid out on a `grid` (each part's `at` is its cell). Each part is a
+##     level of its own ending at an exit (E) on the edge toward the next; the camera pans on; progress is
+##     saved part by part; finishing the last part wins. Hints and undos are allowed on mega routes.
 ## - Treasure chests at milestone levels (CHESTS): once that level's beaten, a spur leads to a chest to open
 ##   for gas, Dollaroos and sometimes a hat.
 
@@ -19,7 +22,7 @@ const CHESTS := {
 	50: {"gas": 5, "coins": 1500, "hat": "crown"},
 }
 ## What each twist is called on its sign and in the game's top bar.
-const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog"}
+const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route"}
 ## A spare gas can (one that wouldn't fit in a full tank) is paid out in Dollaroos instead.
 const CAN_VALUE := 100
 
@@ -45,7 +48,39 @@ static func level(id: String) -> LevelData:
 	var all := defs()
 	for i in all.size():
 		if all[i].get("id", "") == id:
+			if is_mega(all[i]):
+				return part_level(id, 0)
 			return LevelData.from_dict(all[i], NUMBER_BASE + i)
+	return null
+
+
+static func is_mega(d: Dictionary) -> bool:
+	return d.get("twist", "") == "mega"
+
+
+static func part_count(d: Dictionary) -> int:
+	return (d.get("parts", []) as Array).size()
+
+
+## Part `k` of a mega route, as a level of its own (numbered 820 + 6 × the route's place + k: under the
+## dailies' 900s).
+static func part_level(id: String, k: int) -> LevelData:
+	var all := defs()
+	for i in all.size():
+		var d: Dictionary = all[i]
+		if d.get("id", "") != id:
+			continue
+		var parts: Array = d.get("parts", [])
+		k = clampi(k, 0, parts.size() - 1)
+		var pd: Dictionary = (parts[k] as Dictionary).duplicate(true)
+		pd["title"] = "%s · %d/%d" % [d.get("title", ""), k + 1, parts.size()]
+		if k < parts.size() - 1:
+			# The exit leads toward the next part on the route's grid.
+			var here: Array = parts[k].get("at", [k, 0])
+			var there: Array = parts[k + 1].get("at", [k + 1, 0])
+			pd["exit_dir"] = [signi(int(there[0]) - int(here[0])), signi(int(there[1]) - int(here[1]))]
+		pd["hint"] = d.get("hint", "") if k == 0 else ("Part %d of %d. Deliver everything, then take the exit." % [k + 1, parts.size()] if k < parts.size() - 1 else "Last part! Deliver everything to finish the route.")
+		return LevelData.from_dict(pd, NUMBER_BASE + 20 + i * 6 + k)
 	return null
 
 
@@ -53,7 +88,11 @@ static func level(id: String) -> LevelData:
 static func all_levels() -> Array:
 	var out := []
 	for d in defs():
-		out.append(level(str(d.get("id", ""))))
+		if is_mega(d):
+			for k in part_count(d):
+				out.append(part_level(str(d.get("id", "")), k))
+		else:
+			out.append(level(str(d.get("id", ""))))
 	return out
 
 
@@ -61,7 +100,7 @@ static func all_levels() -> Array:
 static func where(item: String) -> String:
 	for d in defs():
 		if d.get("reward", "") == item:
-			return "Side road: %s" % d.get("title", "")
+			return ("Mega route: %s" if is_mega(d) else "Side road: %s") % d.get("title", "")
 	for n in CHESTS:
 		if CHESTS[n].get("hat", "") == item:
 			return "Chest at level %d" % n

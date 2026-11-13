@@ -53,7 +53,16 @@ func _ready() -> void:
 		elif a.begins_with("--auto"):
 			direct = true
 	if side_id != "":
-		_start_side(side_id)
+		# Debug: --side-part=N starts a mega route at part N (as if just arrived: it pans in).
+		var pan := Vector2i.ZERO
+		for a in args:
+			if a.begins_with("--side-part="):
+				var k := a.trim_prefix("--side-part=").to_int()
+				Progress.mega[side_id] = k
+				var parts: Array = SideRoads.get_def(side_id).get("parts", [])
+				if k > 0 and k < parts.size():
+					pan = Vector2i(signi(int(parts[k]["at"][0]) - int(parts[k - 1]["at"][0])), signi(int(parts[k]["at"][1]) - int(parts[k - 1]["at"][1])))
+		_start_side(side_id, pan)
 	elif args.has("--select"):
 		show_select()
 	elif args.has("--daily"):
@@ -208,21 +217,29 @@ func play_side(id: String) -> void:
 	_start_side(id)
 
 
-func _start_side(id: String) -> void:
-	var L := SideRoads.level(id)
+## A mega route picks up at the part it was left on; `pan` is the way the last part's exit led (the camera
+## pans on that way).
+func _start_side(id: String, pan := Vector2i.ZERO) -> void:
+	var d := SideRoads.get_def(id)
+	var mega := SideRoads.is_mega(d)
+	var k := Progress.mega_part(id) if mega else 0
+	var L := SideRoads.part_level(id, k) if mega else SideRoads.level(id)
 	if L == null:
 		show_select()
 		return
-	var key := "side_" + id
+	var key := "side_%s_%d" % [id, k]
 	if not solved.has(key):
 		solved[key] = Solver.solve(L)
 	_reshow = Callable()
 	var g := Game.new()
-	g.side = SideRoads.get_def(id)
+	g.side = d
+	g.part = k
+	g.pan_from = pan
 	g.options_requested.connect(open_options.bind(g))
 	g.setup(L, 0, 1, solved[key])
 	g.retry_requested.connect(func(_i): _start_side(id))
 	g.menu_requested.connect(show_select)
+	g.part_finished.connect(func(dir: Vector2i): _start_side(id, dir))
 	_swap(g)
 
 

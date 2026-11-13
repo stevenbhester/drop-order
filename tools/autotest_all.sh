@@ -39,7 +39,7 @@ if [ $first -eq 1 ]; then
     $G --headless --path . --quit-after 30000 -- --side=$id --autotwist > $out/twist-$id.txt 2>&1 &
   done
   wait
-  won=$(cat $out/side-*.txt | grep -c 'state=WON')
+  won=$(cat $out/side-*.txt | grep -c 'AUTOTEST autoplay.*state=WON')
   bites=$(cat $out/twist-*.txt | grep -c 'ok=true')
   echo "side roads: $won/${#ids} won, $bites/${#ids} twists bite"
   grep -h "SCRIPT ERROR" $out/side-*.txt $out/twist-*.txt | head -5

@@ -27,6 +27,8 @@ var g: Game
 var mode := ""
 
 static var _ran := false
+## Mega routes: the last part the test ran on (each part is a fresh Game; the test carries on into it).
+static var _mega_seen := -1
 static var _chain_left := -1
 static var _chain_log: Array = []
 
@@ -42,8 +44,10 @@ static func maybe_run(game: Game) -> void:
 				c.mode = "autochain"
 				game.add_child(c)
 			return
-	if _ran:
+	if _ran and not (game._twist() == "mega" and game.part > _mega_seen):
 		return
+	if game._twist() == "mega":
+		_mega_seen = game.part
 	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
@@ -88,6 +92,12 @@ func _ready() -> void:
 					await get_tree().create_timer(0.3).timeout
 					ok = g.state == Game.State.FAILED
 					note = "clock out: failed=%s" % ok
+				"mega":
+					g.drive_tiles(sol)
+					await g.segment_finished
+					var id := str(g.side.get("id", ""))
+					ok = Progress.mega_part(id) == 1 and g.route.back() == g.level.exit
+					note = "part 1 done on the exit, saved as part %d" % Progress.mega_part(id)
 				"fog":
 					await get_tree().create_timer(float(g.side.get("peek", 6)) + 0.4).timeout
 					var shown := 0
@@ -276,6 +286,10 @@ func _ready() -> void:
 		print("AUTOTEST daily #%d: done=%s ok=%s attempts=%d stars=%d streak=%d order=%s" % [Daily.number(g.daily_day), r.get("done", false),
 			r.get("ok", false), int(r.get("attempts", 0)), int(r.get("stars", 0)), Progress.streak(g.daily_day), r.get("order", [])])
 		print("AUTOTEST share text:\n" + Daily.share_text(g.daily_day, r, Progress.streak(g.daily_day)))
+	if g._twist() == "mega" and g.part < g._parts() - 1:
+		# A mega route's part: done means parked on the exit; the next part's Game takes over the test.
+		print("AUTOTEST mega part %d/%d: state=%s on_exit=%s" % [g.part + 1, g._parts(), Game.State.keys()[g.state], g.route.back() == g.level.exit])
+		return
 	await get_tree().create_timer(0.5).timeout
 	var synced: bool = g.stack_view.colors == g.sim_state["stack"]
 	print("AUTOTEST %s L%d: state=%s route=%d tiles, packages left=%d, solution=%d tiles, stack_view_synced=%s" % [

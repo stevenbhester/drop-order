@@ -9,6 +9,8 @@ const NAME := "Side Roads"
 
 const NOTES := [
 	{"version": "0.5", "name": "Side Roads", "notes": [
+		"Mega routes: big deliveries in parts. Clear a part, drive into its exit and the map pans on to the next. Saved as you go. Twin Towns (2 parts) and The Big Map (4) each win a paint job.",
+		"Package trail: the next three packages follow the van on little drones (Options, Package trail).",
 		"Side roads! Four detours branch off the road trip, each with a twist: a tiny tank, a melting clock, no brakes, thick fog.",
 		"Beat a side road to win its ride: Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van.",
 		"Treasure chests at levels 10, 20, 30, 40 and 50: gas, Dollaroos, and sometimes a hat (Party Hat, Hard Hat, Gold Crown).",

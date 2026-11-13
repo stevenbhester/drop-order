@@ -158,6 +158,9 @@ func _hopeless(route: Array, st: Dictionary) -> bool:
 	if Sim.parked(L, route):
 		return true
 	var last: Vector2i = route.back()
+	if L.has_exit() and last == L.exit:
+		# On the exit too soon: it can't be come back to.
+		return true
 	var reach := {last: true}
 	var queue := [last]
 	while not queue.is_empty():
@@ -176,6 +179,8 @@ func _hopeless(route: Array, st: Dictionary) -> bool:
 	for k in L.shops.size():
 		if picked[k] < L.shops[k].count and not _touches(L.shop_roads[k], reach, last):
 			return true
+	if L.has_exit() and not reach.has(L.exit):
+		return true
 	if L.return_depot:
 		var home := false
 		for d in LevelData.DIRS:

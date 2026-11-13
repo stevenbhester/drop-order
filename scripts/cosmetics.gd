@@ -12,6 +12,8 @@ const ITEMS := {
 	"duskwood": {"kind": "paint", "name": "Duskwood", "from": "Frontiers Celestia", "body": Color("5fb39a"), "cab": Color("2f5e5a"), "pattern": "leaves"},
 	"mosaic_moth": {"kind": "paint", "name": "Mosaic Moth", "from": "Frontiers Celestia", "body": Color("f2e6ff"), "cab": Color("5b3f8f"), "pattern": "mosaic"},
 	"racing": {"kind": "paint", "name": "Racing Stripes", "from": "", "body": Color("ff5d5d"), "cab": Color("2b2f38"), "pattern": "stripes"},
+	"blueprint": {"kind": "paint", "name": "Blueprint", "from": "", "body": Color("2f6fd6"), "cab": Color("1b3f80"), "pattern": "grid"},
+	"gold_rush": {"kind": "paint", "name": "Gold Rush", "from": "", "body": Color("ffcf4d"), "cab": Color("8a5a12"), "pattern": "sparkle"},
 	"monster_truck": {"kind": "ride", "name": "Kuma's Monster Truck", "from": "", "body": Color("e8473c"), "cab": Color("23222b")},
 	"scooter": {"kind": "ride", "name": "Zippy Scooter", "from": "", "body": Color("3fc7a6"), "cab": Color("2b2f38")},
 	"ice_cream": {"kind": "ride", "name": "Mr. Frosty", "from": "", "body": Color("fff4f8"), "cab": Color("ff7aa8")},
@@ -29,7 +31,7 @@ const ITEMS := {
 }
 ## Garage order.
 const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
-	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing",
+	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
 	"party_hat", "hard_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
 ## Rides that move (they're redrawn every frame in the garage).
 const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat"]
@@ -93,6 +95,22 @@ static func draw_pattern(ci: CanvasItem, paint: String, r: Rect2) -> void:
 				for gy in 2:
 					var cell := Rect2(r.position + Vector2(gx * r.size.x / n, gy * r.size.y / 2.0), Vector2(r.size.x / n, r.size.y / 2.0)).grow(-s * 0.05)
 					DrawUtil.rrect(ci, cell, Color(cols[(gx + gy * 3) % cols.size()], 0.7), s * 0.06)
+		"grid":
+			# Blueprint lines.
+			var n := 5
+			for k in range(1, n):
+				var x := r.position.x + r.size.x * k / n
+				ci.draw_line(Vector2(x, r.position.y), Vector2(x, r.end.y), Color(1, 1, 1, 0.45), s * 0.03)
+			for k in range(1, 3):
+				var y := r.position.y + r.size.y * k / 3.0
+				ci.draw_line(Vector2(r.position.x, y), Vector2(r.end.x, y), Color(1, 1, 1, 0.45), s * 0.03)
+			ci.draw_arc(r.get_center(), s * 0.22, 0, TAU, 20, Color(1, 1, 1, 0.7), s * 0.04, true)
+		"sparkle":
+			# A shine across it and a few glints.
+			ci.draw_colored_polygon(PackedVector2Array([r.position + Vector2(r.size.x * 0.2, 0), r.position + Vector2(r.size.x * 0.38, 0),
+				r.position + Vector2(r.size.x * 0.22, r.size.y), r.position + Vector2(r.size.x * 0.04, r.size.y)]), Color(1, 1, 1, 0.35))
+			for g in [Vector2(0.6, 0.3), Vector2(0.82, 0.7), Vector2(0.45, 0.75)]:
+				Icons.star(ci, r.position + g * r.size, s * 0.09, Color(1, 1, 1, 0.9))
 		"stripes":
 			for sy in [-0.12, 0.12]:
 				ci.draw_rect(Rect2(r.position + Vector2(0, r.size.y * (0.5 + sy) - s * 0.05), Vector2(r.size.x, s * 0.1)), Color.WHITE)

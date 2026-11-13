@@ -83,6 +83,12 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
   - **No Brakes** (after 24, the Rocket Van): plan the whole run, one drive, no stopping.
   - **Fog Bank** (after 33, the Hover Van): the load's shown for 6 seconds, then fog hides all but the
     next package.
+- **Mega routes** (a MEGA ROUTE sign with a little grid of its parts): big deliveries in parts, like a
+  big puzzle made of small ones. Each part is a level of its own: deliver everything, then drive into
+  the glowing exit on its edge; the van drives off and the camera pans on to the next part. Progress is
+  saved after every part (come back later and you pick up there); the top bar shows "Part 2 of 4" over a
+  mini-map of the parts. Hints and undos are allowed. **Twin Towns** (after 12, 2 parts side by side,
+  wins the Blueprint paint) and **The Big Map** (after 27, a 2×2 loop of 4, wins Gold Rush).
 - **Treasure chests** at levels 10, 20, 30, 40 and 50: once that level's beaten, tap the chest to open
   it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40 and 50
   a hat.
@@ -150,6 +156,10 @@ as a little flame inside the Daily button.
   that colour wave. No level starts with more than 12 aboard or needs more than 12 at once; if a wrong
   turn past a warehouse overloads the van, the extra wait behind a "+N" at the back of the chute, and
   you can drag along the chute to scroll through them.
+- **Package trail** (Options; on by default): the next three packages after the one on the van's roof
+  follow it on little drones, like a short snake's tail. They hover, so there's nothing to run into, and
+  the trail is short and tight enough never to fold over itself. A glance at what's coming; the chute
+  has the whole queue.
 - **While you plot a route** the line is tinted with the package that'll be on top along each stretch,
   and houses the route will deliver to show a ghost tick. The chute shows the load as it'll be at the
   end of the route so far (so its mouth holds what's next from there). With **Route preview** on
@@ -203,7 +213,9 @@ as a little flame inside the Daily button.
 | `scripts/options_menu.gd` | The options card: steering, hand, chute position, route preview, night mode, sideways play, sound, haptics |
 | `scripts/version.gd`, `patch_notes.gd` | The version (title screen badge) and its patch notes card |
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
-| `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels from `levels/side.json`) and milestone chests; the chest opening |
+| `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
+| `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `ads/playable/` | The playable ad (one MRAID 2.0 HTML file for Tapjoy and co.; see its README) |
 | `scripts/portrait_host.gd` | Sideways play: a portrait column in the middle of the screen for menus and pop-ups |
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |
 | `scripts/van.gd`, `stack_view.gd`, `package_box.gd` | Van, its load (the package chute, next package in its mouth), packages |
@@ -244,7 +256,8 @@ godot --headless --path . --script res://tools/generate.gd -- --w=6 --h=8 --n=5 
 #        stops, nothing's lost; send it anyway: the van brakes), --autoreplay (does Retry take gas?),
 #        --autoscroll (drag along the chute; try with --load-demo=18)
 #        --autoside (move the chute to each spot mid-level: on screen, clear of the board and words?),
-#        --autotwist with --side=<id> (does that side road's twist bite?)
+#        --autotwist with --side=<id> (does that side road's twist bite? for a mega route: is part 1
+#        saved once it's done?). A mega route's parts all run in one go (--side=big_map --autoplay).
 #        Add --daily to play today's daily instead (--day=+N pretends it's N days later).
 godot --headless --path . -- --level=12 --autoundo
 

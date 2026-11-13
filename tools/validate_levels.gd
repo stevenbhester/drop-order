@@ -30,6 +30,7 @@ func _init() -> void:
 		if L.return_depot: feats.append("return")
 		if L.preview: feats.append("PREVIEW")
 		if L.number > Daily.NUMBER_BASE: feats.append("DAILY")
+		elif L.number >= SideRoads.NUMBER_BASE + 20: feats.append("MEGA ROUTE, exit %s" % ("none (last part)" if not L.has_exit() else str(L.exit_dir())))
 		elif L.number >= SideRoads.NUMBER_BASE: feats.append("SIDE ROAD")
 		if L.gift_item != "":
 			var gr := Solver.gift_route(L)
@@ -41,7 +42,9 @@ func _init() -> void:
 				var kind := "on the route" if Sim.is_won(L, Sim.run(L, gr), gr) and gr.back() != L.gift else "extra mile"
 				feats.append("gift %s, %s" % [L.gift_item, kind])
 		var tag := "D%02d" % (L.number - Daily.NUMBER_BASE) if L.number > Daily.NUMBER_BASE else "L%02d" % L.number
-		if L.number >= SideRoads.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
+		if L.number >= SideRoads.NUMBER_BASE + 20 and L.number < Daily.NUMBER_BASE:
+			tag = "M%02d" % (L.number - SideRoads.NUMBER_BASE - 20)
+		elif L.number >= SideRoads.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
 			tag = "S%02d" % (L.number - SideRoads.NUMBER_BASE + 1)
 		print("%s %s %-18s %dx%d %d pkg  %s  [%s]" % ["FAIL" if bad else " ok ", tag, L.title,
 			L.width, L.height, L.stack.size(), Solver.describe(L, r), ", ".join(feats)])

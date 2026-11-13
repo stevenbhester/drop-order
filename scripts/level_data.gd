@@ -23,6 +23,8 @@ var start := Vector2i.ZERO
 var stack: Array = []            # colour names; first = bottom, last = top
 var no_revisit := false
 var return_depot := false        # must finish parked back on the start tile
+var exit := Vector2i(-1, -1)      # a part of a mega route: must finish on this edge tile (token E)
+var exit_way := Vector2i.ZERO     # which way that exit leads (from the route's layout; else from its edge)
 var oneway := {}                 # road Vector2i -> Vector2i: the only direction it may be left (never entered against)
 var bridges := {}                # road Vector2i -> true: crossable once per axis, straight through
 var gates := {}                  # road Vector2i -> colour: enterable only with that colour on top
@@ -50,6 +52,9 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L.return_depot = bool(d.get("return", false))
 	L.preview = bool(d.get("preview", false))
 	L.challenge = bool(d.get("challenge", false))
+	var ew = d.get("exit_dir", null)
+	if ew is Array and ew.size() == 2:
+		L.exit_way = Vector2i(int(ew[0]), int(ew[1]))
 	var g = d.get("gift", null)
 	if g is Dictionary and g.get("at", null) is Array and g["at"].size() == 2:
 		L.gift = Vector2i(int(g["at"][0]), int(g["at"][1]))
@@ -96,6 +101,8 @@ func _parse_token(t: String, p: Vector2i) -> void:
 			pass
 		"S":
 			start = p
+		"E":
+			exit = p
 		"+":
 			bridges[p] = true
 		"@":
@@ -153,6 +160,11 @@ func _validate() -> void:
 			if not is_road(b + dir):
 				errors.append("bridge at %s needs road on all four sides" % b)
 				break
+	if has_exit():
+		if exit.x != 0 and exit.y != 0 and exit.x != width - 1 and exit.y != height - 1:
+			errors.append("the exit (E) must be on the map's edge")
+		if return_depot:
+			errors.append("a level can't have both an exit and a return to the depot")
 	if bridges.has(start) or oneway.has(start) or gates.has(start) or hubs.has(start):
 		errors.append("the start tile must be plain road")
 	if adjacent_houses.has(start) or adjacent_shops.has(start):
@@ -179,6 +191,23 @@ func _check_building(kind: String, p: Vector2i, roads: Array) -> void:
 	for rp in roads:
 		if bridges.has(rp) or hubs.has(rp):
 			errors.append("%s at %s touches a bridge/hub" % [kind, p])
+
+
+func has_exit() -> bool:
+	return exit != Vector2i(-1, -1)
+
+
+## Which way the exit leads off the map.
+func exit_dir() -> Vector2i:
+	if exit_way != Vector2i.ZERO:
+		return exit_way
+	if exit.x == 0:
+		return Vector2i(-1, 0)
+	if exit.x == width - 1:
+		return Vector2i(1, 0)
+	if exit.y == 0:
+		return Vector2i(0, -1)
+	return Vector2i(0, 1)
 
 
 func in_bounds(p: Vector2i) -> bool:

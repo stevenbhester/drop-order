@@ -812,7 +812,10 @@ func _draw_side_sign(sp: Dictionary) -> void:
 	draw_circle(c + Vector2(0, 9), r + 8.0, Color(0, 0, 0, 0.18))
 	draw_circle(c, r + 8.0, Color.WHITE)
 	draw_circle(c, r, SIDE_COL if open else Color("c9c4d4"))
-	if open:
+	var mega := SideRoads.is_mega(d)
+	if open and mega:
+		_draw_parts_grid(d, c)
+	elif open:
 		draw_set_transform(c + Vector2(0, 2), -0.35, Vector2.ONE)
 		Cosmetics.draw_ride(self, str(d.get("reward", "")), 86.0, 54.0, null, _t)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -825,7 +828,10 @@ func _draw_side_sign(sp: Dictionary) -> void:
 		draw_polyline(PackedVector2Array([tc + Vector2(-8, 0), tc + Vector2(-2, 6), tc + Vector2(9, -6)]), Color.WHITE, 4.0, true)
 	var label := str(d.get("title", "")).to_upper() if open else "BEAT %d" % int(sp["n"])
 	_plate(label, c + Vector2(0, r + 30.0), Color("2b2233") if open else Color(0, 0, 0, 0.35), Color.WHITE, 22)
-	_plate("DETOUR", c + Vector2(0, -r - 22.0), HAZARD, HAZARD_INK, 20)
+	if mega:
+		_plate("MEGA ROUTE", c + Vector2(0, -r - 22.0), Color("38d9a9"), HAZARD_INK, 20)
+	else:
+		_plate("DETOUR", c + Vector2(0, -r - 22.0), HAZARD, HAZARD_INK, 20)
 
 
 ## A milestone chest: grey and padlocked until its level's beaten; then it bounces in a burst of light,
@@ -867,6 +873,23 @@ func _draw_chest(sp: Dictionary) -> void:
 	var label := "OPEN ME!" if can_open else ("BEAT %d" % n if not done else "")
 	if label != "":
 		_plate(label, c + Vector2(0, 70.0), Color("ffcf4d") if can_open else Color(0, 0, 0, 0.35), HAZARD_INK if can_open else Color.WHITE, 22)
+
+
+## A mega route's sign: its parts as a little grid, the ones done so far ticked green.
+func _draw_parts_grid(d: Dictionary, c: Vector2) -> void:
+	var grid: Array = d.get("grid", [2, 1])
+	var parts: Array = d.get("parts", [])
+	var done := SideRoads.part_count(d) if Progress.side_done.has(str(d.get("id", ""))) and Progress.mega_part(str(d.get("id", ""))) == 0 else Progress.mega_part(str(d.get("id", "")))
+	var cell := 30.0
+	var gap := 6.0
+	var gsz := Vector2(grid[0] * cell + (grid[0] - 1) * gap, grid[1] * cell + (grid[1] - 1) * gap)
+	var o := c - gsz / 2.0
+	for k in parts.size():
+		var at: Array = parts[k].get("at", [k, 0])
+		var r := Rect2(o + Vector2(at[0], at[1]) * (cell + gap), Vector2(cell, cell))
+		DrawUtil.rrect(self, r, Palette.GOOD if k < done else Color(1, 1, 1, 0.9), 7)
+		if k < done:
+			draw_polyline(PackedVector2Array([r.get_center() + Vector2(-7, 0), r.get_center() + Vector2(-2, 5), r.get_center() + Vector2(8, -6)]), Color.WHITE, 3.5, true)
 
 
 func _padlock(c: Vector2, s: float) -> void:

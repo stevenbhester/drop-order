@@ -158,8 +158,8 @@ func _draw_it() -> void:
 	var dim := clampf(_t / 0.15, 0.0, 1.0)
 	_root.draw_rect(Rect2(Vector2.ZERO, v), Color(0.08, 0.05, 0.12, 0.82 * dim))
 	# Hazard tape, one strip from each side.
-	_tape(c + Vector2(0, -330), -0.16, -v.x * 1.6 * (1.0 - _out(_t / 0.24)), "CHALLENGE AHEAD  ·  " if side.is_empty() else "SIDE ROAD  ·  DETOUR  ·  ")
-	_tape(c + Vector2(0, 560), 0.1, v.x * 1.6 * (1.0 - _out((_t - 0.08) / 0.24)), "DRIVE CAREFULLY  ·  " if side.is_empty() else "NO HINTS  ·  NO UNDOS  ·  ")
+	_tape(c + Vector2(0, -330), -0.16, -v.x * 1.6 * (1.0 - _out(_t / 0.24)), "CHALLENGE AHEAD  ·  " if side.is_empty() else ("MEGA ROUTE  ·  SAVED AS YOU GO  ·  " if SideRoads.is_mega(side) else "SIDE ROAD  ·  DETOUR  ·  "))
+	_tape(c + Vector2(0, 560), 0.1, v.x * 1.6 * (1.0 - _out((_t - 0.08) / 0.24)), "DRIVE CAREFULLY  ·  " if side.is_empty() else ("ONE BIG MAP  ·  " if SideRoads.is_mega(side) else "NO HINTS  ·  NO UNDOS  ·  "))
 	# The flame burst behind the stamp, and the stamp.
 	if _t >= STAMP_AT - 0.06:
 		var k := _out((_t - STAMP_AT + 0.06) / 0.3)
@@ -170,13 +170,16 @@ func _draw_it() -> void:
 			AnimeFire.draw_flame(_root, c + Vector2(x, 40), 150.0 * k, hgt, _t, 3.0 + i * 1.7, pal)
 		var u := (_t - STAMP_AT + 0.06) / 0.16
 		var s := lerpf(2.8, 1.0, _out(u))
-		_text("CHALLENGE!" if side.is_empty() else "SIDE ROAD!", c + Vector2(0, -40), 150 if side.is_empty() else 136, Color("fff3c4"), 22, -0.06, s, clampf(u * 2.0, 0.0, 1.0))
+		var stamp := "CHALLENGE!" if side.is_empty() else ("MEGA ROUTE!" if SideRoads.is_mega(side) else "SIDE ROAD!")
+		_text(stamp, c + Vector2(0, -40), 150 if side.is_empty() else 124, Color("fff3c4"), 22, -0.06, s, clampf(u * 2.0, 0.0, 1.0))
 	# The level, the trash talk, the prize.
 	if _t > 0.55:
 		var k := _out((_t - 0.55) / 0.25)
 		var name := "LEVEL %d" % level.number + ("  ·  " + level.title.to_upper() if level.title != "" else "")
 		if not side.is_empty():
-			name = str(SideRoads.TWISTS.get(side.get("twist", ""), "")).to_upper() + "  ·  " + level.title.to_upper()
+			name = str(SideRoads.TWISTS.get(side.get("twist", ""), "")).to_upper() + "  ·  " + str(side.get("title", "")).to_upper()
+			if SideRoads.is_mega(side):
+				name = "%d PARTS  ·  %s" % [SideRoads.part_count(side), str(side.get("title", "")).to_upper()]
 		_text(name, c + Vector2((1.0 - k) * 500.0, 110), 50, Color.WHITE, 10, 0.0, 1.0, k)
 		var taunt: String = TAUNTS.get(level.number, "A big step up. Take your time.")
 		if not side.is_empty():
@@ -203,6 +206,8 @@ func _draw_it() -> void:
 		var prize := "+%d Dollaroos for beating it" % BONUS
 		if not side.is_empty():
 			prize = "Win the %s" % Cosmetics.name_of(str(side.get("reward", "")))
+			if Cosmetics.kind_of(str(side.get("reward", ""))) == "paint":
+				prize += " paint job"
 		_root.draw_string(f, Vector2(-r.size.x / 2.0 + 112, 14), prize, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color("ffe08a"))
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# A white flash on the stamp.

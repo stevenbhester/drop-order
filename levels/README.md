@@ -36,6 +36,7 @@ so rows can be aligned when some tokens are two characters). Every row needs the
 | `R4`, `B3`, ... | Warehouse: a shop holding that many parcels of its colour (shows "×4"). Driving past loads them all, one by one onto the top, unless a house right there wants the one that just came aboard (then it's delivered in between) |
 | `=r`, `=b`, ... | Colour gate (road): can only be entered while the top package is that colour. Put it on a straight piece of road |
 | `@` | Sorting hub (road): swaps the top two packages when the van drives onto it |
+| `E` | Exit (road, on the map's edge): a mega route's part is won by delivering everything and then finishing here |
 
 The loader rejects levels where:
 - a house or shop touches no road, touches a bridge or hub, or touches the `S` tile (the van
@@ -54,7 +55,11 @@ Package colours, **first = bottom, last = top** (the top is delivered first). Fu
 `side.json` has `{"side": [ ... ]}`: levels in the same format plus `id`, `after` (the level whose map
 stop it branches off, and which opens it), `reward` (the cosmetic it wins), and `twist`:
 `fuel` (the tank holds exactly the shortest route), `melt` (finish within `seconds`), `one_shot` (one drive
-for the whole run) or `fog` (the load's shown for `peek` seconds, then only the next package). The
+for the whole run) or `fog` (the load's shown for `peek` seconds, then only the next package). A **mega route**
+has `twist: "mega"`, a `grid` ([columns, rows]) and `parts`: levels of their own, each with `at` (its cell
+on the grid), played in order. Every part but the last needs an exit (`E`) on the edge toward the next
+part (its direction comes from the grid). `tools/make_mega.gd` turns generator output into parts:
+it tries each road tile on the wanted edge as the exit and keeps the ones that are still winnable. The
 validator checks them; `tools/autotest_all.sh` drives each one and checks its twist bites.
 
 ## Daily puzzles
