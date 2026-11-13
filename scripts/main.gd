@@ -15,6 +15,9 @@ var _colorblind := false
 var _landscape := false
 ## Sideways play: menus go in a portrait column in the middle (see PortraitHost).
 var _host: PortraitHost
+## The update offer: which build was last offered this launch, and when (seconds since launch).
+var _offered_build := 0
+var _offered_at := -1.0e9
 
 
 func _ready() -> void:
@@ -103,6 +106,11 @@ func _ready() -> void:
 	if args.has("--options"):
 		# Debug: open the options card straight away (for screenshots).
 		open_options.call_deferred(screen)
+	# Is there a newer build in TestFlight? (Not during self-tests.)
+	if not Progress.auto:
+		var updates := UpdateCheck.new()
+		updates.found.connect(func(_info: Dictionary): _offer_update())
+		add_child(updates)
 
 
 ## The options card, over whatever's showing. The game passes itself so it can pause its input meanwhile.
@@ -129,6 +137,39 @@ func open_feedback(from: Node = null) -> void:
 		card.closed.connect(func(): (from as Game).modal = null)
 	add_child(card)
 	print("[feedback] opened at %s" % card.where)
+
+
+## The title's version badge: the update on offer if there is one, else this version's patch notes.
+func _on_badge() -> void:
+	if UpdateCheck.available():
+		open_update()
+	else:
+		open_notes()
+
+
+## "A new version is out!", over the title.
+func open_update() -> UpdateCard:
+	var c := UpdateCard.new()
+	c.info = UpdateCheck.latest
+	add_child(c)
+	return c
+
+
+## Offers the newer build when the player's on the title with nothing else open: once a launch, and again if
+## they come back to the game hours later.
+func _offer_update() -> void:
+	if not UpdateCheck.available() or not (screen is TitleScreen) or (screen as TitleScreen).quiet:
+		return
+	var build := int(UpdateCheck.latest.get("build", 0))
+	var now := Time.get_ticks_msec() / 1000.0
+	if build == _offered_build and now - _offered_at < 4 * 3600.0:
+		return
+	for c in get_children():
+		if c is PatchNotes or c is OptionsMenu or c is FeedbackCard or c is UpdateCard:
+			return
+	_offered_build = build
+	_offered_at = now
+	open_update()
 
 
 ## What's new: the patch notes (from the title's version badge).
@@ -202,14 +243,16 @@ func show_title() -> void:
 	t.daily_pressed.connect(show_daily)
 	t.garage_pressed.connect(show_garage)
 	t.options_pressed.connect(open_options)
-	t.notes_pressed.connect(open_notes)
+	t.notes_pressed.connect(_on_badge)
 	t.speedrun_pressed.connect(show_speedrun)
 	_swap(t)
+	_offer_update.call_deferred()
 
 
 func _title_audible() -> void:
 	if screen is TitleScreen:
 		(screen as TitleScreen).quiet = false
+		_offer_update()
 
 
 ## Opens level `i`, paying a gas tank first if it hasn't been beaten.

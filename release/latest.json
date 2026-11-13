@@ -1,0 +1,11 @@
+{
+	"build": 11,
+	"name": "The Long Road",
+	"notes": [
+		"50 new levels (41 to 90) across seven new zones, each with its own mix of mechanics.",
+		"New on the road: ice (no turning on it), parcel lockers (they take whatever's on top) and roadworks (open after enough deliveries).",
+		"The old Long Haul and Death Valley levels are now the endgame, 91 to 100. Your progress on them moved with them."
+	],
+	"ready_at": 1794596460,
+	"version": "0.7"
+}

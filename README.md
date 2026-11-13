@@ -63,10 +63,20 @@ side roads, and a speedrun mode.
   `--no-upload` just checks the archive builds). Create the app in App Store Connect first, with
   bundle ID `com.stevenhester.lastmile`. After each successful upload the script raises the build
   number in `export_presets.cfg`, since Apple won't accept the same one twice.
+- **"A new version is out!":** each archive also writes `release/latest.json` (the build, version,
+  name and first three patch notes, via `tools/release_note.gd`). Once that's pushed, players' games
+  read it from GitHub at launch (and when they come back after half an hour or more). If it's a newer
+  build than theirs, the title shows an update card with an **Update in TestFlight** button, and the
+  version badge wears an UPDATE sticker. A build is only offered an hour after its archive, so Apple has
+  time to process the upload. If you archive a build and *don't* upload it, revert
+  `release/latest.json`, or players get offered a build that isn't there. `-- --latest-file=<path>`
+  tries the card with a local file.
 
 The game opens with the Door Bowl studio card (once a launch; tap to skip), which dives through its
 little door into the title screen. Play continues from the first level you haven't completed.
 The version badge in the title's top corner (with a NEW sticker after an update) opens the patch notes.
+When TestFlight has a newer build, the title offers it once a launch, and the badge wears an UPDATE
+sticker and opens that offer instead.
 
 ### Daily puzzle, streak and sharing
 - Title → **Daily** shows today's puzzle, your streak (in fire) and the last week.
@@ -260,6 +270,7 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `scripts/update_check.gd`, `update_card.gd` | "A new version is out!": reads `release/latest.json` from GitHub and offers a newer TestFlight build |
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |
 | `scripts/roadworks.gd` | Roadworks on a road tile (counts down deliveries, then clears) |

@@ -3,7 +3,8 @@ extends Control
 ## The title: "Last Mile" over a little looping street where the van does its round forever, flinging the top
 ## package to each house as it passes and reloading at the depot. Play goes to the next unfinished level, Levels
 ## to the level select. The studio card (StudioCard) plays over it once a launch. Top left, the version badge
-## (a "NEW" sticker until its patch notes have been read) opens the patch notes.
+## (a "NEW" sticker until its patch notes have been read) opens the patch notes; when TestFlight has a newer
+## build (UpdateCheck) it wears an "UPDATE" sticker and offers that instead.
 
 signal play_pressed
 signal levels_pressed
@@ -268,7 +269,16 @@ func _draw_badge() -> void:
 	_badge.draw_string(f, Vector2(-16, -4), "WHAT'S", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(1, 1, 1, 0.8))
 	_badge.draw_string(f, Vector2(-16, 24), "NEW?", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color.WHITE)
 	Icons.star(_badge, Vector2(96, -6), 16.0, Palette.STAR_GOLD, _t * 0.8)
-	if Version.unseen():
+	if UpdateCheck.available():
+		# A newer build is out: an "UPDATE" sticker (the badge then offers it).
+		var b := Vector2(100, -34) + Vector2(0, -6.0 * absf(sin(_t * 3.0)))
+		_badge.draw_set_transform(Vector2(125, 51 + sink) + b.rotated(-0.05), 0.2, Vector2.ONE)
+		var uw := f.get_string_size("UPDATE", HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+		var pr := Rect2(-uw / 2.0 - 18, -24, uw + 36, 48)
+		DrawUtil.rrect(_badge, Rect2(pr.position + Vector2(0, 4), pr.size), Color(0, 0, 0, 0.18), 24)
+		DrawUtil.rrect(_badge, pr, Palette.GOOD, 24)
+		_badge.draw_string(f, Vector2(-uw / 2.0, 9), "UPDATE", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+	elif Version.unseen():
 		var b := Vector2(108, -34) + Vector2(0, -6.0 * absf(sin(_t * 3.0)))
 		_badge.draw_set_transform(Vector2(125, 51 + sink) + b.rotated(-0.05), 0.25, Vector2.ONE)
 		_badge.draw_circle(Vector2(0, 3), 30.0, Color(0, 0, 0, 0.18))

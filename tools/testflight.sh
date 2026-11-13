@@ -55,6 +55,9 @@ xcodebuild -project $OUT/LastMile.xcodeproj -scheme LastMile -configuration Rele
 	> $OUT/archive.log 2>&1 || { grep -E 'error:' $OUT/archive.log | head -20; exit 1; }
 echo "    $ARCHIVE"
 
+# Tell players' games this build is coming (release/latest.json, read from GitHub once it's pushed).
+$GODOT --headless --path . --script res://tools/release_note.gd -- --build=$BUILD | grep '^release/'
+
 if [[ $UPLOAD == 0 ]]; then
 	echo "==> Archive built. Nothing uploaded (--no-upload)."
 	exit 0
