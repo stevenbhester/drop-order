@@ -5,8 +5,9 @@ extends Node2D
 ## flies it from here to the van, then on to the house) and the rest slide down a place. A collected parcel
 ## comes in at the mouth and pushes the others back up.
 ##
-## Upright (on the left or right of the screen, the default) the chute stands with its mouth at the bottom;
-## along the top or bottom it lies on its side with its mouth at the right end. Its spout points at the board.
+## Upright (on the left or right of the screen, the default) it reads like a puzzle game's "next" column:
+## the mouth, holding the next package, is at the top, and the rest queue down under it. Along the top or
+## bottom it lies on its side with its mouth at the right end. Its spout points at the board.
 ## The frame is thin and quiet (a tube with rivets, a hopper at the back, a gold lip and flap at the mouth) so
 ## the packages do the talking. While a route is planned, Game has it show the load as it'll be at the end of
 ## that route (show_stack). On return levels a checkered flag rides behind the last package: back to the pit.
@@ -34,6 +35,11 @@ var vertical := true
 var spout := 1.0
 ## Return levels: a finish flag behind the last package.
 var finish_flag := false
+## Fog (a side road's twist): every package but the next is a grey "?" crate.
+var fog := false:
+	set(v):
+		fog = v
+		_fog_marks()
 ## Draw the tube at least this long from the mouth's front edge (Game stretches it along the board's side);
 ## the places past the load are just empty chute.
 var reach := 0.0:
@@ -64,7 +70,7 @@ func _ns() -> float:
 
 ## Along the chute, toward the back (away from the mouth).
 func _back() -> Vector2:
-	return Vector2(0, -1) if vertical else Vector2(-1, 0)
+	return Vector2(0, 1) if vertical else Vector2(-1, 0)
 
 
 ## Across the chute, toward the board.
@@ -183,7 +189,7 @@ func extent() -> Vector2:
 func origin_in() -> Vector2:
 	var e := extent()
 	if vertical:
-		return Vector2(e.x / 2.0, e.y - _lab() - _front())
+		return Vector2(e.x / 2.0, _lab() + _front())
 	return Vector2(e.x - _front(), (_lab() if spout > 0.0 else 0.0) + _across_full() / 2.0)
 
 
@@ -303,6 +309,16 @@ func _place(animate: bool) -> void:
 			b.position = to
 			b.scale = s
 			b.rotation = 0.0
+	_fog_marks()
+
+
+func _fog_marks() -> void:
+	for i in boxes.size():
+		var b: PackageBox = boxes[i]
+		var h := fog and i != boxes.size() - 1
+		if b.fogged != h:
+			b.fogged = h
+			b.queue_redraw()
 
 
 func _roll_from(by: float) -> void:
@@ -327,7 +343,7 @@ func _leave(b: PackageBox, handoff := false) -> void:
 	if handoff:
 		b.queue_free()
 		return
-	var out := (_side() * 1.0 + (Vector2(0, 0.5) if vertical else Vector2(0.3, 0))).normalized() * ph * 1.2
+	var out := (_side() * 1.0 + (Vector2(0, -0.3) if vertical else Vector2(0.3, 0))).normalized() * ph * 1.2
 	var tw := b.create_tween().set_parallel()
 	tw.tween_property(b, "position", b.position + out, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_property(b, "scale", Vector2.ONE * 0.4, 0.18)
@@ -378,6 +394,7 @@ func swap_top() -> void:
 		var tw := bx.create_tween().set_parallel()
 		tw.tween_method(_hop.bind(bx, bx.position, _slot(pair[1]), pair[2]), 0.0, 1.0, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tw.tween_property(bx, "scale", Vector2.ONE * _rest_scale(pair[1]), 0.26)
+	_fog_marks()
 	queue_redraw()
 
 
@@ -478,7 +495,7 @@ func covers(local: Vector2) -> bool:
 	var r := Rect2(-origin_in(), extent()).grow(10.0)
 	# Stretched along the board: the empty tube counts too.
 	var more := maxf(0.0, reach - _length(_places))
-	r = r.grow_individual(0, more, 0, 0) if vertical else r.grow_individual(more, 0, 0, 0)
+	r = r.grow_individual(0, 0, 0, more) if vertical else r.grow_individual(more, 0, 0, 0)
 	return r.has_point(local)
 
 
@@ -505,7 +522,7 @@ func flash_remaining() -> void:
 func tap_at(local: Vector2) -> String:
 	for i in boxes.size():
 		var b: PackageBox = boxes[i]
-		if not b.visible:
+		if not b.visible or b.fogged:
 			continue
 		var at := _slot(i)
 		var half := _item_size() * 0.5 * _rest_scale(i) + Vector2(ph, ph) * 0.08
@@ -595,14 +612,12 @@ func _draw() -> void:
 	if _flap > 0.01:
 		draw_line(hinge, tip, Color(gold.darkened(0.15), 0.95), lw * 2.2, true)
 		draw_circle(hinge, lw * 1.3, Color(gold, 0.95))
-	# The NEXT tag: a gold pill under the window (above or below it when the chute lies along the board).
+	# The NEXT tag: a gold pill over the window (under it when the chute lies along the bottom of the board).
 	var nfs := int(ph * 0.3)
 	var nw := f.get_string_size("NEXT", HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
 	var tag_h := ph * 0.42
 	var tag_c: Vector2
-	if vertical:
-		tag_c = Vector2(0, mr.end.y + lw * 1.4 + ph * 0.06 + tag_h / 2.0)
-	elif spout > 0.0:
+	if vertical or spout > 0.0:
 		tag_c = Vector2(0, mr.position.y - lw * 1.4 - ph * 0.06 - tag_h / 2.0)
 	else:
 		tag_c = Vector2(0, mr.end.y + lw * 1.4 + ph * 0.06 + tag_h / 2.0)

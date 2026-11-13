@@ -10,6 +10,9 @@ extends Control
 
 signal stop_pressed(index: int)
 signal reset_pressed
+## A side road's sign (SideRoads) or a milestone chest was tapped.
+signal side_pressed(id: String)
+signal chest_pressed(level_number: int)
 
 const W := 1080.0
 const SPACING := 245.0           # road distance between stops (vertically)
@@ -19,6 +22,9 @@ const SWING := 300.0             # how far the road winds left and right of cent
 const PIN_R := 58.0
 const ROAD_W := 74.0
 const SUBDIV := 16
+const SPUR_LEN := 215.0
+const SPUR_W := 50.0
+const SIDE_COL := Color("2fb49a")
 const PERFECT := Color("ffcf4d")
 const PERFECT_INK := Color("7a4a00")
 const PEEK := Color("7b5cff")
@@ -53,6 +59,10 @@ var signs: Array = []            # {pos, region index}
 var barrier := Vector2.INF
 var depot := Vector2.ZERO
 var scenery: Array = []          # {kind, pos, s, seed, col}
+## Side roads branching off at some stops: {kind ("side" or "chest"), n (the stop's level), a (the stop),
+## b (the end), and for side roads id and def; shake (a locked one shakes its head)}.
+var spurs: Array = []
+var _pressed_spur := -1
 var next := 0                    # next level to play (index); -1 when every level is done
 var van: Van
 
@@ -169,6 +179,35 @@ func _layout_world() -> void:
 		var rx := _road_point_at_y(sy).x
 		var sx := 290.0 if rx > W / 2.0 else W - 290.0
 		signs.append({"pos": Vector2(sx, sy), "region": k})
+	_layout_spurs()
+
+
+## A short spur off the road at each side road's and chest's stop: sideways, toward whichever side is
+## clearer (out from the middle, back in from the edges), dodging region signs.
+func _layout_spurs() -> void:
+	var want := []
+	for d in SideRoads.defs():
+		want.append({"kind": "side", "id": str(d.get("id", "")), "def": d, "n": int(d.get("after", 0))})
+	for n in SideRoads.CHESTS:
+		want.append({"kind": "chest", "n": int(n)})
+	for sp in want:
+		var i: int = sp["n"] - 1
+		if i < 0 or i >= stops.size():
+			continue
+		var a: Vector2 = stops[i]
+		var dx := a.x - W / 2.0
+		var dir := signf(dx) if absf(dx) < 200.0 else -signf(dx)
+		if dir == 0.0:
+			dir = 1.0
+		var b := a + Vector2(dir * SPUR_LEN, -36.0)
+		for sg in signs:
+			if (sg["pos"] as Vector2).distance_to(b) < 200.0:
+				b = a + Vector2(-dir * SPUR_LEN, -36.0)
+		b.x = clampf(b.x, 110.0, W - 110.0)
+		sp["a"] = a
+		sp["b"] = b
+		sp["shake"] = 0.0
+		spurs.append(sp)
 
 
 func _catmull(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
@@ -209,7 +248,11 @@ func _scatter() -> void:
 	rng.seed = 20261111
 	# Road samples bucketed by height, for quick "too close to the road?" checks.
 	var buckets := {}
-	for p in road:
+	var pts: Array = Array(road)
+	for sp in spurs:
+		for k in 11:
+			pts.append((sp["a"] as Vector2).lerp(sp["b"], k / 10.0))
+	for p in pts:
 		var b := int(p.y / 100.0)
 		if not buckets.has(b):
 			buckets[b] = []
@@ -235,6 +278,9 @@ func _scatter() -> void:
 				if pos.distance_to(s) < 120.0:
 					bad = true
 					break
+			for sp in spurs:
+				if pos.distance_to(sp["b"]) < 130.0:
+					bad = true
 			for sg in signs:
 				var sp: Vector2 = sg["pos"]
 				if absf(pos.x - sp.x) < 270.0 and pos.y > sp.y - 150.0 and pos.y < sp.y + 120.0:
@@ -320,6 +366,7 @@ func _gui_input(event: InputEvent) -> void:
 				_vel = 0.0
 				_press_pos = mb.position
 				_pressed = _stop_at(mb.position)
+				_pressed_spur = _spur_at(mb.position) if _pressed < 0 else -1
 				_last_motion = Time.get_ticks_msec()
 			else:
 				_down = false
@@ -328,6 +375,8 @@ func _gui_input(event: InputEvent) -> void:
 					if hit >= 0 and hit == _pressed:
 						Sfx.play("click")
 						stop_pressed.emit(hit)
+					elif _pressed_spur >= 0 and _spur_at(mb.position) == _pressed_spur:
+						_tap_spur(_pressed_spur)
 					elif _reset_rect.has_point(mb.position + Vector2(0, scroll)):
 						reset_pressed.emit()
 				elif Time.get_ticks_msec() - _last_motion > 90:
@@ -339,6 +388,7 @@ func _gui_input(event: InputEvent) -> void:
 		if not _dragging and mm.position.distance_to(_press_pos) > 18.0:
 			_dragging = true
 			_pressed = -1
+			_pressed_spur = -1
 		if _dragging:
 			var now := Time.get_ticks_msec()
 			var dt := maxf((now - _last_motion) / 1000.0, 1.0 / 120.0)
@@ -362,6 +412,8 @@ func _stop_at(local: Vector2) -> int:
 
 func _process(delta: float) -> void:
 	_t += delta
+	for sp in spurs:
+		sp["shake"] = maxf(0.0, sp["shake"] - delta)
 	if not _down:
 		scroll += _vel * delta
 		_vel *= exp(-3.2 * delta)
@@ -421,6 +473,10 @@ func _draw() -> void:
 		if p.y < y0 or p.y > y1:
 			continue
 		_draw_item(it)
+	for sp in spurs:
+		var b: Vector2 = sp["b"]
+		if b.y > y0 - 100.0 and b.y < y1 + 100.0:
+			_draw_spur_road(sp)
 	_draw_road(y0, y1)
 	_draw_depot()
 	if barrier != Vector2.INF and barrier.y > y0 and barrier.y < y1:
@@ -432,6 +488,13 @@ func _draw() -> void:
 	for i in stops.size():
 		if stops[i].y > y0 and stops[i].y < y1:
 			_draw_stop(i)
+	for sp in spurs:
+		var b: Vector2 = sp["b"]
+		if b.y > y0 - 100.0 and b.y < y1 + 100.0:
+			if sp["kind"] == "side":
+				_draw_side_sign(sp)
+			else:
+				_draw_chest(sp)
 
 
 func _draw_ground(y0: float, y1: float) -> void:
@@ -670,6 +733,146 @@ func _draw_stop(i: int) -> void:
 		var t := c + Vector2(0, -r - 14)
 		DrawUtil.rrect(self, Rect2(t + Vector2(-tw / 2.0 - 12, -16), Vector2(tw + 24, 32)), PEEK, 16)
 		draw_string(f, t + Vector2(-tw / 2.0, 8), "PEEK", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+
+
+# ---------------------------------------------------------------- side roads
+
+func _spur_at(local: Vector2) -> int:
+	var wp := local + Vector2(0, scroll)
+	for k in spurs.size():
+		if wp.distance_to(spurs[k]["b"]) < 80.0:
+			return k
+	return -1
+
+
+func _tap_spur(k: int) -> void:
+	var sp: Dictionary = spurs[k]
+	var n: int = sp["n"]
+	if sp["kind"] == "side":
+		if Progress.side_open(sp["def"]):
+			Sfx.play("click")
+			side_pressed.emit(sp["id"])
+			return
+	elif Progress.is_complete(n) and not Progress.chest_open(n):
+		Sfx.play("click")
+		chest_pressed.emit(n)
+		return
+	elif Progress.chest_open(n):
+		Sfx.play("tick", 0.8, -6.0)
+		sp["shake"] = 0.2
+		return
+	# Not open yet: it shakes its head.
+	Sfx.play("bonk", 1.1, -6.0)
+	Sfx.haptic(14, 0.6)
+	sp["shake"] = 0.35
+
+
+func _shake_of(sp: Dictionary) -> Vector2:
+	var k: float = sp["shake"]
+	return Vector2(sin(k * 60.0) * 9.0 * (k / 0.35), 0)
+
+
+## The spur itself: a narrower road, paved once it's open.
+func _draw_spur_road(sp: Dictionary) -> void:
+	var a := _o(sp["a"])
+	var b := _o(sp["b"])
+	var open := Progress.is_complete(int(sp["n"]))
+	var pts := PackedVector2Array()
+	for k in 9:
+		var t := k / 8.0
+		# A gentle bend: out level first, then up to the end.
+		var ctrl := Vector2(b.x, a.y)
+		pts.append(a.lerp(ctrl, t).lerp(ctrl.lerp(b, t), t))
+	draw_polyline(_shift(pts, Vector2(0, 8)), Color(0, 0, 0, 0.1), SPUR_W + 18.0, true)
+	draw_polyline(pts, Color("efe7d8"), SPUR_W + 14.0, true)
+	draw_polyline(pts, Palette.ROAD if open else Color("b9bfcb"), SPUR_W, true)
+	for k in range(1, 8, 2):
+		draw_line(pts[k], pts[k + 1], Color(1, 1, 1, 0.6), 5.0, true)
+
+
+func _plate(text: String, at: Vector2, bg: Color, fg: Color, px := 24) -> void:
+	var f := UiTheme.font()
+	var tw := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	DrawUtil.rrect(self, Rect2(at + Vector2(-tw / 2.0 - 14, -px * 0.75), Vector2(tw + 28, px * 1.5)), bg, px * 0.75)
+	draw_string(f, at + Vector2(-tw / 2.0, px * 0.36), text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, fg)
+
+
+## A side road's end: a round pad with the ride it wins, under a DETOUR plate; padlocked until its stop's
+## level is beaten; a tick once it's won.
+func _draw_side_sign(sp: Dictionary) -> void:
+	var d: Dictionary = sp["def"]
+	var c := _o(sp["b"]) + _shake_of(sp)
+	var open := Progress.side_open(d)
+	var won := Progress.side_done.has(sp["id"])
+	var r := 60.0
+	if open and not won:
+		for k0 in [0.0, 0.5]:
+			var k := fmod(_t / 1.6 + k0, 1.0)
+			draw_arc(c, r * (1.1 + 0.5 * k), 0, TAU, 40, Color(SIDE_COL, 0.6 * (1.0 - k)), 6.0, true)
+	draw_circle(c + Vector2(0, 9), r + 8.0, Color(0, 0, 0, 0.18))
+	draw_circle(c, r + 8.0, Color.WHITE)
+	draw_circle(c, r, SIDE_COL if open else Color("c9c4d4"))
+	if open:
+		draw_set_transform(c + Vector2(0, 2), -0.35, Vector2.ONE)
+		Cosmetics.draw_ride(self, str(d.get("reward", "")), 86.0, 54.0, null, _t)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		_padlock(c, 26.0)
+	if won:
+		var tc := c + Vector2(r * 0.72, -r * 0.72)
+		draw_circle(tc, 22.0, Color.WHITE)
+		draw_circle(tc, 18.0, Palette.CHECK)
+		draw_polyline(PackedVector2Array([tc + Vector2(-8, 0), tc + Vector2(-2, 6), tc + Vector2(9, -6)]), Color.WHITE, 4.0, true)
+	var label := str(d.get("title", "")).to_upper() if open else "BEAT %d" % int(sp["n"])
+	_plate(label, c + Vector2(0, r + 30.0), Color("2b2233") if open else Color(0, 0, 0, 0.35), Color.WHITE, 22)
+	_plate("DETOUR", c + Vector2(0, -r - 22.0), HAZARD, HAZARD_INK, 20)
+
+
+## A milestone chest: grey and padlocked until its level's beaten; then it bounces in a burst of light,
+## waiting to be opened; once opened, its lid stands open, empty.
+func _draw_chest(sp: Dictionary) -> void:
+	var n: int = sp["n"]
+	var done := Progress.is_complete(n)
+	var opened := Progress.chest_open(n)
+	var can_open := done and not opened
+	var c := _o(sp["b"]) + _shake_of(sp)
+	if can_open:
+		c.y -= absf(sin(_t * 3.2)) * 12.0
+		for k in 10:
+			var a := TAU * k / 10.0 + _t * 0.6
+			var p1 := c + Vector2(cos(a), sin(a)) * 46.0
+			var p2 := c + Vector2(cos(a + 0.16), sin(a + 0.16)) * 120.0
+			var p3 := c + Vector2(cos(a - 0.16), sin(a - 0.16)) * 120.0
+			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color("ffe08a", 0.35))
+	var wood := Color("b8733a") if done else Color("b3aeb9")
+	var band := Color("ffcf4d") if done else Color("d6d2dc")
+	draw_circle(_o(sp["b"]) + Vector2(0, 40), 52.0, Color(0, 0, 0, 0.15))
+	var body := Rect2(c + Vector2(-52, -14), Vector2(104, 56))
+	DrawUtil.rrect(self, Rect2(body.position + Vector2(0, 6), body.size), wood.darkened(0.3), 12)
+	DrawUtil.rrect(self, body, wood, 12)
+	if opened:
+		# Lid flung back, the inside dark and empty.
+		DrawUtil.rrect(self, Rect2(c + Vector2(-50, -58), Vector2(100, 40)), wood.darkened(0.15), 12)
+		DrawUtil.rrect(self, Rect2(c + Vector2(-44, -18), Vector2(88, 14)), Color("3a2418"), 6)
+	else:
+		DrawUtil.rrect(self, Rect2(c + Vector2(-56, -46), Vector2(112, 36)), wood.lightened(0.08), 16)
+		draw_rect(Rect2(c + Vector2(-56, -18), Vector2(112, 6)), band)
+	for x in [-36.0, 36.0]:
+		draw_rect(Rect2(c + Vector2(x - 6, -46 if not opened else -14), Vector2(12, 88 if not opened else 56)), band)
+	if not opened:
+		DrawUtil.rrect(self, Rect2(c + Vector2(-13, -24), Vector2(26, 30)), band.darkened(0.1), 6)
+		draw_circle(c + Vector2(0, -12), 5.0, wood.darkened(0.45))
+	if not done:
+		_padlock(c + Vector2(0, -6), 18.0)
+	var label := "OPEN ME!" if can_open else ("BEAT %d" % n if not done else "")
+	if label != "":
+		_plate(label, c + Vector2(0, 70.0), Color("ffcf4d") if can_open else Color(0, 0, 0, 0.35), HAZARD_INK if can_open else Color.WHITE, 22)
+
+
+func _padlock(c: Vector2, s: float) -> void:
+	draw_arc(c + Vector2(0, -s * 0.3), s * 0.5, PI, TAU, 16, Color("4a4458"), s * 0.22, true)
+	DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.75, -s * 0.3), Vector2(s * 1.5, s * 1.2)), Color("4a4458"), s * 0.25)
+	draw_circle(c + Vector2(0, s * 0.25), s * 0.18, Color("c9c4d4"))
 
 
 # ---------------------------------------------------------------- scenery

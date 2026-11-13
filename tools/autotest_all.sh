@@ -31,4 +31,17 @@ if [ $first -eq 1 ]; then
   echo "daily puzzles: $won/10 won"
   grep -h "SCRIPT ERROR" $out/daily-*.txt | head -5
 fi
+# The side roads: each driven in one go (it must win), and its twist checked (it must bite).
+if [ $first -eq 1 ]; then
+  ids=($(python3 -c "import json;print(' '.join(d['id'] for d in json.load(open('levels/side.json'))['side']))"))
+  for id in $ids; do
+    $G --headless --path . --quit-after 30000 -- --side=$id --autoplay > $out/side-$id.txt 2>&1 &
+    $G --headless --path . --quit-after 30000 -- --side=$id --autotwist > $out/twist-$id.txt 2>&1 &
+  done
+  wait
+  won=$(cat $out/side-*.txt | grep -c 'state=WON')
+  bites=$(cat $out/twist-*.txt | grep -c 'ok=true')
+  echo "side roads: $won/${#ids} won, $bites/${#ids} twists bite"
+  grep -h "SCRIPT ERROR" $out/side-*.txt $out/twist-*.txt | head -5
+fi
 rm -rf $out

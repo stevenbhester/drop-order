@@ -104,7 +104,7 @@ func _draw_body() -> void:
 	var L := size * 0.74
 	var W := size * 0.46
 	if ride != "":
-		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t)
+		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t, paint if paint != "" else "classic")
 		if topper != "":
 			Cosmetics.draw_topper(b, topper, at, W, _t)
 		return

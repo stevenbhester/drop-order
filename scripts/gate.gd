@@ -52,6 +52,10 @@ func _draw() -> void:
 	DrawUtil.rrect(self, Rect2(booth.position + Vector2(0, tile * 0.025), booth.size), Color(0, 0, 0, 0.18), tile * 0.05)
 	DrawUtil.rrect(self, booth, color, tile * 0.05)
 	DrawUtil.rrect(self, booth.grow(-tile * 0.04), color.lerp(Color.WHITE, 0.55), tile * 0.03)
+	# Colorblind mode: the class mark of the package it lets through, on the booth.
+	if DrawUtil.bold_marks and Palette.kind_of(color) != "":
+		DrawUtil.rrect(self, booth.grow(-tile * 0.03), Color.WHITE, tile * 0.03)
+		DrawUtil.mark(self, Palette.kind_of(color), booth.get_center(), tile * 0.22, Color("2b2233"), Color.WHITE, true)
 	# Arm: hangs across the road when closed, swings up along the verge when open.
 	var ang := lerpf(PI / 2.0, 0.08, open_t) + _shake * 0.12
 	var length := road_w + tile * 0.04

@@ -11,6 +11,7 @@ var _modal: Node
 ## Re-shows the current menu screen (night mode re-themes by rebuilding it).
 var _reshow := Callable()
 var _night := false
+var _colorblind := false
 var _landscape := false
 ## Sideways play: menus go in a portrait column in the middle (see PortraitHost).
 var _host: PortraitHost
@@ -31,6 +32,7 @@ func _ready() -> void:
 	levels = Levels.load_all()
 	Notify.refresh(Progress)
 	_night = Progress.night
+	_colorblind = Progress.colorblind
 	_landscape = Progress.landscape
 	_apply_orientation()
 	Progress.settings_changed.connect(_on_settings)
@@ -39,14 +41,20 @@ func _ready() -> void:
 		return
 	var start := Progress.first_incomplete(levels.size())
 	var direct := false
+	var side_id := ""
 	var args := OS.get_cmdline_user_args()
 	for a in args:
-		if a.begins_with("--level="):
+		if a.begins_with("--side="):
+			# Debug: straight into a side road (levels/side.json id).
+			side_id = a.trim_prefix("--side=")
+		elif a.begins_with("--level="):
 			start = a.trim_prefix("--level=").to_int() - 1
 			direct = true
 		elif a.begins_with("--auto"):
 			direct = true
-	if args.has("--select"):
+	if side_id != "":
+		_start_side(side_id)
+	elif args.has("--select"):
 		show_select()
 	elif args.has("--daily"):
 		if direct:
@@ -65,6 +73,10 @@ func _ready() -> void:
 			(screen as TitleScreen).quiet = true
 			card.draining.connect(_title_audible)
 			_put(card)
+	for a in args:
+		if a.begins_with("--chest=") and screen is LevelSelect:
+			# Debug: open a milestone chest on the map straight away (for screenshots).
+			(screen as LevelSelect)._open_chest.call_deferred(a.trim_prefix("--chest=").to_int())
 	if args.has("--notes"):
 		# Debug: open the patch notes straight away (for screenshots).
 		open_notes.call_deferred()
@@ -123,6 +135,9 @@ func _on_settings() -> void:
 		_apply_orientation()
 		if not (screen is Game) and _reshow.is_valid():
 			_reshow.call()
+	if Progress.colorblind != _colorblind:
+		_colorblind = Progress.colorblind
+		get_tree().root.propagate_call("queue_redraw")
 	if Progress.night != _night:
 		_night = Progress.night
 		Palette.apply(_night)
@@ -184,6 +199,29 @@ func _start(i: int, paid := false) -> void:
 	g.options_requested.connect(open_options.bind(g))
 	g.level_requested.connect(play)
 	g.retry_requested.connect(func(j): _start(j, g.retry_paid))
+	g.menu_requested.connect(show_select)
+	_swap(g)
+
+
+## A side road off the map (SideRoads): free to play and to retry; back to the map after.
+func play_side(id: String) -> void:
+	_start_side(id)
+
+
+func _start_side(id: String) -> void:
+	var L := SideRoads.level(id)
+	if L == null:
+		show_select()
+		return
+	var key := "side_" + id
+	if not solved.has(key):
+		solved[key] = Solver.solve(L)
+	_reshow = Callable()
+	var g := Game.new()
+	g.side = SideRoads.get_def(id)
+	g.options_requested.connect(open_options.bind(g))
+	g.setup(L, 0, 1, solved[key])
+	g.retry_requested.connect(func(_i): _start_side(id))
 	g.menu_requested.connect(show_select)
 	_swap(g)
 
@@ -252,6 +290,7 @@ func show_select() -> void:
 	var s := LevelSelect.new()
 	s.setup(levels)
 	s.level_chosen.connect(play)
+	s.side_chosen.connect(play_side)
 	s.daily_pressed.connect(show_daily)
 	s.garage_pressed.connect(show_garage)
 	s.title_pressed.connect(show_title)

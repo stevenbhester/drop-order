@@ -33,10 +33,8 @@ const DRIVE_SPEED := 7.0         # tiles per second at cruise
 const REWIND_SPEED := 16.0
 const RAMP := 0.6                # tiles spent accelerating / braking
 const TOP_BAR := 170.0
-## Between an upright chute and the board, and how far its mouth sits up off the buttons (so the next
-## package is up by the board's bottom row, not down among the controls).
+## Between an upright chute and the board.
 const CHUTE_GAP := 14.0
-const CHUTE_LIFT := 44.0
 ## The least room kept for the level's name and hint, above the truck (upright).
 const TEXT_MIN := 110.0
 ## The D-pad's size: three keys across, two down.
@@ -108,6 +106,9 @@ var bar: HBoxContainer
 var momentum_ctl: Control
 ## Set for the daily puzzle: the day it's for (else -1).
 var daily_day := -1
+## A side challenge (SideRoads): its definition, or empty for a normal level. Its `twist` changes the rules.
+var side := {}
+var _fogged := false
 ## Seconds spent playing, from the first touch to the win (menus and the ad don't count).
 var play_time := 0.0
 var timing := false
@@ -161,7 +162,107 @@ func _ready() -> void:
 		_show_charge.call_deferred()
 	if daily_day < 0 and ChallengeIntro.should_show(level):
 		_show_challenge.call_deferred()
+	if not side.is_empty():
+		_start_side()
 	DebugAuto.maybe_run(self)
+
+
+# ---------------------------------------------------------------- side roads
+
+func _twist() -> String:
+	return str(side.get("twist", ""))
+
+
+## A side challenge starts: its intro (until it's been beaten), the clock for "melt", the fog countdown.
+func _start_side() -> void:
+	if _twist() == "melt":
+		timing = true
+	if ChallengeIntro.should_show_side(side):
+		var ci := ChallengeIntro.new()
+		ci.level = level
+		ci.side = side
+		modal = ci
+		_overlay(ci)
+		ci.done.connect(func(): modal = null)
+	_side_status()
+
+
+## The tank holds just the shortest route (in road tiles moved).
+func _fuel_cap() -> int:
+	return maxi(solve_info.get("shortest", []).size() - 1, 1)
+
+
+func _fuel_used() -> int:
+	return _full().size() - 1
+
+
+func _fuel_left() -> int:
+	return _fuel_cap() - _fuel_used()
+
+
+func _melt_left() -> float:
+	return float(side.get("seconds", 60)) - play_time
+
+
+## The top bar says how the twist stands: gas left, the clock, "one drive", the fog closing in.
+func _side_status() -> void:
+	if side.is_empty() or level_label == null:
+		return
+	var t := ""
+	match _twist():
+		"fuel":
+			t = "Tank: %d" % maxi(_fuel_left(), 0)
+		"melt":
+			var left := maxi(int(ceil(_melt_left())), 0)
+			t = "Melts in %d:%02d" % [left / 60, left % 60]
+		"one_shot":
+			t = "One drive!"
+		"fog":
+			var peek := float(side.get("peek", 6)) - play_time_total()
+			t = "Fog in %d" % int(ceil(peek)) if not _fogged and peek > 0.0 else "In the fog"
+	level_label.text = t
+	var warn := (_twist() == "fuel" and _fuel_left() <= 2) or (_twist() == "melt" and _melt_left() < 10.0)
+	level_label.add_theme_color_override("font_color", Palette.CRASH if warn else Palette.TEXT)
+
+
+var _side_t := 0.0
+
+
+func play_time_total() -> float:
+	return _side_t
+
+
+func _side_tick(delta: float) -> void:
+	if side.is_empty() or state == State.WON:
+		return
+	if not _busy_modal():
+		_side_t += delta
+	match _twist():
+		"melt":
+			if _melt_left() <= 0.0 and state != State.FAILED and state != State.DRIVING:
+				_twist_fail("Melted! Every delivery before the clock runs out.")
+		"fog":
+			if not _fogged and _side_t >= float(side.get("peek", 6)):
+				_fogged = true
+				stack_view.fog = true
+				Sfx.play("whoosh", 0.7, -4.0)
+	_side_status()
+
+
+## A twist's rule broken: the level's lost (Retry is free on side roads).
+func _twist_fail(msg: String) -> void:
+	if state == State.DRAWING:
+		_cancel_plan()
+		board.show_path([])
+	state = State.FAILED
+	timing = false
+	_update_drive_button()
+	Sfx.play("fail", 1.0, -2)
+	Sfx.haptic(25)
+	van.shake()
+	stack_view.flash_remaining()
+	_say(msg + "\nRetry?", Palette.ACCENT.darkened(0.12))
+	retry_button.breathe(true)
 
 
 ## A challenge level (a big step up): hazard tape, a stamp, the bonus on offer.
@@ -218,6 +319,7 @@ func _intro() -> void:
 func _process(delta: float) -> void:
 	if stars_ctl and Progress.momentum > 0 and state != State.WON:
 		stars_ctl.queue_redraw()
+	_side_tick(delta)
 	if timing and state != State.WON and not _busy_modal():
 		play_time += delta
 	if state != State.IDLE or _busy_modal():
@@ -368,7 +470,7 @@ func _chute_shape() -> Array:
 	var vp := get_viewport_rect().size
 	match _chute_side():
 		"left", "right":
-			var room := vp.y - _header_bottom() - _controls_h() - _bottom_inset - 50.0 - CHUTE_LIFT
+			var room := vp.y - _header_bottom() - _controls_h() - _bottom_inset - 50.0
 			return [room, true, 1.0 if _chute_side() == "left" else -1.0]
 		"bottom":
 			return [vp.x - 80.0, false, -1.0]
@@ -468,6 +570,8 @@ func _build_ui() -> void:
 	bar.add_child(mid)
 	level_label = Label.new()
 	level_label.text = "Level %d" % level.number if daily_day < 0 else "Daily #%d" % Daily.number(daily_day)
+	if not side.is_empty():
+		level_label.text = str(side.get("title", "Side road"))
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	level_label.add_theme_font_size_override("font_size", 52)
 	mid.add_child(level_label)
@@ -665,21 +769,23 @@ func _layout() -> void:
 	var text_w := vp.x - 40.0
 	# Upright or underneath, the chute (its label included) ends a little over the buttons, clear of their
 	# badges.
-	var chute_bottom := block_top - 26.0 - (CHUTE_LIFT if _chute_upright() else 0.0)
+	var chute_bottom := block_top - 26.0
 	if side == "bottom":
 		stack_view.position.y = chute_bottom - ce.y + co.y
 		floor_y = chute_bottom - ce.y - 14.0
 	var board_y: float = round(floor_y - tk * 0.21 - bsz.y)
 	var board_top := board_y - tk * 0.14
 	if _chute_upright():
-		# Chute and board side by side, centred together; the chute's mouth level with the board's bottom
-		# (its label in the margin under it), its tube running up the board's whole height.
+		# Chute and board side by side, centred together, like a puzzle game's "next" column: NEXT and the
+		# next package level with the board's top, the queue running down the board's whole height. (A load
+		# longer than the board is tall: it starts higher, still ending clear of the buttons.)
 		var group_x: float = round((vp.x - ce.x - CHUTE_GAP - bw) / 2.0)
 		var chute_l := group_x if side == "left" else group_x + bw + CHUTE_GAP
 		var board_l := group_x + ce.x + CHUTE_GAP if side == "left" else group_x
 		board.position = Vector2(board_l + tk * 0.15, board_y)
-		stack_view.position = Vector2(chute_l + co.x, chute_bottom - ce.y + co.y)
-		stack_view.reach = chute_bottom - lab - board_top
+		var top := minf(board_top, chute_bottom - ce.y)
+		stack_view.position = Vector2(chute_l + co.x, top + co.y)
+		stack_view.reach = floor_y - top - lab
 		text_l = chute_l + ce.x + CHUTE_GAP - 20.0 if side == "left" else 20.0
 		text_w = vp.x - 20.0 - text_l if side == "left" else chute_l - CHUTE_GAP + 20.0 - text_l
 	else:
@@ -860,7 +966,7 @@ func _preview_load() -> void:
 		return
 	var st: Array = seg_states.back()["stack"]
 	stack_view.show_stack(st)
-	if not Progress.peek:
+	if not Progress.peek or _twist() == "fog":
 		peek.clear()
 		return
 	var cols := []
@@ -908,6 +1014,8 @@ func _full() -> Array:
 
 
 func _can(next: Vector2i) -> bool:
+	if _twist() == "fuel" and _fuel_left() <= 0:
+		return false
 	return Sim.can_extend(level, _full(), next, seg_states.back())
 
 
@@ -1522,6 +1630,12 @@ func _shake_board(amount := 1.0) -> void:
 func _after_segment() -> void:
 	if Sim.is_won(level, sim_state, route):
 		_win()
+	elif _twist() == "one_shot":
+		_twist_fail("No brakes means one run: the whole route in one go.")
+	elif _twist() == "fuel" and _fuel_left() <= 0:
+		_twist_fail("Out of gas! Find the shortest way round.")
+	elif _twist() == "melt" and _melt_left() <= 0.0:
+		_twist_fail("Melted! Every delivery before the clock runs out.")
 	elif not Sim.has_move(level, route, sim_state):
 		_fail()
 	else:
@@ -1548,6 +1662,10 @@ func can_undo() -> bool:
 
 func _on_undo_pressed() -> void:
 	if _busy_modal():
+		return
+	if not side.is_empty():
+		Sfx.play("bonk", 1.1, -6.0)
+		_say("No undos on side roads!")
 		return
 	if dpad_mode and state == State.DRAWING:
 		# A route is plotted but not driven yet: Undo just clears it.
@@ -1678,6 +1796,14 @@ func _rewind_tick(d: float, tiles: Array) -> void:
 func _update_undo() -> void:
 	if undo_button == null:
 		return
+	if not side.is_empty():
+		# Side roads: no undos (or hints).
+		undo_button.badge = ""
+		undo_button.badge_icon = ""
+		undo_button.dim = true
+		hint_button.dim = true
+		undo_button.queue_redraw()
+		return
 	var n := undos_available()
 	if n <= 0:
 		undo_button.badge_icon = "ad"
@@ -1696,6 +1822,10 @@ func _update_undo() -> void:
 
 func _on_hint_pressed() -> void:
 	if _busy_modal():
+		return
+	if not side.is_empty():
+		Sfx.play("bonk", 1.1, -6.0)
+		_say("No hints on side roads!")
 		return
 	# With the D-pad, a hint takes two taps (the first just asks), so a stray thumb can't spend a star.
 	if dpad_mode and state != State.FAILED and not hint_used and Time.get_ticks_msec() / 1000.0 > _hint_armed:
@@ -1794,6 +1924,8 @@ func _on_retry_pressed() -> void:
 
 ## Once a level's been beaten (or today's daily solved), playing it again neither costs gas nor earns any.
 func _replay_free() -> bool:
+	if not side.is_empty():
+		return true
 	if daily_day >= 0:
 		return Progress.daily_record(daily_day).get("done", false)
 	return Progress.is_complete(level.number)
@@ -1845,7 +1977,12 @@ func _win() -> void:
 	var pay := 0
 	var gas_back := false
 	var crushed := false
-	if daily_day >= 0:
+	var side_prize := ""
+	if not side.is_empty():
+		# A side challenge: its ride, the first time.
+		if Progress.win_side(str(side.get("id", ""))):
+			side_prize = str(side.get("reward", ""))
+	elif daily_day >= 0:
 		var first: bool = not Progress.daily_record(daily_day).get("done", false)
 		Progress.daily_done(daily_day, earned, play_time, deliveries)
 		if first:
@@ -1866,6 +2003,8 @@ func _win() -> void:
 	var new_item := ""
 	if gift_taken and Progress.give(level.gift_item):
 		new_item = level.gift_item
+	if side_prize != "" and Progress.give(side_prize):
+		new_item = side_prize
 	var missed := board.gift != null and not gift_taken
 	Progress.momentum += 1
 	momentum_ctl.visible = false
@@ -1913,7 +2052,8 @@ func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, misse
 	finish.new_item = new_item
 	finish.missed_item = missed
 	finish.daily = daily_day >= 0
-	finish.last_level = index + 1 >= total
+	finish.last_level = index + 1 >= total or not side.is_empty()
+	finish.side_title = str(side.get("title", ""))
 	# Sideways the finish lives in its own portrait column, so rewards can't fly across to the wallet.
 	finish.coin_chip = null if Progress.landscape else coin_chip
 	finish.gas_chip = null if Progress.landscape else gas_chip
@@ -1952,7 +2092,9 @@ func _fail() -> void:
 
 
 func _next() -> void:
-	if daily_day >= 0:
+	if not side.is_empty():
+		menu_requested.emit()
+	elif daily_day >= 0:
 		daily_menu_requested.emit()
 	elif index + 1 < total:
 		level_requested.emit(index + 1)

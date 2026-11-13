@@ -141,15 +141,19 @@ func _draw() -> void:
 			_diner(s, w, h, wall, roof, ink, glass)
 		_:
 			_home(s, w, h, wall, roof, ink, glass)
+	# Colorblind mode: the package class's mark on a round sign on the building itself (never out over the
+	# road), so the place can be matched to its packages by shape.
+	if DrawUtil.bold_marks and Palette.kind_of(color) != "":
+		var kind := Palette.kind_of(color)
+		var pc := _sign_at(kind, s, w, h)
+		var pr := s * 0.14
+		draw_circle(pc + Vector2(0, s * 0.014), pr + s * 0.016, Color(0, 0, 0, 0.16))
+		draw_circle(pc, pr + s * 0.016, roof.darkened(0.25))
+		draw_circle(pc, pr, Color.WHITE)
+		DrawUtil.mark(self, kind, pc, pr * 2.0, SIGN_INK, Color.WHITE, true)
 
 	if order > 1 and not done:
-		var bc := Vector2(w * 0.5, -h - s * 0.16)
-		draw_circle(bc, s * 0.12, Color.WHITE)
-		var f := UiTheme.font()
-		var txt := "×%d" % (order - filled)
-		var fs := int(s * 0.15)
-		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_string(f, bc + Vector2(-tw / 2, fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+		DrawUtil.count_badge(self, Vector2(s * 0.27, -s * 0.6), s, order - filled, color)
 
 	# The plan will deliver here: a ghost tick.
 	if ghost_done and check_t <= 0.0:
@@ -175,6 +179,21 @@ func _draw() -> void:
 
 # ---------------------------------------------------------------- buildings (origin at the base)
 
+const SIGN_INK := Color("2b2233")
+
+
+## Where each building wears its colorblind sign: over the door, in the tower's round window, up in the
+## barn's gable, over the diner's window.
+func _sign_at(kind: String, s: float, w: float, h: float) -> Vector2:
+	match kind:
+		"mystery":
+			return Vector2(0, -h * 1.2 + s * 0.16)
+		"organic":
+			return Vector2(0, -h - s * 0.08)
+		"hot":
+			return Vector2(-w * 0.2, -s * 0.2)
+	return Vector2(0, -s * 0.31)
+
 ## A filled shape with rounded corners (fill plus a round outline in the same colour).
 func _soft_poly(pts: PackedVector2Array, col: Color, rad: float) -> void:
 	draw_colored_polygon(pts, col)
@@ -191,6 +210,10 @@ func _home(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, g
 	var eave := s * 0.07
 	_soft_poly(PackedVector2Array([Vector2(-w / 2 - eave, -h + s * 0.03), Vector2(0, -h - s * 0.3), Vector2(w / 2 + eave, -h + s * 0.03)]), roof, s * 0.025)
 	DrawUtil.rrect(self, Rect2(-s * 0.07, -s * 0.21, s * 0.14, s * 0.21), ink, s * 0.04)
+	# A bow over the door: this is where the presents go.
+	for sx in [-1.0, 1.0]:
+		draw_circle(Vector2(sx * s * 0.035, -s * 0.235), s * 0.03, roof.lightened(0.2))
+	draw_circle(Vector2(0, -s * 0.235), s * 0.018, roof.darkened(0.1))
 	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.07, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
 	DrawUtil.rrect(self, Rect2(w / 2 - s * 0.18, -h + s * 0.08, s * 0.11, s * 0.11), glass, s * 0.025)
 
@@ -233,8 +256,17 @@ func _factory(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color
 		DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.06 + i * (w - s * 0.12) / 3.0, -h + s * 0.07, (w - s * 0.12) / 3.0 - s * 0.03, s * 0.07), glass, s * 0.02)
 	var door := Rect2(-s * 0.1, -s * 0.2, s * 0.2, s * 0.2)
 	DrawUtil.rrect(self, door, ink, s * 0.03)
-	for k in 3:
+	for k in 2:
 		draw_line(Vector2(door.position.x + s * 0.02, -s * 0.15 + k * s * 0.05), Vector2(door.end.x - s * 0.02, -s * 0.15 + k * s * 0.05), Color(wall, 0.35), s * 0.012)
+	# Caution stripes along the door's foot.
+	var band := Rect2(door.position.x, -s * 0.06, door.size.x, s * 0.06)
+	draw_rect(band, Color.WHITE if glass != Color("e9e9e9") else wall)
+	var x := band.position.x
+	while x < band.end.x:
+		var x1 := minf(x + s * 0.04, band.end.x)
+		draw_colored_polygon(PackedVector2Array([Vector2(x, band.end.y), Vector2(minf(x + s * 0.03, band.end.x), band.position.y),
+			Vector2(minf(x1 + s * 0.03, band.end.x), band.position.y), Vector2(x1, band.end.y)]), roof)
+		x += s * 0.08
 
 
 ## Mystery: a narrow tower with a tall pointed roof and a round window.
@@ -244,7 +276,11 @@ func _tower(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, 
 	DrawUtil.rrect(self, Rect2(-tw / 2, -th, tw, th), wall, s * 0.04)
 	var eave := s * 0.06
 	_soft_poly(PackedVector2Array([Vector2(-tw / 2 - eave, -th + s * 0.03), Vector2(s * 0.02, -th - s * 0.36), Vector2(tw / 2 + eave, -th + s * 0.03)]), roof, s * 0.022)
-	draw_circle(Vector2(s * 0.02, -th - s * 0.37), s * 0.035, ink)
+	# A crescent moon on the spire.
+	var mc := Vector2(s * 0.02, -th - s * 0.42)
+	draw_circle(mc, s * 0.05, roof.lightened(0.45))
+	draw_circle(mc + Vector2(s * 0.025, -s * 0.012), s * 0.042, roof)
+	draw_line(Vector2(s * 0.02, -th - s * 0.37), mc + Vector2(0, s * 0.045), roof, s * 0.02)
 	draw_circle(Vector2(0, -th + s * 0.15), s * 0.065, glass)
 	# An arched door.
 	DrawUtil.rrect(self, Rect2(-s * 0.065, -s * 0.2, s * 0.13, s * 0.2), ink, s * 0.065)
@@ -270,6 +306,12 @@ func _diner(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, 
 	var dh := h * 0.92
 	# A little chimney behind the roof.
 	DrawUtil.rrect(self, Rect2(-dw * 0.32, -dh - s * 0.2, s * 0.07, s * 0.14), ink, s * 0.02)
+	# Steam off the grill.
+	var st := Vector2(-dw * 0.32 + s * 0.035, -dh - s * 0.22)
+	var steam := PackedVector2Array()
+	for k in 7:
+		steam.append(st + Vector2(sin(k * 1.1) * s * 0.025, -k * s * 0.022))
+	draw_polyline(steam, Color(1, 1, 1, 0.75), s * 0.022, true)
 	var arch := PackedVector2Array()
 	for i in 13:
 		var a := PI + PI * i / 12.0

@@ -1,7 +1,7 @@
 class_name OptionsMenu
 extends CanvasLayer
 ## The options card: how you steer (draw or D-pad), which hand the D-pad is for, where the package chute
-## goes (left, right, top or bottom), the route preview chip, night mode, horizontal play, sound volume and
+## goes (left, right, top or bottom), the route preview chip, colorblind mode (aka Paul mode), night mode, horizontal play, sound volume and
 ## haptic strength. Every change is saved straight away (Progress.set_option) and
 ## takes effect live: Main re-themes for night mode and turns the screen for horizontal play, the game
 ## re-lays its controls out for the D-pad and the hand.
@@ -91,6 +91,7 @@ func _build() -> void:
 	_rows.add_child(_choice("D-pad hand", "left_hand", [[false, "Right", "right"], [true, "Left", "left"]]))
 	_rows.add_child(_sides())
 	_rows.add_child(_toggle("Route preview", "peek", "peek"))
+	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
 	_rows.add_child(_toggle("Night mode", "night", "moon"))
 	_rows.add_child(_toggle("Play sideways", "landscape", "turn"))
 	_gap(6)
@@ -114,7 +115,7 @@ func _label(text: String, px: int, col: Color) -> Label:
 	return l
 
 
-func _row(name: String, icon: String) -> HBoxContainer:
+func _row(name: String, icon: String, sub := "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.custom_minimum_size = Vector2(0, ROW_H)
 	row.add_theme_constant_override("separation", 18)
@@ -125,7 +126,16 @@ func _row(name: String, icon: String) -> HBoxContainer:
 	row.add_child(ic)
 	var l := _label(name, 44, Palette.TEXT)
 	l.custom_minimum_size = Vector2(280, 0)
-	row.add_child(l)
+	if sub == "":
+		row.add_child(l)
+		return row
+	# A little line under the name.
+	var names := VBoxContainer.new()
+	names.alignment = BoxContainer.ALIGNMENT_CENTER
+	names.add_theme_constant_override("separation", -6)
+	names.add_child(l)
+	names.add_child(_label(sub, 28, Palette.TEXT_SOFT))
+	row.add_child(names)
 	return row
 
 
@@ -198,8 +208,8 @@ func _sides() -> VBoxContainer:
 
 
 ## A big switch: a pill with a knob that slides across.
-func _toggle(name: String, key: String, icon: String) -> HBoxContainer:
-	var row := _row(name, icon)
+func _toggle(name: String, key: String, icon: String, sub := "") -> HBoxContainer:
+	var row := _row(name, icon, sub)
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE

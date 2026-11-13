@@ -4,13 +4,23 @@ extends RefCounted
 ## first). Bump NUMBER and add a release to the top of NOTES with each TestFlight version; the build number
 ## lives in export_presets.cfg (tools/testflight.sh bumps it).
 
-const NUMBER := "0.4"
-const NAME := "The Chute Update"
+const NUMBER := "0.5"
+const NAME := "Side Roads"
 
 const NOTES := [
+	{"version": "0.5", "name": "Side Roads", "notes": [
+		"Side roads! Four detours branch off the road trip, each with a twist: a tiny tank, a melting clock, no brakes, thick fog.",
+		"Beat a side road to win its ride: Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van.",
+		"Treasure chests at levels 10, 20, 30, 40 and 50: gas, Dollaroos, and sometimes a hat (Party Hat, Hard Hat, Gold Crown).",
+		"Paint jobs work on every ride now, Kuma's Monster Truck included.",
+		"Colorblind mode (aka Paul mode): bold marks on every package, and a matching sign on every building and gate.",
+		"The side chute reads like a puzzle game's next column: next on top, the rest below. Its boxes stand tall, so the board gets more room.",
+		"Every colour is its own kind of place: a home, a lab, a factory, a tower, a barn and a diner.",
+		"Much bigger ×N badges on buildings and warehouses.",
+	]},
 	{"version": "0.4", "name": "The Chute Update", "notes": [
 		"Your load rides in a package chute now. Pick left, right, top or bottom in Options.",
-		"Every colour is its own kind of package (gifts, biohazard, caution, mystery, organic, hot stuff) and its own kind of place: a home, a lab, a factory, a tower, a barn, a diner.",
+		"Every colour is its own kind of package: gifts, biohazard, caution, mystery, organic and hot stuff.",
 		"Deliveries drop out of the chute into the van, then fly to the house.",
 		"Challenge levels! Eight extra-spicy levels get hazard tape on the map, a big intro, and 500 Dollaroos for crushing them.",
 		"The start is a pit stop. A checkered flag in the chute means you finish back there.",

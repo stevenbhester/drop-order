@@ -5,6 +5,7 @@ extends Control
 ## "--map-scroll=N" opens it scrolled to level N (for screenshots).
 
 signal level_chosen(index: int)
+signal side_chosen(id: String)
 signal daily_pressed
 signal garage_pressed
 signal title_pressed
@@ -33,6 +34,8 @@ func _ready() -> void:
 	map = RoadMap.new()
 	map.setup(levels)
 	map.stop_pressed.connect(func(i: int): level_chosen.emit(i))
+	map.side_pressed.connect(func(id: String): side_chosen.emit(id))
+	map.chest_pressed.connect(_open_chest)
 	map.reset_pressed.connect(func():
 		Progress.reset()
 		level_chosen.emit(0))
@@ -119,6 +122,23 @@ func _ready() -> void:
 		if a.begins_with("--map-scroll="):
 			focus_on = a.trim_prefix("--map-scroll=").to_int() - 1
 	map.focus(focus_on)
+
+
+## A milestone chest tapped open: it pops open over the map, then any hat in it gets its own unlock card.
+func _open_chest(n: int) -> void:
+	var got := Progress.open_chest(n)
+	if got.is_empty():
+		return
+	var card := ChestCard.new()
+	card.got = got
+	card.level_number = n
+	add_child(card)
+	card.closed.connect(func():
+		map.queue_redraw()
+		if got.get("hat", "") != "":
+			var u := UnlockCard.new()
+			u.item = got["hat"]
+			add_child(u))
 
 
 func _dock_h() -> float:

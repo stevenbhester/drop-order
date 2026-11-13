@@ -3,7 +3,8 @@ extends CanvasLayer
 ## Before an unbeaten challenge level (a big step up from its neighbours): two strips of hazard tape whip
 ## across, "CHALLENGE!" stamps down over a burst of flame, then the level's name, a line of trash talk and the
 ## bonus on offer for beating it. "Bring it on!" (or a tap anywhere once it's settled) starts the level.
-## Shown once a session per level, and never again once it's beaten.
+## Shown once a session per level, and never again once it's beaten. Side roads get one too ("SIDE ROAD!"),
+## with the twist explained and the ride they win.
 
 signal done
 
@@ -26,6 +27,8 @@ const TAUNTS := {
 static var _seen := {}
 
 var level: LevelData
+## A side road's definition (SideRoads), or empty for a challenge level.
+var side := {}
 
 var _root: Control
 var _t := 0.0
@@ -38,9 +41,14 @@ static func should_show(L: LevelData) -> bool:
 	return L.challenge and not Progress.is_complete(L.number) and not _seen.has(L.number) and not Progress.auto
 
 
+static func should_show_side(d: Dictionary) -> bool:
+	var id := str(d.get("id", ""))
+	return not Progress.side_done.has(id) and not _seen.has(id) and not Progress.auto
+
+
 func _ready() -> void:
 	layer = 70
-	_seen[level.number] = true
+	_seen[level.number if side.is_empty() else str(side.get("id", ""))] = true
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -150,8 +158,8 @@ func _draw_it() -> void:
 	var dim := clampf(_t / 0.15, 0.0, 1.0)
 	_root.draw_rect(Rect2(Vector2.ZERO, v), Color(0.08, 0.05, 0.12, 0.82 * dim))
 	# Hazard tape, one strip from each side.
-	_tape(c + Vector2(0, -330), -0.16, -v.x * 1.6 * (1.0 - _out(_t / 0.24)), "CHALLENGE AHEAD  ·  ")
-	_tape(c + Vector2(0, 560), 0.1, v.x * 1.6 * (1.0 - _out((_t - 0.08) / 0.24)), "DRIVE CAREFULLY  ·  ")
+	_tape(c + Vector2(0, -330), -0.16, -v.x * 1.6 * (1.0 - _out(_t / 0.24)), "CHALLENGE AHEAD  ·  " if side.is_empty() else "SIDE ROAD  ·  DETOUR  ·  ")
+	_tape(c + Vector2(0, 560), 0.1, v.x * 1.6 * (1.0 - _out((_t - 0.08) / 0.24)), "DRIVE CAREFULLY  ·  " if side.is_empty() else "NO HINTS  ·  NO UNDOS  ·  ")
 	# The flame burst behind the stamp, and the stamp.
 	if _t >= STAMP_AT - 0.06:
 		var k := _out((_t - STAMP_AT + 0.06) / 0.3)
@@ -162,14 +170,27 @@ func _draw_it() -> void:
 			AnimeFire.draw_flame(_root, c + Vector2(x, 40), 150.0 * k, hgt, _t, 3.0 + i * 1.7, pal)
 		var u := (_t - STAMP_AT + 0.06) / 0.16
 		var s := lerpf(2.8, 1.0, _out(u))
-		_text("CHALLENGE!", c + Vector2(0, -40), 150, Color("fff3c4"), 22, -0.06, s, clampf(u * 2.0, 0.0, 1.0))
+		_text("CHALLENGE!" if side.is_empty() else "SIDE ROAD!", c + Vector2(0, -40), 150 if side.is_empty() else 136, Color("fff3c4"), 22, -0.06, s, clampf(u * 2.0, 0.0, 1.0))
 	# The level, the trash talk, the prize.
 	if _t > 0.55:
 		var k := _out((_t - 0.55) / 0.25)
 		var name := "LEVEL %d" % level.number + ("  ·  " + level.title.to_upper() if level.title != "" else "")
+		if not side.is_empty():
+			name = str(SideRoads.TWISTS.get(side.get("twist", ""), "")).to_upper() + "  ·  " + level.title.to_upper()
 		_text(name, c + Vector2((1.0 - k) * 500.0, 110), 50, Color.WHITE, 10, 0.0, 1.0, k)
 		var taunt: String = TAUNTS.get(level.number, "A big step up. Take your time.")
-		_text(taunt, c + Vector2(-(1.0 - k) * 500.0, 186), 38, Color(1, 1, 1, 0.82), 0, 0.0, 1.0, k)
+		if not side.is_empty():
+			taunt = level.hint
+		# Long lines (a side road's rules) break in two.
+		var lines := [taunt]
+		if UiTheme.font().get_string_size(taunt, HORIZONTAL_ALIGNMENT_LEFT, -1, 38).x > v.x - 120.0:
+			var mid := taunt.length() / 2
+			var cut := taunt.rfind(" ", mid)
+			if cut < 0:
+				cut = taunt.find(" ", mid)
+			lines = [taunt.substr(0, cut), taunt.substr(cut + 1)]
+		for li in lines.size():
+			_text(lines[li], c + Vector2(-(1.0 - k) * 500.0, 172 + li * 44 - (0 if lines.size() == 1 else 8)), 36, Color(1, 1, 1, 0.82), 0, 0.0, 1.0, k)
 	if _t > 0.75:
 		var k := _pop((_t - 0.75) / 0.3)
 		var chip := Rect2(c + Vector2(-330, 236), Vector2(660, 92))
@@ -179,7 +200,10 @@ func _draw_it() -> void:
 		DrawUtil.rrect(_root, r, Color(1, 1, 1, 0.12), 46)
 		Icons.draw(_root, "coin", Vector2(-r.size.x / 2.0 + 62, 0), 58.0, Palette.STAR_GOLD)
 		var f := UiTheme.font()
-		_root.draw_string(f, Vector2(-r.size.x / 2.0 + 112, 14), "+%d Dollaroos for beating it" % BONUS, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color("ffe08a"))
+		var prize := "+%d Dollaroos for beating it" % BONUS
+		if not side.is_empty():
+			prize = "Win the %s" % Cosmetics.name_of(str(side.get("reward", "")))
+		_root.draw_string(f, Vector2(-r.size.x / 2.0 + 112, 14), prize, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color("ffe08a"))
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# A white flash on the stamp.
 	if _stamped:

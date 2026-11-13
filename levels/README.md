@@ -50,6 +50,13 @@ The loader rejects levels where:
 Package colours, **first = bottom, last = top** (the top is delivered first). Full names
 (`"red"`) or the single letters above both work.
 
+## Side roads
+`side.json` has `{"side": [ ... ]}`: levels in the same format plus `id`, `after` (the level whose map
+stop it branches off, and which opens it), `reward` (the cosmetic it wins), and `twist`:
+`fuel` (the tank holds exactly the shortest route), `melt` (finish within `seconds`), `one_shot` (one drive
+for the whole run) or `fog` (the load's shown for `peek` seconds, then only the next package). The
+validator checks them; `tools/autotest_all.sh` drives each one and checks its twist bites.
+
 ## Daily puzzles
 `daily.json` has the same format: `{"levels": [ ... ]}`. Today's puzzle is the next one in the list
 each day, repeating (see `scripts/daily.gd`). The validator checks them too.

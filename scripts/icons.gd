@@ -159,6 +159,15 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 				"side_top": bar.size.y = s * 0.1
 				"side_bottom": bar = Rect2(bar.position.x, bar.end.y - s * 0.1, bar.size.x, s * 0.1)
 			DrawUtil.rrect(ci, bar, col, s * 0.03)
+		"eye":
+			# An eye.
+			var lid := PackedVector2Array()
+			for k in 24:
+				var a := TAU * k / 24.0
+				lid.append(c + Vector2(cos(a) * 0.44, sin(a) * 0.26 * (1.0 - 0.35 * absf(cos(a)))) * s)
+			ci.draw_colored_polygon(lid, col)
+			ci.draw_circle(c, s * 0.16, Color(Palette.CARD, 1.0) if col.a > 0.0 else col)
+			ci.draw_circle(c, s * 0.08, col)
 		"peek":
 			# A thought bubble.
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.4, -0.36) * s, Vector2(0.8, 0.5) * s), col, s * 0.22)

@@ -27,7 +27,9 @@ Godot 4.7, GDScript, 1080×1920 portrait. 40 levels in two parts, 5 sneak-peek l
   (`--map-scroll=N` centres it on level N), `-- --dpad` to steer with the D-pad (`--lefty` for the
   left-hand pad), `-- --night` / `-- --landscape` to try those modes, `-- --stack=left|right|top|bottom`
   to put the chute there, `-- --peek` for the route preview, `-- --options` to open the options,
-  `-- --notes` to open the patch notes, or `-- --no-intro` to skip the studio card.
+  `-- --notes` to open the patch notes, `-- --colorblind` for colorblind mode, `-- --side=small_tank`
+  to play a side road, `-- --select --chest=20` to open a chest on the map, or `-- --no-intro` to
+  skip the studio card.
 - **Mac app:** Project → Export → macOS writes `build/Last Mile.app` (preset in `export_presets.cfg`).
 - **iPhone (by cable):** plug it in, unlock it, then run `tools/install_ios.sh`. It exports the Xcode
   project, builds and signs it with team 7FR35W6Q64 (Xcode must be signed in to that account), installs
@@ -64,9 +66,26 @@ The version badge in the title's top corner (with a NEW sticker after an update)
 - Map stops with a present still waiting show a little gift icon.
 - Finding one pops up a big **NEW RIDE / PAINT JOB / TOPPER!** card over the finish screen, with
   **Wear it now** or **Keep my look**. Nothing is worn unless you pick it.
-- Title → **Garage** to wear what you've found: **Kuma's Monster Truck** (a whole ride, level 6), 5 paint
-  jobs and 6 toppers, mostly from Frontiers Celestia (Deep Field, Gloaming, Duskwood, Mosaic Moth,
-  Drizzlet, Bonkle Ears, Sprout & Orbit, Rivet, Puffball), plus Racing Stripes and a Door Bowl soup bowl.
+- Title → **Garage** to wear what you've found: 5 rides (**Kuma's Monster Truck** from level 6's
+  present; Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van from the side roads), 6 paint jobs and 9
+  toppers, mostly from Frontiers Celestia (Deep Field, Gloaming, Duskwood, Mosaic Moth, Drizzlet,
+  Bonkle Ears, Sprout & Orbit, Rivet, Puffball), plus Racing Stripes, a Door Bowl soup bowl and the
+  chest hats (Party Hat, Hard Hat, Gold Crown). Paint jobs work on every ride (Classic Cream leaves
+  a ride in its own colours).
+
+### Side roads and treasure chests
+Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `levels/side.json`):
+- **Side roads** (a DETOUR sign showing the ride it wins) open once the level they branch off is beaten.
+  Each is a short level with a twist, free to play and retry, with no hints or undos; the top bar
+  shows how the twist stands. Beat it to win its ride:
+  - **Small Tank** (after 6, the Zippy Scooter): the tank holds just the shortest route.
+  - **Before It Melts** (after 17, Mr. Frosty): every delivery within 50 seconds.
+  - **No Brakes** (after 24, the Rocket Van): plan the whole run, one drive, no stopping.
+  - **Fog Bank** (after 33, the Hover Van): the load's shown for 6 seconds, then fog hides all but the
+    next package.
+- **Treasure chests** at levels 10, 20, 30, 40 and 50: once that level's beaten, tap the chest to open
+  it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40 and 50
+  a hat.
 
 ### Momentum and the finish
 - Every win in a row this session (hints and undos are fine) adds **momentum**. A retry, or walking away
@@ -110,19 +129,24 @@ as a little flame inside the Daily button.
   undraws several tiles).
 - **Lift your finger and the van drives that segment.** Then press the van again to keep going
   from where it stopped.
-- **The load** rides in a **package chute**: standing up beside the board (left by default) with its
-  mouth at the bottom, or lying along the top or bottom of the board with its mouth at the right end
-  (Options → Package chute; sideways play always has it on top). The **next** package sits in the
-  mouth in a gold-framed window with a gold NEXT tag (half again as big as the rest when the chute
-  stands beside the board, its mouth up by the board's bottom row); the rest queue up the tube in the
-  order they'll go out.
+- **The load** rides in a **package chute**: standing up beside the board (left by default), it reads
+  like a puzzle game's "next" column: NEXT and the next package at the top, level with the board's
+  top, and the rest queued down under it in the order they'll go out. Along the top or bottom of the
+  board it lies on its side with its mouth at the right end (Options → Package chute; sideways play
+  always has it on top). The next package sits in a gold-framed window with a gold NEXT tag (half
+  again as big as the rest in the side chute).
   It works like a real van: the last one in is first out, so a collected parcel comes in at the mouth
-  and pushes the others back. On delivery the next package drops out of the mouth into the van, then
+  and pushes the others along. On delivery the next package drops out of the mouth into the van, then
   flies on to the house. Packages are longer than they're wide, the long side along the chute (so
   it stays thin beside the board), and each colour is its own class with a faint
   stamp, just for flavour (the colour is what matters): red gifts (a pale ribbon), yellow biohazard,
   blue caution, purple mystery, green organic, orange hot. The places that want them match: red
-  homes, yellow labs, blue factories, purple towers, green barns, orange diners. Houses next in line glow softly in their colour. Tap a package and the houses waiting for
+  homes (a bow over the door), yellow labs (an observatory dome), blue factories (caution stripes on
+  the door), purple towers (a crescent moon), green barns, orange diners (steam off the grill). A
+  place wanting several shows a big "×N". Places next in line glow softly in their colour.
+- **Colorblind mode** (Options; "aka Paul mode", for our colorblind playtester): the package marks go
+  bold and white, and every building and colour gate gets the same mark on a round sign (on the
+  building itself, never out over the road), so everything can be matched by shape alone. Tap a package and the houses waiting for
   that colour wave. No level starts with more than 12 aboard or needs more than 12 at once; if a wrong
   turn past a warehouse overloads the van, the extra wait behind a "+N" at the back of the chute, and
   you can drag along the chute to scroll through them.
@@ -150,7 +174,7 @@ as a little flame inside the Daily button.
   side, and Hint takes two taps there ("Sure?") so a stray thumb can't spend a star. Arrow keys and
   Enter do the same on a keyboard.
 - **Options** (the gear: bottom left in a level, top corner of the title and map): steering (draw or
-  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, **night mode**, **play sideways** (landscape: the board in the
+  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, colorblind mode, **night mode**, **play sideways** (landscape: the board in the
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic
   strength from none to max. Everything is saved and applies straight away.
 - **Undo** (bottom right) rewinds your last segment, including its deliveries. **Once per attempt.**
@@ -178,7 +202,8 @@ as a little flame inside the Daily button.
 | `scripts/dpad.gd` | The thumb pad for D-pad steering: keycaps, rolling between arrows, press feel (the ghost van and DRIVE button live in `game.gd`) |
 | `scripts/options_menu.gd` | The options card: steering, hand, chute position, route preview, night mode, sideways play, sound, haptics |
 | `scripts/version.gd`, `patch_notes.gd` | The version (title screen badge) and its patch notes card |
-| `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) |
+| `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
+| `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/portrait_host.gd` | Sideways play: a portrait column in the middle of the screen for menus and pop-ups |
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |
 | `scripts/van.gd`, `stack_view.gd`, `package_box.gd` | Van, its load (the package chute, next package in its mouth), packages |
@@ -190,7 +215,7 @@ as a little flame inside the Daily button.
 | `scripts/fake_ad.gd`, `assets/ads/`, `audio/ad_chirp*.wav` | The made-up Frontiers Celestia ad (mark and chirps copied from that repo) |
 | `scripts/finish_screen.gd`, `anime_fire.gd` | The freeze-frame level finish, and cel-shaded fire (the momentum trail and aura) |
 | `scripts/daily.gd`, `daily_screen.gd`, `share_card.gd`, `levels/daily.json` | Daily puzzle: which is today's, the streak screen, the share card and its emoji text |
-| `scripts/cosmetics.gd`, `gift.gd`, `garage.gd`, `unlock_card.gd` | Rides (the monster truck), paints and toppers; presents on the road; the garage; the "NEW RIDE!" card |
+| `scripts/cosmetics.gd`, `gift.gd`, `garage.gd`, `unlock_card.gd` | Rides (monster truck, scooter, ice cream truck, rocket van, hover van), paints and toppers; presents on the road; the garage; the "NEW RIDE!" card |
 | `scripts/fx.gd`, `backdrop.gd`, `juicy_button.gd`, `icons.gd` | Sparkles and floating words, the drifting background, squashy buttons, code-drawn icons |
 | `scripts/studio_card.gd`, `assets/fonts/Fredoka.ttf`, `audio/studio_*.wav` | Door Bowl studio intro, ported from Frontiers Celestia |
 | `scripts/sfx.gd`, `sfx_synth.gd`, `audio/` | Sounds (synthesised placeholders) |
@@ -218,7 +243,8 @@ godot --headless --path . --script res://tools/generate.gd -- --w=6 --h=8 --n=5 
 #        --autodpad (plot with the D-pad, press DRIVE), --autobrake (drag into the wreckage: the line
 #        stops, nothing's lost; send it anyway: the van brakes), --autoreplay (does Retry take gas?),
 #        --autoscroll (drag along the chute; try with --load-demo=18)
-#        --autoside (move the chute to each spot mid-level: on screen, clear of the board and words?)
+#        --autoside (move the chute to each spot mid-level: on screen, clear of the board and words?),
+#        --autotwist with --side=<id> (does that side road's twist bite?)
 #        Add --daily to play today's daily instead (--day=+N pretends it's N days later).
 godot --headless --path . -- --level=12 --autoundo
 

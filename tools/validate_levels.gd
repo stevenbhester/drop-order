@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless check: every level (and every daily puzzle) parses and is solvable, and every present on the road
+## Headless check: every level (and every daily puzzle and side road) parses and is solvable, and every present on the road
 ## can be picked up on the way to a win. Prints solution counts.
 ##   godot --headless --path . --script res://tools/validate_levels.gd
 ## Add `-- --ablate` to also re-solve each level with its one-way arrows / bridges / gates /
@@ -9,7 +9,7 @@ extends SceneTree
 func _init() -> void:
 	var ablate := OS.get_cmdline_user_args().has("--ablate")
 	var ok := true
-	var levels := Levels.load_all() + Daily.puzzles()
+	var levels := Levels.load_all() + Daily.puzzles() + SideRoads.all_levels()
 	for L in levels:
 		var r := Solver.solve(L)
 		if r["count"] > 0:
@@ -30,6 +30,7 @@ func _init() -> void:
 		if L.return_depot: feats.append("return")
 		if L.preview: feats.append("PREVIEW")
 		if L.number > Daily.NUMBER_BASE: feats.append("DAILY")
+		elif L.number >= SideRoads.NUMBER_BASE: feats.append("SIDE ROAD")
 		if L.gift_item != "":
 			var gr := Solver.gift_route(L)
 			if gr.is_empty():
@@ -40,6 +41,8 @@ func _init() -> void:
 				var kind := "on the route" if Sim.is_won(L, Sim.run(L, gr), gr) and gr.back() != L.gift else "extra mile"
 				feats.append("gift %s, %s" % [L.gift_item, kind])
 		var tag := "D%02d" % (L.number - Daily.NUMBER_BASE) if L.number > Daily.NUMBER_BASE else "L%02d" % L.number
+		if L.number >= SideRoads.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
+			tag = "S%02d" % (L.number - SideRoads.NUMBER_BASE + 1)
 		print("%s %s %-18s %dx%d %d pkg  %s  [%s]" % ["FAIL" if bad else " ok ", tag, L.title,
 			L.width, L.height, L.stack.size(), Solver.describe(L, r), ", ".join(feats)])
 		for e in L.errors:
@@ -52,5 +55,5 @@ func _init() -> void:
 				L.set(field, {})
 				print("       without %s: %s" % [field, Solver.describe(L, Solver.solve(L))])
 				L.set(field, saved)
-	print("%d levels (with dailies), %s" % [levels.size(), "all solvable" if ok else "PROBLEMS FOUND"])
+	print("%d levels (with dailies and side roads), %s" % [levels.size(), "all solvable" if ok else "PROBLEMS FOUND"])
 	quit(0 if ok else 1)

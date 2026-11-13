@@ -101,12 +101,6 @@ func _draw() -> void:
 			DrawUtil.package(self, c + Vector2(-s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.08))
 			DrawUtil.package(self, c + Vector2(s * 0.1, s * 0.05), s * 0.2 * parcel_t, color.darkened(0.04))
 			DrawUtil.package(self, c + Vector2(0, -s * 0.07), s * 0.22 * parcel_t, color)
-			var bc := Vector2(w * 0.5, -h - s * 0.2)
-			draw_circle(bc, s * 0.13, Color.WHITE)
-			var f := UiTheme.font()
-			var txt := "×%d" % left
-			var fs := int(s * 0.15)
-			var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-			draw_string(f, bc + Vector2(-tw / 2, fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+			DrawUtil.count_badge(self, Vector2(s * 0.27, -s * 0.6), s, left, color)
 		else:
 			DrawUtil.package(self, c, s * 0.24 * parcel_t, color)

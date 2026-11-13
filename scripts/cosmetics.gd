@@ -1,7 +1,8 @@
 class_name Cosmetics
 extends RefCounted
-## Things to wear on the van, found on the road in some levels. Paints recolour the body (with a pattern);
-## toppers sit on the cab roof; rides swap the whole vehicle (the topper still rides on the roof). Most are from Frontiers Celestia, the studio's other game.
+## Things to wear on the van, found on the road in some levels, won on side roads, or in treasure chests.
+## Paints recolour the body (with a pattern), rides included; toppers sit on the cab roof; rides swap the
+## whole vehicle (the topper still rides on the roof). A ride in Classic Cream wears its own signature colours. Most are from Frontiers Celestia, the studio's other game.
 ## Everything here is drawn in code, top-down, in the van's own space (facing +x).
 
 const ITEMS := {
@@ -12,6 +13,13 @@ const ITEMS := {
 	"mosaic_moth": {"kind": "paint", "name": "Mosaic Moth", "from": "Frontiers Celestia", "body": Color("f2e6ff"), "cab": Color("5b3f8f"), "pattern": "mosaic"},
 	"racing": {"kind": "paint", "name": "Racing Stripes", "from": "", "body": Color("ff5d5d"), "cab": Color("2b2f38"), "pattern": "stripes"},
 	"monster_truck": {"kind": "ride", "name": "Kuma's Monster Truck", "from": "", "body": Color("e8473c"), "cab": Color("23222b")},
+	"scooter": {"kind": "ride", "name": "Zippy Scooter", "from": "", "body": Color("3fc7a6"), "cab": Color("2b2f38")},
+	"ice_cream": {"kind": "ride", "name": "Mr. Frosty", "from": "", "body": Color("fff4f8"), "cab": Color("ff7aa8")},
+	"rocket_van": {"kind": "ride", "name": "Rocket Van", "from": "", "body": Color("e9edf5"), "cab": Color("4a57ff")},
+	"hover_van": {"kind": "ride", "name": "Hover Van", "from": "", "body": Color("bfe9ff"), "cab": Color("3b3577")},
+	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
+	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
+	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
 	"drizzlet": {"kind": "topper", "name": "Drizzlet", "from": "Frontiers Celestia"},
 	"bonkle": {"kind": "topper", "name": "Bonkle Ears", "from": "Frontiers Celestia"},
 	"sprout": {"kind": "topper", "name": "Sprout & Orbit", "from": "Frontiers Celestia"},
@@ -20,8 +28,11 @@ const ITEMS := {
 	"soup_bowl": {"kind": "topper", "name": "Door Bowl", "from": "Door Bowl"},
 }
 ## Garage order.
-const ORDER := ["monster_truck", "classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing",
-	"drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
+const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
+	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing",
+	"party_hat", "hard_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
+## Rides that move (they're redrawn every frame in the garage).
+const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat"]
 
 
 static func name_of(id: String) -> String:
@@ -41,6 +52,9 @@ static func tint(id: String) -> Color:
 		"rivet": return Color(0.75, 0.78, 0.86)
 		"puffball": return Color(1.0, 0.8, 0.9)
 		"soup_bowl": return Color(0.66, 0.29, 0.28)
+		"party_hat": return Color("ff5fa2")
+		"hard_hat": return Color("ffc93c")
+		"crown": return Color("ffcf4d")
 	return ITEMS.get(id, {}).get("body", Palette.ACCENT)
 
 
@@ -131,6 +145,36 @@ static func draw_topper(ci: CanvasItem, id: String, c: Vector2, s: float, t := 0
 				var a := TAU * k / 6.0 + t * 0.4
 				ci.draw_circle(c + Vector2(cos(a), sin(a)) * u * 0.55, u * 0.5, col)
 			ci.draw_circle(c, u * 0.62, Color(1.0, 0.94, 0.97))
+		"party_hat":
+			# A striped cone seen from above (a pinwheel of stripes) with a pom-pom.
+			var cols := [Color("ff5fa2"), Color("ffd84d"), Color("5fc8ff")]
+			for k in 6:
+				var a0 := TAU * k / 6.0 + t * 0.6
+				var pts := PackedVector2Array([c])
+				for j in 5:
+					var a := a0 + TAU / 6.0 * j / 4.0
+					pts.append(c + Vector2(cos(a), sin(a)) * u * 0.95)
+				ci.draw_colored_polygon(pts, cols[k % 3])
+			ci.draw_arc(c, u * 0.95, 0, TAU, 28, Color(1, 1, 1, 0.7), u * 0.08, true)
+			ci.draw_circle(c, u * 0.26, Color.WHITE)
+		"hard_hat":
+			# A yellow hard hat: dome, brim, ridge.
+			ci.draw_circle(c, u * 1.0, Color("e0a92a"))
+			ci.draw_circle(c, u * 0.78, Color("ffc93c"))
+			ci.draw_line(c + Vector2(-u * 0.7, 0), c + Vector2(u * 0.7, 0), Color("e0a92a"), u * 0.16, true)
+			ci.draw_circle(c + Vector2(u * 0.2, -u * 0.25), u * 0.12, Color(1, 1, 1, 0.55))
+		"crown":
+			# A gold crown: a ring of points round a red jewel.
+			var pts := PackedVector2Array()
+			for k in 10:
+				var a := TAU * k / 10.0
+				pts.append(c + Vector2(cos(a), sin(a)) * u * (1.0 if k % 2 == 0 else 0.68))
+			ci.draw_colored_polygon(pts, Color("ffcf4d"))
+			ci.draw_circle(c, u * 0.5, Color("e8a92a"))
+			ci.draw_circle(c, u * 0.24, Color("e8473c"))
+			for k in 5:
+				var a := TAU * k / 5.0
+				ci.draw_circle(c + Vector2(cos(a), sin(a)) * u * 0.9, u * 0.1, Color.WHITE)
 		"soup_bowl":
 			ci.draw_circle(c, u * 0.95, Color(0.8, 0.76, 0.7))
 			ci.draw_circle(c, u * 0.72, Color(0.45, 0.2, 0.32))
@@ -140,17 +184,165 @@ static func draw_topper(ci: CanvasItem, id: String, c: Vector2, s: float, t := 0
 
 
 ## A whole vehicle in place of the van, facing +x, `L` long and `W` wide (the van's own size). Returns where
-## the topper goes. `cargo` is the top package's colour (or null for an empty bed).
-static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0) -> Vector2:
+## the topper goes. `cargo` is the top package's colour (or null for an empty bed). `paint` recolours it
+## (and puts the paint's pattern on its sides); Classic Cream leaves its own colours.
+static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0, paint := "classic") -> Vector2:
 	match id:
 		"monster_truck":
-			return _monster_truck(ci, L, W, cargo, t)
+			return _monster_truck(ci, L, W, cargo, t, paint)
+		"scooter":
+			return _scooter(ci, L, W, cargo, t, paint)
+		"ice_cream":
+			return _ice_cream(ci, L, W, cargo, t, paint)
+		"rocket_van":
+			return _rocket_van(ci, L, W, cargo, t, paint)
+		"hover_van":
+			return _hover_van(ci, L, W, cargo, t, paint)
 	return Vector2.ZERO
 
 
-static func _monster_truck(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float) -> Vector2:
-	var red := Color("e8473c")
-	var black := Color("23222b")
+static func _custom(paint: String) -> bool:
+	return paint != "" and paint != "classic" and ITEMS.has(paint)
+
+
+## A ride's body and trim colours: its own, or the paint's.
+static func _ride_cols(id: String, paint: String) -> Array:
+	if _custom(paint):
+		return [body_color(paint), cab_color(paint)]
+	return [ITEMS[id]["body"], ITEMS[id]["cab"]]
+
+
+static func _cargo(ci: CanvasItem, at: Vector2, s: float, cargo: Variant) -> void:
+	if cargo is Color:
+		DrawUtil.package(ci, at, s, cargo, false)
+
+
+static func _wheels(ci: CanvasItem, L: float, W: float, xs: Array, ln: float, wid: float) -> void:
+	for sx in xs:
+		for sy in [-1.0, 1.0]:
+			DrawUtil.rrect(ci, Rect2(Vector2(L * sx - ln / 2.0, sy * W * 0.5 - wid / 2.0), Vector2(ln, wid)), Palette.WHEEL, wid * 0.4)
+
+
+## Zippy Scooter: a moped with a delivery box on the back and its rider's helmet (the topper goes there).
+static func _scooter(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float, paint: String) -> Vector2:
+	var cols := _ride_cols("scooter", paint)
+	var body: Color = cols[0]
+	var trim: Color = cols[1]
+	DrawUtil.rrect(ci, Rect2(-L * 0.52, -W * 0.36, L * 1.04, W * 0.8), Color(0, 0, 0, 0.16), W * 0.3)
+	# Two wheels in line.
+	for x in [-0.3, 0.36]:
+		DrawUtil.rrect(ci, Rect2(Vector2(L * x - L * 0.11, -W * 0.09), Vector2(L * 0.22, W * 0.18)), Palette.WHEEL, W * 0.08)
+	# Body, footboard and front shield.
+	DrawUtil.rrect(ci, Rect2(-L * 0.2, -W * 0.2, L * 0.56, W * 0.4), body, W * 0.18)
+	if _custom(paint):
+		draw_pattern(ci, paint, Rect2(-L * 0.18, -W * 0.18, L * 0.5, W * 0.36))
+	DrawUtil.rrect(ci, Rect2(L * 0.3, -W * 0.24, L * 0.12, W * 0.48), body.darkened(0.12), W * 0.1)
+	# Handlebars and headlight.
+	ci.draw_line(Vector2(L * 0.33, -W * 0.4), Vector2(L * 0.33, W * 0.4), trim, W * 0.07, true)
+	for sy in [-1.0, 1.0]:
+		ci.draw_circle(Vector2(L * 0.33, sy * W * 0.4), W * 0.06, trim)
+	ci.draw_circle(Vector2(L * 0.45, 0), W * 0.07, Color("ffe28a"))
+	# The delivery box, lid off, with the package in it.
+	var bx := Rect2(-L * 0.52, -W * 0.33, L * 0.36, W * 0.66)
+	DrawUtil.rrect(ci, bx, trim, W * 0.1)
+	DrawUtil.rrect(ci, bx.grow(-W * 0.05), trim.lightened(0.15), W * 0.07)
+	_cargo(ci, bx.get_center(), W * 0.42, cargo)
+	# The rider's helmet.
+	ci.draw_circle(Vector2(L * 0.08, 0), W * 0.2, trim)
+	ci.draw_circle(Vector2(L * 0.11, -W * 0.05), W * 0.06, Color(1, 1, 1, 0.5))
+	return Vector2(L * 0.08, 0)
+
+
+## Mr. Frosty: an ice cream truck with candy stripes, a serving hatch (the package waits in it) and a big
+## two-scoop cone on the roof.
+static func _ice_cream(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float, paint: String) -> Vector2:
+	var cols := _ride_cols("ice_cream", paint)
+	var body: Color = cols[0]
+	var trim: Color = cols[1]
+	DrawUtil.rrect(ci, Rect2(-L / 2 - 4, -W / 2 - 2, L + 8, W + 12), Color(0, 0, 0, 0.2), W * 0.3)
+	_wheels(ci, L, W, [-0.28, 0.28], L * 0.2, W * 0.18)
+	DrawUtil.rrect(ci, Rect2(-L / 2, -W / 2, L, W), body, W * 0.24)
+	var side := Rect2(-L / 2 + W * 0.08, -W / 2 + W * 0.06, L * 0.66, W * 0.88)
+	if _custom(paint):
+		draw_pattern(ci, paint, side)
+	else:
+		# Candy stripes.
+		var n := 7
+		for k in n:
+			if k % 2 == 0:
+				ci.draw_rect(Rect2(side.position + Vector2(side.size.x * k / n, 0), Vector2(side.size.x / n, side.size.y)), Color(trim, 0.45))
+	var cab := L * 0.28
+	DrawUtil.rrect(ci, Rect2(L / 2 - cab, -W / 2, cab, W), trim, W * 0.24)
+	DrawUtil.rrect(ci, Rect2(L / 2 - cab + W * 0.06, -W * 0.34, cab * 0.42, W * 0.68), Palette.VAN_GLASS, W * 0.1)
+	# The hatch with the package, then the cone (scoops from above, a cherry on top).
+	_cargo(ci, Vector2(-L * 0.3, 0), W * 0.5, cargo)
+	var cc := Vector2(-L * 0.02, 0)
+	ci.draw_circle(cc, W * 0.27, Color("e3b072"))
+	ci.draw_circle(cc + Vector2(-W * 0.06, 0), W * 0.21, Color("ffb3cf"))
+	ci.draw_circle(cc + Vector2(W * 0.06, 0), W * 0.18, Color("fff6e0"))
+	ci.draw_circle(cc + Vector2(W * 0.08, -W * 0.02), W * 0.06, Color("e8473c"))
+	return Vector2(L / 2 - cab * 0.62, 0)
+
+
+## Rocket Van: sleek, with tail fins and twin jets that roar behind it.
+static func _rocket_van(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float, paint: String) -> Vector2:
+	var cols := _ride_cols("rocket_van", paint)
+	var body: Color = cols[0]
+	var trim: Color = cols[1]
+	# Jet flames behind.
+	for sy in [-0.22, 0.22]:
+		AnimeFire.draw_flame(ci, Vector2(-L * 0.56, W * sy), W * 0.3, L * (0.32 + 0.06 * sin(t * 23.0 + sy * 9.0)), t, 5.0 + sy * 10.0, AnimeFire.palette(4), Vector2(-1, 0))
+	DrawUtil.rrect(ci, Rect2(-L / 2 - 4, -W / 2 - 2, L + 8, W + 12), Color(0, 0, 0, 0.2), W * 0.32)
+	_wheels(ci, L, W, [-0.24, 0.3], L * 0.17, W * 0.16)
+	# Fins.
+	for sy in [-1.0, 1.0]:
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(-L * 0.5, sy * W * 0.62), Vector2(-L * 0.22, sy * W * 0.44), Vector2(-L * 0.46, sy * W * 0.36)]), trim)
+	DrawUtil.rrect(ci, Rect2(-L / 2, -W / 2, L * 1.02, W), body, W * 0.4)
+	if _custom(paint):
+		draw_pattern(ci, paint, Rect2(-L / 2 + W * 0.12, -W / 2 + W * 0.1, L * 0.62, W * 0.8))
+	else:
+		# A racing flash down the middle.
+		ci.draw_rect(Rect2(-L * 0.46, -W * 0.06, L * 0.7, W * 0.12), Color(trim, 0.8))
+	# Nozzles.
+	for sy in [-0.22, 0.22]:
+		DrawUtil.rrect(ci, Rect2(Vector2(-L * 0.56, W * sy - W * 0.11), Vector2(L * 0.1, W * 0.22)), Color("55565f"), W * 0.06)
+	# Pointed nose and bubble cockpit.
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(L * 0.42, -W * 0.42), Vector2(L * 0.62, 0), Vector2(L * 0.42, W * 0.42)]), trim)
+	DrawUtil.rrect(ci, Rect2(L * 0.14, -W * 0.3, L * 0.26, W * 0.6), Palette.VAN_GLASS, W * 0.28)
+	_cargo(ci, Vector2(-L * 0.16, 0), W * 0.56, cargo)
+	return Vector2(L * 0.26, 0)
+
+
+## Hover Van: no wheels, four glowing lift pads and a soft shadow well below it (it floats, gently bobbing).
+static func _hover_van(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float, paint: String) -> Vector2:
+	var cols := _ride_cols("hover_van", paint)
+	var body: Color = cols[0]
+	var trim: Color = cols[1]
+	var bob := sin(t * 3.0) * W * 0.04
+	DrawUtil.rrect(ci, Rect2(-L * 0.46, -W * 0.36 + W * 0.3, L * 0.92, W * 0.84), Color(0, 0, 0, 0.13), W * 0.4)
+	var o := Vector2(0, bob - W * 0.04)
+	var glow := 0.55 + 0.25 * sin(t * 6.0)
+	for sx in [-0.3, 0.3]:
+		for sy in [-1.0, 1.0]:
+			var pc := o + Vector2(L * sx, sy * W * 0.46)
+			ci.draw_circle(pc, W * 0.2, Color("6ff3ff", 0.25 * glow))
+			ci.draw_circle(pc, W * 0.13, Color("6ff3ff", 0.6 * glow))
+			ci.draw_circle(pc, W * 0.07, Color.WHITE)
+	DrawUtil.rrect(ci, Rect2(o + Vector2(-L / 2, -W / 2), Vector2(L, W)), body, W * 0.45)
+	if _custom(paint):
+		draw_pattern(ci, paint, Rect2(o + Vector2(-L / 2 + W * 0.14, -W / 2 + W * 0.12), Vector2(L * 0.62, W * 0.76)))
+	# A glowing seam all round and a domed cockpit.
+	ci.draw_arc(o + Vector2(-L * 0.1, 0), W * 0.62, -0.9, 0.9, 16, Color(trim, 0.6), W * 0.05, true)
+	DrawUtil.rrect(ci, Rect2(o + Vector2(L * 0.1, -W * 0.36), Vector2(L * 0.36, W * 0.72)), trim, W * 0.34)
+	DrawUtil.rrect(ci, Rect2(o + Vector2(L * 0.2, -W * 0.27), Vector2(L * 0.22, W * 0.54)), Palette.VAN_GLASS, W * 0.26)
+	_cargo(ci, o + Vector2(-L * 0.18, 0), W * 0.58, cargo)
+	return o + Vector2(L * 0.24, 0)
+
+
+static func _monster_truck(ci: CanvasItem, L: float, W: float, cargo: Variant, t: float, paint := "classic") -> Vector2:
+	var cols := _ride_cols("monster_truck", paint)
+	var red: Color = cols[0]
+	var black: Color = cols[1]
 	var gold := Color("ffc53d")
 	var tire := Color("1b1b20")
 	var bob := sin(t * 9.0) * W * 0.015
@@ -173,8 +365,10 @@ static func _monster_truck(ci: CanvasItem, L: float, W: float, cargo: Variant, t
 	var o := Vector2(0, bob)
 	DrawUtil.rrect(ci, Rect2(o + Vector2(-L * 0.46, -W * 0.4), Vector2(L * 0.92, W * 0.8)), red.darkened(0.25), W * 0.2)
 	DrawUtil.rrect(ci, Rect2(o + Vector2(-L * 0.45, -W * 0.38), Vector2(L * 0.9, W * 0.76)), red, W * 0.2)
-	# Gold flame licks down both sides.
-	for sy in [-1.0, 1.0]:
+	# Painted: the paint's pattern down the body. Its own colours: gold flame licks down both sides.
+	if _custom(paint):
+		draw_pattern(ci, paint, Rect2(o + Vector2(-L * 0.43, -W * 0.36), Vector2(L * 0.86, W * 0.72)))
+	for sy in ([] if _custom(paint) else [-1.0, 1.0]):
 		var pts := PackedVector2Array()
 		pts.append(o + Vector2(L * 0.3, sy * W * 0.36))
 		for k in 5:

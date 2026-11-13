@@ -44,7 +44,7 @@ static func maybe_run(game: Game) -> void:
 			return
 	if _ran:
 		return
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -66,6 +66,39 @@ func _ready() -> void:
 		"autodrag":
 			for p in pieces:
 				await _drag(p)
+		"autotwist":
+			# A side road's twist actually bites (run with --side=<id>).
+			var tw: String = g._twist()
+			var ok := false
+			var note := ""
+			match tw:
+				"one_shot":
+					g.drive_tiles(sol.slice(0, half))
+					await g.segment_finished
+					ok = g.state == Game.State.FAILED
+					note = "half a run then stop: failed=%s" % ok
+				"fuel":
+					var cap: int = g._fuel_cap()
+					g.drive_tiles(sol.slice(0, half))
+					await g.segment_finished
+					ok = g._fuel_left() == cap - (half - 1)
+					note = "cap %d, after %d moves left %d" % [cap, half - 1, g._fuel_left()]
+				"melt":
+					g.play_time = float(g.side.get("seconds", 60)) + 0.5
+					await get_tree().create_timer(0.3).timeout
+					ok = g.state == Game.State.FAILED
+					note = "clock out: failed=%s" % ok
+				"fog":
+					await get_tree().create_timer(float(g.side.get("peek", 6)) + 0.4).timeout
+					var shown := 0
+					for b in g.stack_view.boxes:
+						if not b.fogged:
+							shown += 1
+					ok = g.stack_view.fog and shown == 1
+					note = "fogged=%s, packages showing=%d of %d" % [g.stack_view.fog, shown, g.stack_view.boxes.size()]
+			print("AUTOTEST twist %s: %s ok=%s" % [tw, note, ok])
+			get_tree().quit()
+			return
 		"autoside":
 			# The chute in each spot (as if changed in the options mid-level): on screen, clear of the board
 			# and the words; then the level's played out from the last spot.

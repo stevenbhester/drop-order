@@ -46,6 +46,12 @@ var volume := 1.0
 var haptics := 0.7
 var stack_side := "left"
 var peek := false
+## Colorblind mode ("aka Paul mode"): bold class marks on packages, and the same mark on a sign on every
+## building and gate, so nothing depends on telling colours apart.
+var colorblind := false
+## Side roads: challenges beaten (id -> true) and milestone chests opened (level number -> true).
+var side_done := {}
+var chests := {}
 ## Patch notes last seen from the title screen's version badge (the badge glows for a newer one).
 var seen_version := ""
 ## Wins in a row this session without retrying or abandoning a level. Not saved.
@@ -80,7 +86,10 @@ func _ready() -> void:
 			stack_side = a.trim_prefix("--stack=")
 		elif a == "--peek":
 			peek = true
+		elif a == "--colorblind":
+			colorblind = true
 	Palette.apply(night)
+	DrawUtil.bold_marks = colorblind
 	apply_volume()
 	tick()
 
@@ -115,6 +124,11 @@ func _apply_preset(preset: String) -> void:
 				# Today's daily already solved, with v attempts.
 				daily[Daily.key(Daily.today())] = {"attempts": maxi(v, 1), "done": true, "ok": v <= Daily.MAX_REDOS + 1, "stars": 3, "time": 83.0,
 					"order": ["red", "blue", "blue", "yellow", "purple", "red"]}
+			"sides":
+				# Every side road already beaten (their intros stay away).
+				if v > 0:
+					for d in SideRoads.defs():
+						side_done[str(d.get("id", ""))] = true
 			"owned":
 				if v > 0:
 					for id in Cosmetics.ITEMS:
@@ -160,6 +174,12 @@ func _load() -> void:
 	if not stack_side in ["left", "right", "top", "bottom"]:
 		stack_side = "left"
 	peek = bool(d.get("peek", false))
+	colorblind = bool(d.get("colorblind", false))
+	var sd = d.get("side_done", {})
+	if sd is Dictionary:
+		side_done = sd
+	for n in d.get("chests", []):
+		chests[int(n)] = true
 	seen_version = str(d.get("seen_version", ""))
 
 
@@ -175,7 +195,8 @@ func _save() -> void:
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
-			"stack_side": stack_side, "peek": peek, "seen_version": seen_version}))
+			"stack_side": stack_side, "peek": peek, "seen_version": seen_version,
+			"colorblind": colorblind, "side_done": side_done, "chests": chests.keys()}))
 
 
 func _now() -> float:
@@ -232,9 +253,12 @@ func reset() -> void:
 	owned.clear()
 	paint = "classic"
 	topper = ""
+	ride = ""
 	daily.clear()
 	best_streak = 0
 	momentum = 0
+	side_done.clear()
+	chests.clear()
 	_save()
 	changed.emit()
 
@@ -369,8 +393,53 @@ func set_option(key: String, value: Variant) -> void:
 	set(key, value)
 	if key == "volume":
 		apply_volume()
+	elif key == "colorblind":
+		DrawUtil.bold_marks = colorblind
 	_save()
 	settings_changed.emit()
+
+
+## A side road (SideRoads definition) opens once the level it branches off is beaten.
+func side_open(d: Dictionary) -> bool:
+	return is_complete(int(d.get("after", 0)))
+
+
+## A side challenge beaten. True the first time.
+func win_side(id: String) -> bool:
+	var first := not side_done.has(id)
+	side_done[id] = true
+	_save()
+	changed.emit()
+	return first
+
+
+func chest_open(n: int) -> bool:
+	return chests.has(n)
+
+
+## Opens the chest at milestone level `n`: tops up the tank (a can that won't fit pays out in Dollaroos),
+## adds its Dollaroos and gives its hat. Returns what it gave: {gas, coins, hat (or "")}.
+func open_chest(n: int) -> Dictionary:
+	var c: Dictionary = SideRoads.CHESTS.get(n, {})
+	if c.is_empty() or chests.has(n):
+		return {}
+	tick()
+	var cans := int(c.get("gas", 0))
+	var fits := mini(cans, MAX_GAS - gas)
+	var coins := int(c.get("coins", 0)) + (cans - fits) * SideRoads.CAN_VALUE
+	gas += fits
+	if gas >= MAX_GAS:
+		gas_t = _now()
+	dollaroos += coins
+	var hat := str(c.get("hat", ""))
+	var new_hat := ""
+	if hat != "" and not owned.has(hat):
+		owned[hat] = true
+		new_hat = hat
+	chests[n] = true
+	_save()
+	changed.emit()
+	return {"gas": fits, "coins": coins, "hat": new_hat, "cashed": cans - fits}
 
 
 ## The patch notes for version `v` have been opened (the title badge stops glowing).

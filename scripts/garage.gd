@@ -74,7 +74,7 @@ func _where(id: String) -> String:
 	for L in Daily.puzzles():
 		if L.gift_item == id:
 			return "A daily puzzle"
-	return ""
+	return SideRoads.where(id)
 
 
 func _tile(id: String) -> Button:
@@ -122,7 +122,7 @@ func _draw() -> void:
 		Cosmetics.name_of(Progress.topper) if Progress.topper != "" else "no topper"]
 	var lw := f.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
 	draw_string(f, Vector2((size.x - lw) / 2.0, 670 + _top), line, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, Palette.TEXT)
-	var tally := "%d / %d found · look for presents on the road" % [found, Cosmetics.ORDER.size()]
+	var tally := "%d / %d found · presents, side roads and chests" % [found, Cosmetics.ORDER.size()]
 	var tw := f.get_string_size(tally, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x
 	draw_string(f, Vector2((size.x - tw) / 2.0, 720 + _top), tally, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Palette.TEXT_SOFT)
 
@@ -141,7 +141,7 @@ class ItemTile:
 
 	func _process(delta: float) -> void:
 		_t += delta
-		if id == "sprout" or id == "rivet" or id == "puffball" or id == "monster_truck":
+		if id in Cosmetics.ANIMATED:
 			queue_redraw()
 
 	func _draw() -> void:
@@ -153,7 +153,7 @@ class ItemTile:
 			DrawUtil.rrect(self, Rect2(Vector2(10, 6), size - Vector2(20, 26)), Color(Palette.GOOD, 0.18), 26)
 		if owned and Cosmetics.kind_of(id) == "ride":
 			draw_set_transform(mid, -0.25, Vector2.ONE)
-			Cosmetics.draw_ride(self, id, 190.0 * 0.74 * 0.9, 190.0 * 0.46 * 0.9, Palette.pkg("blue"), _t)
+			Cosmetics.draw_ride(self, id, 190.0 * 0.74 * 0.9, 190.0 * 0.46 * 0.9, Palette.pkg("blue"), _t, Progress.paint)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif owned:
 			var paint := id if Cosmetics.kind_of(id) == "paint" else "classic"

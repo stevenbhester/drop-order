@@ -28,6 +28,8 @@ var new_item := ""
 var missed_item := false
 var daily := false
 var last_level := false
+## A side road's title (the label says SIDE ROAD instead of the level number).
+var side_title := ""
 ## First win on a challenge level.
 var crushed := false
 var coin_chip: CoinChip
@@ -281,6 +283,8 @@ func _draw() -> void:
 	if _t > 0.15:
 		var k := _out((_t - 0.15) / 0.2)
 		var label := "LEVEL %d" % level.number if not daily else "DAILY #%d" % Daily.number(Daily.today())
+		if side_title != "":
+			label = "SIDE ROAD"
 		if level.title != "":
 			label += "  ·  " + level.title.to_upper()
 		_skewed(label, Vector2(v.x / 2.0 + (1.0 - k) * 600.0, _center.y - 300.0) + shake, 52, Color.WHITE, INK, 10, 1.0)
