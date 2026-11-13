@@ -1,8 +1,9 @@
 class_name GtaDirector
 extends Node2D
 ## The "GTA VI" trash-talk ad (a joke for friends, not a real ad). About 28 seconds:
-##   1. BREAKING NEWS: five real headlines about publishers dodging GTA VI's release, quoted word for word
-##      with their outlets, piling up on a newsroom background with a ticker.
+##   1. BREAKING NEWS: three real headlines about publishers dodging GTA VI's release, quoted word for word
+##      with their outlets, each held three seconds in big type (long enough to actually read), piling up
+##      on a newsroom background with a ticker.
 ##   2. Record scratch. "NO GAME DARES???"
 ##   3. The song kicks in: "LAST MILE / DOESN'T GIVE A / &@$*&!!!!", slammed on its first hits.
 ##   4. A fancam edit of level 45 (Grand Tour): follow cam, zoom punches, tilts, RGB split, flashes and speed
@@ -10,7 +11,9 @@ extends Node2D
 ##   5. "ROCKSTAR. / DELAY GTA VI / OR BE WRECKED / BY THE BEST GAME / ON FOUR WHEELS."
 ##   6. "DROPPING NOVEMBER 19, 2026. IT'S THE ONLY GAME YOU'RE GONNA BE HEARING ABOUT."
 ## The song is the user's own file (-- --song=<path>); its first ~21 seconds are used. Hits were measured from
-## it: about 87.7 BPM, first beat at 0.53 s. Everything is timed in frames (30 fps).
+## it: about 87.7 BPM, first beat at 0.53 s. Everything is timed in frames (30 fps). Without --song (the copy
+## that ships inside the game, where a commercial track can't go), a synthesized beat on the same grid
+## plays instead, so every cut still lands.
 
 signal finished
 
@@ -21,18 +24,16 @@ const RED := Color("ff2e3e")
 const NEWS_RED := Color("d7192a")
 const NAVY := Color("0b1630")
 
-## Real headlines (exact wording) and where they ran.
+## Real headlines (exact wording) and where they ran. Three, so each gets time to be read.
 const HEADLINES := [
-	["TWEAKTOWN", "GTA 6 release has every other game developer scared, publishers pushing launch dates far away"],
 	["TECHRADAR", "Publishers are reportedly not announcing firm release dates to dodge GTA 6 launch"],
-	["TECHSPOT", "Game publishers are refusing to commit to release dates for fear of clashing with GTA 6"],
 	["DEXERTO", "GTA 6 reportedly has major publishers so scared they're delaying games to avoid competition"],
 	["MEIN-MMO", "Even the biggest publishers fear the release of GTA 6: “A huge meteor”"],
 ]
 const NEWS_T0 := 0.3
-const NEWS_EVERY := 1.1
-const DARES_T := 5.95
-const SONG_T := 7.65          # the song starts here (its own t = 0)
+const NEWS_EVERY := 3.0       # seconds each headline has the screen to itself
+const DARES_T := NEWS_T0 + 3 * NEWS_EVERY
+const SONG_T := DARES_T + 1.7  # the song starts here (its own t = 0)
 const BEAT := 60.0 / 87.7
 const BEAT0 := 0.53
 ## Song-time hits used by the fancam (kick/snare onsets measured from the track).
@@ -91,9 +92,12 @@ func _ready() -> void:
 	for p in Sfx._players:
 		p.bus = "GameFx"
 	_song = AudioStreamPlayer.new()
-	var mp3 := AudioStreamMP3.new()
-	mp3.data = FileAccess.get_file_as_bytes(song_path)
-	_song.stream = mp3
+	if song_path != "" and FileAccess.file_exists(song_path):
+		var mp3 := AudioStreamMP3.new()
+		mp3.data = FileAccess.get_file_as_bytes(song_path)
+		_song.stream = mp3
+	else:
+		_song.stream = _hype(SONG_END + 1.0)
 	add_child(_song)
 	_bed = AudioStreamPlayer.new()
 	_bed.stream = _news_bed(SONG_T + 0.2)
@@ -399,7 +403,7 @@ func _draw_news(off: Vector2) -> void:
 		var depth := shown - 1 - i
 		var slide := _out(age / 0.28)
 		var x := lerpf(1500.0, 540.0, slide) + (8.0 if i % 2 == 0 else -8.0) * depth
-		var y := 830.0 - depth * 46.0
+		var y := 860.0 - depth * 70.0
 		var sc := (1.0 - depth * 0.05) * (1.0 + 0.02 * minf(age, 1.5))
 		var rot := (-0.035 if i % 2 == 0 else 0.03) * (1.0 + depth * 0.3)
 		_headline_card(Vector2(x, y) + off * (1.0 if depth == 0 else 0.3), sc, rot, HEADLINES[i][0], HEADLINES[i][1], depth)
@@ -420,17 +424,18 @@ func _draw_news(off: Vector2) -> void:
 func _headline_card(c: Vector2, sc: float, rot: float, outlet: String, line: String, depth: int) -> void:
 	draw_set_transform(c, rot, Vector2.ONE * sc)
 	var w := 940.0
-	var lines := _wrap(line, 62, w - 100.0)
-	var h := 150.0 + lines.size() * 74.0
+	var lines := _wrap(line, 74, w - 100.0)
+	var h := 160.0 + lines.size() * 88.0
 	var r := Rect2(-w / 2.0, -h / 2.0, w, h)
 	DrawUtil.rrect(self, Rect2(r.position + Vector2(0, 18), r.size), Color(0, 0, 0, 0.35), 28)
 	DrawUtil.rrect(self, r, Color.WHITE, 28)
 	draw_rect(Rect2(r.position.x, r.position.y + 28, 14, h - 56), NEWS_RED)
-	_text(outlet, r.position + Vector2(52, 78), 40, NEWS_RED)
+	_text(outlet, r.position + Vector2(52, 82), 46, NEWS_RED)
 	for i in lines.size():
-		draw_string(_font, r.position + Vector2(52, 150 + i * 74), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 62, Color("141414"))
+		draw_string(_font, r.position + Vector2(52, 166 + i * 88), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 74, Color("141414"))
 	if depth > 0:
-		DrawUtil.rrect(self, r, Color(0, 0, 0, minf(0.18 * depth, 0.6)), 28)
+		# Older ones sink back, so the one being read stands out.
+		DrawUtil.rrect(self, r, Color(0, 0, 0, minf(0.4 * depth, 0.7)), 28)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -641,6 +646,77 @@ static func _news_bed(seconds: float) -> AudioStreamWAV:
 				b[s0 + i] += (saw * 0.5 + sin(TAU * f * t)) * env * 0.07
 	for i in b.size():
 		b[i] = tanh(b[i] * 1.3)
+	return _wav(b)
+
+
+## The in-game copy's music: a half-time trap beat on the song's grid (87.7 bpm, first beat at 0.53 s), with
+## kicks on the fancam's measured hits, a clap backbeat, hats and an 808 line, after a short riser.
+static func _hype(seconds: float) -> AudioStreamWAV:
+	var b := PackedFloat32Array()
+	b.resize(int(seconds * RATE))
+	var total := b.size()
+	var beats := int((seconds - BEAT0) / BEAT) + 1
+	# Riser into the first beat.
+	for i in int(BEAT0 * RATE):
+		var t := float(i) / RATE
+		b[i] += randf_range(-1.0, 1.0) * 0.18 * (t / BEAT0) + sin(TAU * (200.0 + 900.0 * t / BEAT0) * t) * 0.08 * (t / BEAT0)
+	var kicks := []
+	var claps := []
+	var hats := []
+	for k in beats:
+		var bt := BEAT0 + k * BEAT
+		if k % 2 == 0:
+			kicks.append(bt)
+		else:
+			claps.append(bt)
+		hats.append(bt)
+		hats.append(bt + BEAT * 0.5)
+		if k % 8 == 7:
+			hats.append(bt + BEAT * 0.25)
+			hats.append(bt + BEAT * 0.75)
+	kicks.append_array(FANCAM_HITS)
+	kicks.append_array([9.08, 10.11])
+	for t0 in kicks:
+		var s0 := int(t0 * RATE)
+		var ph := 0.0
+		for i in int(0.45 * RATE):
+			if s0 + i >= total:
+				break
+			var t := float(i) / RATE
+			ph += TAU * (45.0 + 110.0 * exp(-t * 30.0)) / RATE
+			b[s0 + i] += sin(ph) * exp(-t * 7.0) * 0.75
+	for t0 in claps:
+		var s0 := int(t0 * RATE)
+		var lp := 0.0
+		for i in int(0.22 * RATE):
+			if s0 + i >= total:
+				break
+			var t := float(i) / RATE
+			var n := randf_range(-1.0, 1.0)
+			lp += (n - lp) * 0.6
+			var env := exp(-t * 18.0) * (1.0 if t > 0.012 or int(t * 900.0) % 2 == 0 else 0.4)
+			b[s0 + i] += (n - lp) * env * 0.42
+	for t0 in hats:
+		var s0 := int(t0 * RATE)
+		var prev := 0.0
+		for i in int(0.05 * RATE):
+			if s0 + i >= total:
+				break
+			var n := randf_range(-1.0, 1.0)
+			b[s0 + i] += (n - prev) * exp(-float(i) / RATE * 70.0) * 0.12
+			prev = n
+	# 808: a long sliding sine under each bar (F, F, Db, Eb), entering on the first beat.
+	var roots := [29, 29, 25, 27]
+	var ph8 := 0.0
+	for i in range(int(BEAT0 * RATE), total):
+		var t := float(i) / RATE
+		var bar := int((t - BEAT0) / (BEAT * 4.0))
+		var in_bar := fmod(t - BEAT0, BEAT * 4.0)
+		var f := 440.0 * pow(2.0, (roots[bar % roots.size()] + 12 - 69.0) / 12.0)
+		ph8 += TAU * f * (1.0 + 0.6 * exp(-in_bar * 9.0)) / RATE
+		b[i] += sin(ph8) * 0.42 * minf(1.0, in_bar * 30.0) * (0.6 + 0.4 * exp(-in_bar * 0.8))
+	for i in total:
+		b[i] = tanh(b[i] * 1.2) * 0.9
 	return _wav(b)
 
 

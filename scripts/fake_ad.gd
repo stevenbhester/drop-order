@@ -7,7 +7,7 @@ extends CanvasLayer
 
 signal finished
 
-const SKIP_AFTER := 3.0
+const SKIP_AFTER := 1.0
 const END_AT := 13.2
 const SKY_TOP := Color(0.05, 0.04, 0.12)
 const SKY_BOTTOM := Color(0.2, 0.12, 0.3)

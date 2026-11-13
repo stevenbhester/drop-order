@@ -48,7 +48,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autofeedback"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autofeedback"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -109,6 +109,133 @@ func _ready() -> void:
 					card.close()
 					await get_tree().create_timer(0.2).timeout
 			print("AUTOTEST explain L%d: kinds=%s bad=%d closed=%s" % [g.level.number, kinds.keys(), bad, g.modal == null])
+			get_tree().quit()
+			return
+		"autoperf":
+			# How heavy a long drive is: the CPU time of every frame while the van drives the whole solution
+			# (headless runs flat out, so a frame's length is its scripts and drawing). Prints the average, the
+			# slow end and the worst, and how many nodes were alive at most.
+			# (Headless, Godot otherwise sleeps out each frame to 6.9 ms.)
+			Engine.max_fps = 0
+			OS.low_processor_usage_mode_sleep_usec = 1
+			# --perf-skip=ClassA,ClassB: those nodes stop redrawing every frame, to see what each one costs.
+			var skip := []
+			for arg in OS.get_cmdline_user_args():
+				if arg.begins_with("--perf-skip="):
+					skip = Array(arg.trim_prefix("--perf-skip=").split(","))
+			if not skip.is_empty():
+				var stack: Array = [get_tree().root]
+				while not stack.is_empty():
+					var nd: Node = stack.pop_back()
+					stack.append_array(nd.get_children())
+					var sc: Script = nd.get_script()
+					if sc and skip.has(sc.get_global_name()):
+						nd.set_process(false)
+			var times := PackedFloat32Array()
+			var nodes_max := 0
+			var done := [false]
+			g.segment_finished.connect(func(): done[0] = true, CONNECT_ONE_SHOT)
+			g.drive_tiles(sol)
+			var last := Time.get_ticks_usec()
+			while not done[0]:
+				await get_tree().process_frame
+				var now := Time.get_ticks_usec()
+				times.append((now - last) / 1000.0)
+				last = now
+				nodes_max = maxi(nodes_max, int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)))
+			var sorted := times.duplicate()
+			sorted.sort()
+			var total := 0.0
+			for t in times:
+				total += t
+			var n := maxi(times.size(), 1)
+			print("AUTOTEST perf L%d: tiles=%d frames=%d avg=%.2fms p95=%.2fms p99=%.2fms max=%.2fms nodes_max=%d" % [g.level.number,
+				sol.size(), times.size(), total / n, sorted[int(n * 0.95)] if times.size() > 0 else 0.0,
+				sorted[int(n * 0.99)] if times.size() > 0 else 0.0, sorted[n - 1] if times.size() > 0 else 0.0, nodes_max])
+			get_tree().quit()
+			return
+		"autohintad":
+			# With the Unlimited hints option on, hints don't count down. Off: three, and the third leaves a
+			# tip by the Hint button (it shows for real players; Progress.auto is lifted for it here); the
+			# fourth plays a video ad, skipped straight away, and hints are free for the rest of the level.
+			var notes := []
+			Progress.unlimited_hints = true
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.2).timeout
+			notes.append("option_keeps=%s" % (g.hints_left == Game.HINTS_PER_LEVEL))
+			Progress.unlimited_hints = false
+			Progress.auto = false
+			Progress.hint_tips = 0
+			Progress.hint_ad_watched = false
+			for k in Game.HINTS_PER_LEVEL:
+				g._on_hint_pressed()
+				await get_tree().create_timer(0.2).timeout
+			notes.append("left=%d" % g.hints_left)
+			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("Unlimited hints")
+			notes.append("tip=%s" % tipped)
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.5).timeout
+			var ad: VideoAd = g.modal as VideoAd
+			var playing: bool = ad != null and ad._player != null and ad._player.is_playing()
+			notes.append("ad=%s" % playing)
+			if ad:
+				await _click(ad._root.get_children().filter(func(c): return c is JuicyButton)[0])
+				await get_tree().create_timer(0.5).timeout
+			notes.append("unlimited=%s watched=%s" % [g.hints_unlimited, Progress.hint_ad_watched])
+			var before: int = g.hints_left
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.2).timeout
+			notes.append("after: left=%d modal=%s hint_shown=%s" % [g.hints_left, g._busy_modal(), not g.hint_run.is_empty()])
+			var ok: bool = g.hints_unlimited and before == 0 and g.hints_left == 0 and not g._busy_modal() and tipped and playing \
+				and Progress.hint_ad_watched and notes[0] == "option_keeps=true"
+			Progress.auto = true
+			print("AUTOTEST hintad L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
+			get_tree().quit()
+			return
+		"autotouch":
+			# The symbol card, opened and closed with real touches the way a phone sends them (each touch
+			# also makes an emulated mouse event, as on iOS): a tap, a hold, a tap on the card itself, a
+			# double tap. Every way must close it and give the game its input back.
+			var spot := Vector2i(-1, -1)
+			for y in g.level.height:
+				for x in g.level.width:
+					var t := Vector2i(x, y)
+					if spot.x < 0 and not g._symbol_at(t).is_empty() and t != g.level.start:
+						spot = t
+			if spot.x < 0:
+				print("AUTOTEST touch: no symbol on L%d" % g.level.number)
+				get_tree().quit()
+				return
+			var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
+			var at: Vector2 = xf * g.board.center(spot)
+			var away: Vector2 = get_viewport().get_final_transform() * Vector2(get_viewport().get_visible_rect().size.x * 0.5, get_viewport().get_visible_rect().size.y - 40.0)
+			var results := []
+			for by_mouse in [false, true]:
+				for how in ["tap, then tap away", "tap, then tap the card", "hold, then tap away", "double tap, then tap away", "tap, then drag"]:
+					var opened := false
+					if how.begins_with("hold"):
+						await _touch(at, 0.7, Vector2.ZERO, by_mouse)
+					elif how.begins_with("double"):
+						await _touch(at, 0.06, Vector2.ZERO, by_mouse)
+						await _touch(at, 0.06, Vector2.ZERO, by_mouse)
+					else:
+						await _touch(at, 0.08, Vector2.ZERO, by_mouse)
+					await get_tree().create_timer(0.3).timeout
+					opened = g._sym_card != null and is_instance_valid(g._sym_card) and g._busy_modal()
+					if how.ends_with("the card") and opened:
+						await _touch(get_viewport().get_final_transform() * g._sym_card._box.get_center(), 0.08, Vector2.ZERO, by_mouse)
+					elif how.ends_with("drag"):
+						await _touch(away, 0.2, Vector2(0, -160), by_mouse)
+					else:
+						await _touch(away, 0.08, Vector2.ZERO, by_mouse)
+					await get_tree().create_timer(0.5).timeout
+					var gone: bool = (g._sym_card == null or not is_instance_valid(g._sym_card)) and not g._busy_modal()
+					results.append("%s %s: opened=%s closed=%s" % ["mouse" if by_mouse else "touch", how, opened, gone])
+					if not gone and g._sym_card and is_instance_valid(g._sym_card):
+						g._sym_card.close()
+						await get_tree().create_timer(0.4).timeout
+			var ok := results.all(func(r): return r.ends_with("opened=true closed=true"))
+			print("AUTOTEST touch L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " | ".join(results)])
 			get_tree().quit()
 			return
 		"autotwist":
@@ -204,6 +331,8 @@ func _ready() -> void:
 			g.drive_tiles(walk)
 			await g.segment_finished
 		"autohint":
+			# Following hints to the win (the three-hint budget and its ad are autohintad's to test).
+			g.hints_unlimited = true
 			var presses := 0
 			while g.state != Game.State.WON and presses < 80:
 				g._on_hint_pressed()
@@ -412,7 +541,7 @@ func _ad_test(sol: Array) -> void:
 	await g.segment_finished
 	await get_tree().create_timer(0.4 + (1.0 if watch else 0.0)).timeout
 	await _click(g.undo_button)
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(FakeAd.SKIP_AFTER * 0.4).timeout
 	var opened := g.modal is FakeAd
 	var early := false
 	if opened:
@@ -424,8 +553,9 @@ func _ad_test(sol: Array) -> void:
 			await _click(ad._cta)
 			await get_tree().create_timer(3.2).timeout
 		else:
-			await get_tree().create_timer(FakeAd.SKIP_AFTER - 0.6).timeout
-			await _click(ad._skip)
+			await get_tree().create_timer(FakeAd.SKIP_AFTER).timeout
+			if is_instance_valid(ad):
+				await _click(ad._skip)
 			await get_tree().create_timer(0.4).timeout
 	var bank := Progress.undo_bank
 	await get_tree().create_timer(0.6).timeout
@@ -486,6 +616,46 @@ func _drag(tiles: Array) -> void:
 		print("AUTOTEST drag mismatch: drew ", g.seg, " wanted ", tiles)
 	_mouse(xf * pts.back(), false)
 	await g.segment_finished
+
+
+## A finger on the screen at `pos` (window pixels) for `hold` seconds, sliding by `slide` on the way, as a
+## phone reports it: touch events, which Godot also turns into mouse events (emulate_mouse_from_touch).
+## With `by_mouse`, a mouse click and drag instead, as on a computer.
+func _touch(pos: Vector2, hold: float, slide := Vector2.ZERO, by_mouse := false) -> void:
+	if by_mouse:
+		_mouse(pos, true)
+		var n := 6 if slide != Vector2.ZERO else 1
+		for k in n:
+			await get_tree().create_timer(hold / n).timeout
+			if slide != Vector2.ZERO:
+				var m := InputEventMouseMotion.new()
+				m.position = pos + slide * (k + 1) / n
+				m.button_mask = MOUSE_BUTTON_MASK_LEFT
+				Input.parse_input_event(m)
+		_mouse(pos + slide, false)
+		await get_tree().process_frame
+		return
+	var down := InputEventScreenTouch.new()
+	down.index = 0
+	down.position = pos
+	down.pressed = true
+	Input.parse_input_event(down)
+	var steps := 6 if slide != Vector2.ZERO else 0
+	for k in steps:
+		await get_tree().create_timer(hold / steps).timeout
+		var d := InputEventScreenDrag.new()
+		d.index = 0
+		d.position = pos + slide * (k + 1) / steps
+		d.relative = slide / steps
+		Input.parse_input_event(d)
+	if steps == 0:
+		await get_tree().create_timer(hold).timeout
+	var up := InputEventScreenTouch.new()
+	up.index = 0
+	up.position = pos + slide
+	up.pressed = false
+	Input.parse_input_event(up)
+	await get_tree().process_frame
 
 
 func _mouse(pos: Vector2, down: bool) -> void:

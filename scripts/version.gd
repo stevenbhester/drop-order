@@ -12,7 +12,12 @@ const BUILD := 14
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := []
+const BUILD_NOTES := [
+	"Fixed: tapping a symbol for its reminder could freeze the game.",
+	"3 hints per level. Out? A quick (pretend, skippable) ad makes them unlimited, or switch on Unlimited hints in Options.",
+	"The way on to the next part is a road off the map, with a gate that opens once you've delivered everything.",
+	"Long drives with lots of deliveries run smoother.",
+]
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [
@@ -25,6 +30,8 @@ const NOTES := [
 		"Somebody else's van has been seen on the map.",
 		"Feedback / Bug report in Options: tell Steven what broke, with a screenshot if you like.",
 		"The game lets you know when a newer build is waiting in TestFlight.",
+		"3 hints per level; a quick (pretend) ad makes them unlimited for that level, or there's an Unlimited hints option.",
+		"The way on to the next part is a road off the map, with a gate that opens once everything's delivered.",
 	]},
 	{"version": "0.6", "name": "Road Signs", "notes": [
 		"Forgot what a symbol means? Tap it (or hold it) for a one-line reminder with a little picture.",

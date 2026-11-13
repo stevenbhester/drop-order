@@ -49,6 +49,8 @@ const COMBO_STEPS := [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19]
 const CHEERS := ["Nice!", "Sweet!", "Great!", "Wow!", "Unreal!"]
 const AD_PINK := Color("ff3d9a")
 const COUNT_BLUE := Color("4d8dff")
+## Hints each level starts with; after that, watching a pretend ad makes them unlimited for the level.
+const HINTS_PER_LEVEL := 3
 const NOWHERE := Vector2i(-99, -99)
 
 var level: LevelData
@@ -80,6 +82,9 @@ var retry_paid := false
 var history: Array = []          # per driven segment: { "len", "state", "rot" } before it
 var undo_left := UNDOS_PER_ATTEMPT   # free undos left this attempt (spares are in Progress.undo_bank)
 var hint_used := false
+## Hints left this level (HINTS_PER_LEVEL to start). Out: a pretend ad, then they're unlimited for the level.
+var hints_left := HINTS_PER_LEVEL
+var hints_unlimited := false
 var undo_used := false
 var modal: Node                  # the shop or the ad, on top: the game ignores input meanwhile
 var sim_state: Dictionary
@@ -421,7 +426,10 @@ func _explain(t: Vector2i) -> void:
 	card.target = board.get_global_transform_with_canvas() * Vector2(sym["at"])
 	_sym_card = card
 	modal = card
-	card.closed.connect(func(): modal = null)
+	# Only this card's closing frees the game (an older card fading out mustn't, while this one's up).
+	card.closed.connect(func():
+		if modal == card:
+			modal = null)
 	_ui_root.add_child(card)
 
 
@@ -440,6 +448,13 @@ func _queue_tips() -> void:
 			var arrow: Vector2i = level.oneway.keys()[0]
 			_tips.append({"text": "Forgot what a symbol does?\nTap it for a reminder.", "target": func(): return board.get_global_transform_with_canvas() * board.center(arrow), "tap": true})
 		Progress.save_now()
+	# The first exit road (a mega route's or a speedrun's): where it goes, and the gate.
+	if level.has_exit() and not Progress.exit_tip_seen:
+		Progress.exit_tip_seen = true
+		Progress.save_now()
+		var on := "zone" if _speedrun() else "part"
+		_tips.append({"text": "This road leads to the next %s.\nDeliver everything to open the gate,\nthen finish your route here." % on,
+			"target": func(): return board.get_global_transform_with_canvas() * (board.center(level.exit) + board.exit_zone.gate_offset())})
 	if Progress.stack_side == "auto" and not Progress.landscape:
 		# The first time Auto moves the queue from where it was last level, say so.
 		var was := Progress.last_auto_side
@@ -728,14 +743,24 @@ func _chute_shape() -> Array:
 
 
 ## The biggest tile size the board can have, with room left for the controls in the current steering mode.
+## Room kept beyond the board on the exit's side (in tiles), so the road out and its gate are on screen.
+const EXIT_ROOM := 0.75
+
+
+## Which way the exit road leaves the board (zero without one): the side that needs EXIT_ROOM.
+func _exit_side() -> Vector2:
+	return Vector2(level.exit_dir()) if level.has_exit() else Vector2.ZERO
+
+
 func _fit_tile() -> float:
 	var vp := get_viewport_rect().size
+	var ex := _exit_side().abs() * EXIT_ROOM
 	if Progress.landscape:
 		# Sideways: the board fills the middle, between the two side columns, below the truck.
 		var sides := UiTheme.side_insets(get_viewport())
 		var avail_w := vp.x - 2.0 * (SIDE_PAD if dpad_mode else SIDE_DRAW) - sides.x - sides.y
 		var avail_hl := vp.y - _board_top() - _bottom_inset - 36.0
-		return minf(minf(avail_w / level.width, avail_hl / level.height), 230.0)
+		return minf(minf(avail_w / (level.width + ex.x), avail_hl / (level.height + ex.y)), 230.0)
 	# Upright, from the top: the bar, a little room for the level's name and hint, the board (with the chute
 	# beside, above or below it), the controls. The board is as big as the width allows (its rim included),
 	# or the height, whichever's less.
@@ -745,7 +770,7 @@ func _fit_tile() -> float:
 		avail_w -= stack_view.extent().x + CHUTE_GAP
 	else:
 		avail_h -= _tray_h()
-	var tile := minf(avail_w / (level.width + 0.3), avail_h / (level.height + 0.35))
+	var tile := minf(avail_w / (level.width + 0.3 + ex.x), avail_h / (level.height + 0.35 + ex.y))
 	return minf(tile, 230.0)
 
 
@@ -965,7 +990,10 @@ func _layout() -> void:
 		# Sideways: the truck right under the top bar, the board under it, the controls beside.
 		title_label.visible = false
 		var top := _board_top()
-		board.position = Vector2(round((vp.x - bsz.x) / 2.0), top)
+		var exs := _exit_side() * board.tile * k * EXIT_ROOM
+		if exs.y < 0.0:
+			top -= exs.y
+		board.position = Vector2(round((vp.x - bsz.x - exs.x) / 2.0), top)
 		var front := ce.x - co.x
 		var right := board.position.x + bsz.x + board.tile * k * 0.15
 		stack_view.position = Vector2(clampf(right - front, 20.0 + co.x, vp.x - 20.0 - front), TOP_BAR + _top_inset - 14.0 + co.y)
@@ -1018,6 +1046,9 @@ func _layout() -> void:
 	var floor_y := block_top - 30.0
 	# The board as drawn (its rim included).
 	var bw := bsz.x + tk * 0.3
+	# The exit road's room: beside the board (kept with it, like its rim), or above or below it.
+	var exs := _exit_side() * tk * EXIT_ROOM
+	bw += absf(exs.x)
 	var lab := stack_view._lab()
 	var text_l := 20.0
 	var text_w := vp.x - 40.0
@@ -1027,8 +1058,10 @@ func _layout() -> void:
 	if side == "bottom":
 		stack_view.position.y = chute_bottom - ce.y + co.y
 		floor_y = chute_bottom - ce.y - 14.0
+	if exs.y > 0.0:
+		floor_y -= exs.y
 	var board_y: float = round(floor_y - tk * 0.21 - bsz.y)
-	var board_top := board_y - tk * 0.14
+	var board_top := board_y - tk * 0.14 + minf(exs.y, 0.0)
 	if _chute_upright():
 		# Chute and board side by side, centred together, like a puzzle game's "next" column: NEXT and the
 		# next package level with the board's top, the queue running down the board's whole height. (A load
@@ -1036,6 +1069,8 @@ func _layout() -> void:
 		var group_x: float = round((vp.x - ce.x - CHUTE_GAP - bw) / 2.0)
 		var chute_l := group_x if side == "left" else group_x + bw + CHUTE_GAP
 		var board_l := group_x + ce.x + CHUTE_GAP if side == "left" else group_x
+		if exs.x < 0.0:
+			board_l -= exs.x
 		board.position = Vector2(board_l + tk * 0.15, board_y)
 		var top := minf(board_top, chute_bottom - ce.y)
 		stack_view.position = Vector2(chute_l + co.x, top + co.y)
@@ -1044,7 +1079,7 @@ func _layout() -> void:
 		text_w = vp.x - 20.0 - text_l if side == "left" else chute_l - CHUTE_GAP + 20.0 - text_l
 	else:
 		# Lying along the board's top or bottom, its mouth at the board's right end, as long as the board.
-		board.position = Vector2(round((vp.x - bsz.x) / 2.0), board_y)
+		board.position = Vector2(round((vp.x - bsz.x - exs.x) / 2.0), board_y)
 		var right := board.position.x + bsz.x + tk * 0.15
 		var front := ce.x - co.x
 		stack_view.position.x = clampf(right - front, 20.0 + co.x, vp.x - 20.0 - front)
@@ -1526,6 +1561,7 @@ func _on_settings() -> void:
 	set_dpad_mode(Progress.drive_mode == "dpad")
 	if convoy:
 		convoy.visible = Progress.trail
+	_update_hint()
 	_layout()
 
 
@@ -2129,10 +2165,69 @@ func _update_undo() -> void:
 		undo_button.badge = "FREE" if Progress.free_undos() else str(n)
 		undo_button.dim = not can_undo()
 	undo_button.queue_redraw()
-	if hint_button:
-		hint_button.badge = "FREE" if Progress.free_hints() else ""
+	_update_hint()
+
+
+## The Hint button: how many are left; "FREE" with the power-up; unlimited after an ad; greyed with a bright
+## ad badge when out.
+func _update_hint() -> void:
+	if hint_button == null or _strict_side():
+		return
+	hint_button.badge_icon = ""
+	hint_button.dim = false
+	if Progress.free_hints() or hints_unlimited or Progress.unlimited_hints:
 		hint_button.badge_color = Palette.GOOD
-		hint_button.queue_redraw()
+		hint_button.badge = "FREE" if Progress.free_hints() else ("∞" if UiTheme.font().has_char(0x221E) else "ALL")
+	elif hints_left > 0:
+		hint_button.badge_color = COUNT_BLUE
+		hint_button.badge = str(hints_left)
+	else:
+		hint_button.badge_icon = "ad"
+		hint_button.badge_color = AD_PINK
+		hint_button.badge = "more"
+		hint_button.dim = true
+	hint_button.queue_redraw()
+
+
+## Hints cost nothing from the count: the power-up's on, an ad made them unlimited this level, or the
+## Unlimited hints option is on.
+func _hints_free() -> bool:
+	return hints_unlimited or Progress.free_hints() or Progress.unlimited_hints
+
+
+## The last hint of the level just went: a tip by the Hint button says what happens next (an ad for
+## unlimited hints, or the option that skips the ads). Only the first three times, and never again once
+## they've watched one of the ads.
+func _out_of_hints_tip() -> void:
+	if Progress.hint_ad_watched or Progress.hint_tips >= 3 or Progress.auto:
+		return
+	Progress.hint_tips += 1
+	Progress.save_now()
+	if _tip and is_instance_valid(_tip):
+		_tip.dismiss()
+	_tip = TipBubble.new()
+	_tip.text = "That was your last hint for this level.\nTap Hint again: a quick (pretend) ad\nunlocks unlimited hints. Or turn on\nUnlimited hints in Options."
+	_tip.target = hint_button.get_global_rect().get_center()
+	_tip.life = 9.0
+	_ui_root.add_child(_tip)
+
+
+## Out of hints: a pretend ad (one of three videos, skippable straight away), then they're unlimited for
+## the rest of this level.
+func _play_hint_ad() -> void:
+	var ad := VideoAd.new()
+	modal = ad
+	_overlay(ad)
+	ad.finished.connect(func():
+		modal = null
+		hints_unlimited = true
+		Progress.hint_ad_watched = true
+		Progress.save_now()
+		Sfx.play("kaching", 1.0, -4)
+		Sfx.haptic(20)
+		_update_hint()
+		hint_button.pop()
+		_say("Unlimited hints for this level!", Palette.GOOD.darkened(0.2)))
 
 
 # ---------------------------------------------------------------- hints
@@ -2171,10 +2266,18 @@ func _on_hint_pressed() -> void:
 	if path.size() < 2:
 		_dead_end_hint()
 		return
+	if not _hints_free() and hints_left <= 0:
+		_play_hint_ad()
+		return
 	if dpad_mode and state == State.DRAWING:
 		_cancel_plan()
 	if not Progress.free_hints():
 		hint_used = true
+	if not _hints_free():
+		hints_left -= 1
+		_update_hint()
+		if hints_left == 0:
+			_out_of_hints_tip.call_deferred()
 	stars_ctl.queue_redraw()
 	# The next move: straight on from the van until the route turns.
 	var run: Array = [path[0], path[1]]

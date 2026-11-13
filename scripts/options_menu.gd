@@ -97,6 +97,7 @@ func _build() -> void:
 	_rows.add_child(_sides())
 	_rows.add_child(_toggle("Package trail", "trail", "trail"))
 	_rows.add_child(_toggle("Route preview", "peek", "peek"))
+	_rows.add_child(_toggle("Unlimited hints", "unlimited_hints", "bulb", "no ads needed (a hint still costs a star)"))
 	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
 	_rows.add_child(_toggle("Night mode", "night", "moon"))
 	_rows.add_child(_toggle("Play sideways", "landscape", "turn"))

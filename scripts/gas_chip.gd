@@ -29,11 +29,6 @@ func _process(delta: float) -> void:
 		_poll = 0.0
 		Progress.tick()
 	_wiggle = maxf(0.0, _wiggle - delta * 2.5)
-	# Spare tanks (from side roads): little cans after the gauge.
-	for i in Progress.reserve_gas:
-		var cc := Vector2(92.0 + Progress.MAX_GAS * 29.0 + 14.0 + i * 22.0, 36.0)
-		DrawUtil.rrect(self, Rect2(cc - Vector2(8, 13), Vector2(16, 26)), Color(FUEL, 0.55), 5)
-		draw_rect(Rect2(cc - Vector2(4, 17), Vector2(8, 5)), Color(FUEL, 0.55))
 	var sec := Progress.seconds_to_next()
 	if sec != _shown_sec or _wiggle > 0.0 or Progress.gas == 0:
 		_shown_sec = sec

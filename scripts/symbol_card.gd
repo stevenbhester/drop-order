@@ -2,8 +2,11 @@ class_name SymbolCard
 extends Control
 ## "What's this?": tap (or hold) a symbol on the board and this card pops up by it: one punchy line and a
 ## little looping picture that shows the rule (a van going the way the arrow points, a box landing on top
-## of the load...). Simple enough for a kid. Any tap or drag anywhere closes it (that touch does nothing
+## of the load...). Simple enough for a kid. Any new touch anywhere closes it (that touch does nothing
 ## else). Game decides what's on the tile (`kind`, plus a colour / count) and where it is (`target`).
+##
+## It listens in _input, before the GUI and the game, so nothing can get between it and the tap that
+## closes it: the game ignores input while the card is up, so a card that can't hear taps is a soft lock.
 
 signal closed
 
@@ -23,7 +26,9 @@ var _text := ""
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Cover the screen so nothing underneath takes clicks. (set_anchors_preset alone would keep the size a
+	# new Control starts with, 0 x 0, since it's already in the tree here.)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_text = line()
 	var v := get_viewport_rect().size
@@ -52,7 +57,7 @@ func line() -> String:
 		"houses": return "Wants %d %s packages, one at a time, each on top." % [count, n]
 		"house_done": return "Delivered! All done here."
 		"pickup_done": return "Picked up! Nothing left here."
-		"exit": return "Deliver everything, then drive in here to go on."
+		"exit": return "The road on! Deliver everything to open the gate, then finish here."
 		"pitstop": return "Finish here: park back at the pit stop."
 		"gift": return "A present! Drive over it to keep it."
 		"ice": return "Ice! No turning on it: slide straight across."
@@ -62,11 +67,16 @@ func line() -> String:
 	return ""
 
 
-func _gui_input(e: InputEvent) -> void:
-	if _t < 0.15:
+## Every touch and click is the card's while it's up (a phone sends both: the touch, and a mouse event made
+## from it). A new press closes it, once it's been up a moment, so the tap or hold that opened it can't.
+func _input(e: InputEvent) -> void:
+	var pointer: bool = e is InputEventMouseButton or e is InputEventMouseMotion or e is InputEventScreenTouch \
+			or e is InputEventScreenDrag
+	if not pointer:
 		return
-	if (e is InputEventMouseButton and e.pressed) or (e is InputEventMouseMotion and e.button_mask != 0):
-		accept_event()
+	get_viewport().set_input_as_handled()
+	var press: bool = (e is InputEventMouseButton and e.pressed) or (e is InputEventScreenTouch and e.pressed)
+	if press and _t >= 0.15:
 		close()
 
 
@@ -247,11 +257,13 @@ func _picture(p: Rect2) -> void:
 			DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.3, s * 0.0), Vector2(s * 0.6, s * 0.24)), Color("3a3f4d"), s * 0.05)
 			_tick(c + Vector2(0, -s * 0.16), s * 0.14)
 		"exit":
-			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.25, 0), s * 0.3)
-			for i in 3:
-				var x := s * 0.12 + i * s * 0.1
-				draw_polyline(PackedVector2Array([c + Vector2(x - s * 0.04, -s * 0.08), c + Vector2(x + s * 0.04, 0), c + Vector2(x - s * 0.04, s * 0.08)]), Color("38d9a9"), s * 0.04, true)
-			_van(c + Vector2(lerpf(-s * 0.3, s * 0.55, loop), 0), s * 0.28, 0.0)
+			# The van pulls up, the gate swings open, and off it goes down the road out of the map.
+			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.5, 0), s * 0.3)
+			var gx := s * 0.12
+			var lift := clampf((loop - 0.3) / 0.2, 0.0, 1.0)
+			ExitZone.draw_gate(self, c + Vector2(gx, 0), Vector2.RIGHT, s * 0.3, lift, s * 0.4)
+			var vx := lerpf(-s * 0.36, -s * 0.06, clampf(loop / 0.3, 0.0, 1.0)) if loop < 0.5 else lerpf(-s * 0.06, s * 0.6, (loop - 0.5) / 0.5)
+			_van(c + Vector2(vx, 0), s * 0.28, 0.0)
 		"pitstop":
 			DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.3, -s * 0.2), Vector2(s * 0.6, s * 0.4)), Color(Palette.ROAD, 0.9), s * 0.06)
 			Icons.finish_flag(self, c + Vector2(s * 0.22, -s * 0.18), s * 0.32, _t)

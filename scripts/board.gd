@@ -62,6 +62,7 @@ func setup(level: LevelData, tile_size: float) -> void:
 		exit_zone = ExitZone.new()
 		exit_zone.tile = tile
 		exit_zone.dir = L.exit_dir()
+		exit_zone.pad = tile * 0.14
 		exit_zone.position = center(L.exit)
 		add_child(exit_zone)
 	fire = AnimeFire.new()
@@ -254,6 +255,14 @@ func _draw() -> void:
 					draw_rect(Rect2(o + Vector2(tile * 0.5, m), Vector2(tile, rw)), col)
 				if L.is_road(p + Vector2i(0, 1)):
 					draw_rect(Rect2(o + Vector2(m, tile * 0.5), Vector2(rw, tile)), col)
+				if L.has_exit() and p == L.exit:
+					# The exit road: joined on like any other stretch, on out over the map's edge (ExitZone
+					# fades it away and puts the gate on it).
+					var ed := Vector2(L.exit_dir())
+					var sd := Vector2(-ed.y, ed.x) * rw * 0.5
+					var a := center(p) + off + sd
+					var b := center(p) + off + ed * ExitZone.solid_reach(tile, tile * 0.14) - sd
+					draw_rect(Rect2(Vector2(minf(a.x, b.x), minf(a.y, b.y)), (a - b).abs()), col)
 	for y in L.height:
 		for x in L.width:
 			var p := Vector2i(x, y)

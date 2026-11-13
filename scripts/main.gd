@@ -97,6 +97,13 @@ func _ready() -> void:
 		if a.begins_with("--chest=") and screen is LevelSelect:
 			# Debug: open a milestone chest on the map straight away (for screenshots).
 			(screen as LevelSelect)._open_chest.call_deferred(a.trim_prefix("--chest=").to_int())
+	for a in args:
+		if a.begins_with("--video-ad"):
+			# Debug: play a pretend video ad over whatever's showing (--video-ad=N picks which).
+			if a.contains("="):
+				VideoAd._last = -1
+				VideoAd.force = a.trim_prefix("--video-ad=").to_int()
+			add_child.call_deferred(VideoAd.new())
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
 		open_feedback.call_deferred()

@@ -120,8 +120,10 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
   - **Fog Bank** (after 33, the Hover Van): the load's shown for 6 seconds, then fog hides all but the
     next package.
 - **Mega routes** (a MEGA ROUTE sign with a little grid of its parts): big deliveries in parts, like a
-  big puzzle made of small ones. Each part is a level of its own: deliver everything, then drive into
-  the glowing exit on its edge; the van drives off and the camera pans on to the next part. Progress is
+  big puzzle made of small ones. Each part is a level of its own: deliver everything, then finish on
+  the exit, where the road carries on off the map through a red and white gate (shut until everything's
+  delivered, then it swings open and chevrons run out along the road; the first one gets a tip). The van
+  drives off through it and the camera pans on to the next part. Progress is
   saved after every part (come back later and you pick up there); the top bar shows "Part 2 of 4" over a
   mini-map of the parts. Hints and undos are allowed. **Twin Towns** (after 12, 2 parts side by side,
   wins the Blueprint paint) and **The Big Map** (after 27, a 2×2 loop of 4, wins Gold Rush).
@@ -238,12 +240,18 @@ as a little flame inside the Daily button.
   at a test server. Under it, a **Privacy policy** link (https://www.stevenhester.com/last-mile/privacy/,
   in the `stevenhester-com` repo) and the version and build number.
 - **Options** (the gear: bottom left in a level, top corner of the title and map): steering (draw or
-  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, colorblind mode, **night mode**, **play sideways** (landscape: the board in the
+  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, **unlimited hints** (no ads), colorblind mode, **night mode**, **play sideways** (landscape: the board in the
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic
   strength from none to max. Everything is saved and applies straight away.
 - **Undo** (bottom right) rewinds your last segment, including its deliveries. **Once per attempt.**
 - **Hint** shows the next stretch to drive (and costs a star). At a dead end it says so instead
-  ("no way to win from here: Retry") and costs nothing; it never restarts anything itself.
+  ("no way to win from here: Retry") and costs nothing; it never restarts anything itself. Each level
+  comes with **3 hints** (the count is on the button). Out of them, Hint plays a pretend ad instead: one of
+  the three trailers (`assets/ads/video/*.ogv`, rendered with `OGV=1 tools/ads/render.sh` and
+  `OGV=1 tools/ads/render_gta.sh`), at random, with Skip there from the first frame. Watched or skipped,
+  hints are then unlimited for the rest of the level. When the last hint goes, a tip by the button says
+  so (only the first three times, and never once they've watched an ad). **Unlimited hints** in Options
+  skips all that (a hint still costs a star). `-- --video-ad[=0|1|2]` plays one straight away.
 - If the van has nowhere left to go before the level is done, you're stuck: Undo (if unused) or Retry.
 - Part 2: **pickups** put their parcel on top of your stack as you pass. They look nothing like houses: a
   plain dark loading dock inside a chunky dashed outline in the parcels' colour, with big bouncing
@@ -272,7 +280,8 @@ as a little flame inside the Daily button.
 | `scripts/version.gd`, `patch_notes.gd` | The version (title screen badge) and its patch notes card |
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
-| `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's (or speedrun zone's) exit: the road on off the map and its gate; the package trail (drones behind the van) |
+| `scripts/video_ad.gd`, `assets/ads/video/` | The pretend video ads that unlock unlimited hints |
 | `scripts/update_check.gd`, `update_card.gd` | "A new version is out!": reads `release/latest.json` from GitHub and offers a newer TestFlight build |
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |

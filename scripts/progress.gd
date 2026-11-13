@@ -53,6 +53,14 @@ var last_auto_side := ""
 ## Levels with one-way streets played so far (the second gets the "tap a symbol" tip), and whether it's shown.
 var oneway_levels := {}
 var symbol_tip_seen := false
+## Seen the tip about the exit road (the gate to the next part or zone).
+var exit_tip_seen := false
+## Option: hints never run out (no ads needed). They still cost a star.
+var unlimited_hints := false
+## How many times the "out of hints" tip has shown (it stops after three), and whether they've ever
+## watched a hint ad (then it never shows again).
+var hint_tips := 0
+var hint_ad_watched := false
 ## Side-road power-ups: spare gas tanks (only used once the tank's empty; at most MAX_RESERVE), and
 ## free hints / free undos until these times (Unix seconds). A side road hands one out once a day.
 const MAX_RESERVE := 3
@@ -210,6 +218,10 @@ func _load() -> void:
 	for n in d.get("oneway_levels", []):
 		oneway_levels[int(n)] = true
 	symbol_tip_seen = bool(d.get("symbol_tip_seen", false))
+	exit_tip_seen = bool(d.get("exit_tip_seen", false))
+	unlimited_hints = bool(d.get("unlimited_hints", false))
+	hint_tips = int(d.get("hint_tips", 0))
+	hint_ad_watched = bool(d.get("hint_ad_watched", false))
 	reserve_gas = clampi(int(d.get("reserve_gas", 0)), 0, MAX_RESERVE)
 	free_hints_until = float(d.get("free_hints_until", 0.0))
 	free_undos_until = float(d.get("free_undos_until", 0.0))
@@ -248,7 +260,7 @@ func _save() -> void:
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
-			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen,
+			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
 			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
 			"mega": mega}))

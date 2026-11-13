@@ -55,4 +55,20 @@ if [ $first -eq 1 ]; then
   echo "speedrun courses: $sw/${#cids} finished"
   grep -h "SCRIPT ERROR" $out/side-*.txt $out/twist-*.txt | head -5
 fi
+# The symbol card, opened and closed with real touches (as a phone sends them) and mouse clicks: a tap, a
+# hold, a tap on the card, a double tap and a drag must each close it and hand the game its input back.
+# A level from each part of the road, and one played sideways.
+if [ $first -eq 1 ]; then
+  for L in 9 25 45 70 95; do
+    $G --headless --path . --quit-after 30000 -- --level=$L --autotouch > $out/touch-$L.txt 2>&1 &
+  done
+  $G --headless --path . --quit-after 30000 -- --level=30 --autotouch --landscape > $out/touch-side30.txt 2>&1 &
+  wait
+  tok=$(cat $out/touch-*.txt | grep -c 'AUTOTEST touch .* ok:')
+  echo "symbol card by touch and mouse: $tok/6 levels ok"
+  # Three hints (none counted with the option on), the tip, a video ad skipped straight away, unlimited hints.
+  $G --headless --path . --quit-after 100000 -- --level=12 --autohintad > $out/hintad.txt 2>&1
+  grep -h "AUTOTEST hintad\|SCRIPT ERROR" $out/hintad.txt | head -3
+  grep -h "AUTOTEST touch .* FAILED\|SCRIPT ERROR" $out/touch-*.txt | head -5
+fi
 rm -rf $out
