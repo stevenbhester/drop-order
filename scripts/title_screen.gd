@@ -11,6 +11,7 @@ signal daily_pressed
 signal garage_pressed
 signal options_pressed
 signal notes_pressed
+signal speedrun_pressed
 
 ## The loop's half extents and corner radius (its centre line), and the road's width.
 const LOOP := Vector2(330, 270)
@@ -53,6 +54,7 @@ var _row: HBoxContainer
 var _footer: Label
 var _gear: JuicyButton
 var _badge: Control
+var _speed: JuicyButton
 var _badge_press := 0.0
 var _t := 0.0
 
@@ -116,6 +118,24 @@ func _ready() -> void:
 	_row.add_child(_small("paint", "Garage", func():
 		Sfx.play("click")
 		garage_pressed.emit()))
+
+	# Speedrun: its own mode, locked until the player has met every mechanic it uses.
+	_speed = JuicyButton.new()
+	var open := Progress.is_complete(Speedrun.UNLOCK_LEVEL)
+	_speed.icon_name = "next" if open else ""
+	_speed.label = "Speedrun" if open else "Speedrun · beat level %d" % Speedrun.UNLOCK_LEVEL
+	_speed.font_px = 40
+	_speed.dim = not open
+	_speed.custom_minimum_size = Vector2(600, 110)
+	_speed.size = _speed.custom_minimum_size
+	_speed.pressed.connect(func():
+		if Progress.is_complete(Speedrun.UNLOCK_LEVEL):
+			Sfx.play("click")
+			speedrun_pressed.emit()
+		else:
+			Sfx.play("bonk", 1.1, -6.0)
+			_speed.pop())
+	add_child(_speed)
 
 	_footer = _label("a Door Bowl game", 34, Palette.TEXT_SOFT)
 
@@ -223,7 +243,8 @@ func _fit() -> void:
 	_next_label.size = Vector2(w, 0)
 	_row.size = Vector2(300 * 3 + 44, 130)
 	_row.position = Vector2((w - _row.size.x) / 2.0, play_y + 270)
-	_footer.position = Vector2(0, maxf(size.y - 110.0, play_y + 440))
+	_speed.position = Vector2((w - _speed.size.x) / 2.0, play_y + 430)
+	_footer.position = Vector2(0, maxf(size.y - 90.0, play_y + 570))
 	_footer.size = Vector2(w, 0)
 	_gear.position = Vector2(w - 36 - 112, 40 + UiTheme.insets(get_viewport()).x)
 	_badge.position = Vector2(36, 40 + UiTheme.insets(get_viewport()).x)

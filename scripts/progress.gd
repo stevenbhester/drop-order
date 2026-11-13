@@ -60,10 +60,9 @@ var reserve_gas := 0
 var free_hints_until := 0.0
 var free_undos_until := 0.0
 var side_bonus_day := {}           # side road id -> the day it last handed out its power-up
-## The driver's logbook: pages found (side road id -> true; a side road's first win finds its page), and
-## one just found that the map should show.
-var logs := {}
-var pending_log := ""
+## Speedrun: best time per course (seconds).
+var speed_best := {}
+
 var peek := false
 ## Colorblind mode ("aka Paul mode"): bold class marks on packages, and the same mark on a sign on every
 ## building and gate, so nothing depends on telling colours apart.
@@ -151,10 +150,6 @@ func _apply_preset(preset: String) -> void:
 				# oneway:1 (a level with one-way streets already seen: the next one shows the symbol tip).
 				if v > 0:
 					oneway_levels[-1] = true
-			"log":
-				# log:<side road id> (its logbook page found, and waiting to be shown on the map).
-				logs[kv[1]] = true
-				pending_log = kv[1]
 			"sides":
 				# Every side road already beaten (their intros stay away).
 				if v > 0:
@@ -176,12 +171,16 @@ func _load() -> void:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 	if not d is Dictionary:
 		return
+	# Saves from before levels 41-90 existed: the old 41-50 are now 91-100.
+	var moved := int(d.get("levels_v", 1)) < 2
 	for n in d.get("completed", []):
-		completed[int(n)] = true
+		var k := int(n)
+		completed[k + 50 if moved and k >= 41 and k <= 50 else k] = true
 	var st = d.get("stars", {})
 	if st is Dictionary:
 		for k in st:
-			stars[int(k)] = clampi(int(st[k]), 1, 3)
+			var sk := int(k)
+			stars[sk + 50 if moved and sk >= 41 and sk <= 50 else sk] = clampi(int(st[k]), 1, 3)
 	gas = clampi(int(d.get("gas", MAX_GAS)), 0, MAX_GAS)
 	gas_t = float(d.get("gas_t", 0.0))
 	undo_bank = maxi(int(d.get("undo_bank", 0)), 0)
@@ -214,9 +213,10 @@ func _load() -> void:
 	reserve_gas = clampi(int(d.get("reserve_gas", 0)), 0, MAX_RESERVE)
 	free_hints_until = float(d.get("free_hints_until", 0.0))
 	free_undos_until = float(d.get("free_undos_until", 0.0))
-	for k in d.get("logs", []):
-		logs[str(k)] = true
-	pending_log = str(d.get("pending_log", ""))
+	var sb = d.get("speed_best", {})
+	if sb is Dictionary:
+		for k in sb:
+			speed_best[str(k)] = float(sb[k])
 	var sbd = d.get("side_bonus_day", {})
 	if sbd is Dictionary:
 		for k in sbd:
@@ -244,12 +244,12 @@ func _save() -> void:
 		var st := {}
 		for k in stars:
 			st[str(k)] = stars[k]
-		f.store_string(JSON.stringify({"completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
+		f.store_string(JSON.stringify({"levels_v": 2, "completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen,
-			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "logs": logs.keys(), "pending_log": pending_log, "peek": peek, "seen_version": seen_version,
+			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
 			"mega": mega}))
 
@@ -315,8 +315,7 @@ func reset() -> void:
 	side_done.clear()
 	chests.clear()
 	mega.clear()
-	logs.clear()
-	pending_log = ""
+	speed_best.clear()
 	_save()
 	changed.emit()
 
@@ -510,12 +509,19 @@ func side_open(d: Dictionary) -> bool:
 	return is_complete(int(d.get("after", 0)))
 
 
-## A side challenge beaten. True the first time (its logbook page is found then).
+## A speedrun course finished in `secs`. True if that's a new best.
+func speed_record(id: String, secs: float) -> bool:
+	if speed_best.has(id) and float(speed_best[id]) <= secs:
+		return false
+	speed_best[id] = secs
+	_save()
+	return true
+
+
+## A side challenge beaten. True the first time.
 func win_side(id: String) -> bool:
 	var first := not side_done.has(id)
 	side_done[id] = true
-	if first:
-		logs[id] = true
 	_save()
 	changed.emit()
 	return first

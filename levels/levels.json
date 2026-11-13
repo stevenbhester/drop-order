@@ -621,9 +621,745 @@
       "stack": ["blue", "blue", "purple", "red", "red"]
     },
     {
+      "title": "First Frost",
+      "hint": "Ice! You can't turn on it: slide straight across.",
+      "no_revisit": true,
+      "map": [
+        "# ~ # # # #",
+        "# . . p r #",
+        "~ S # # # #",
+        "# . # p . #",
+        "# # ^ # # #",
+        "# b # r . #",
+        "# # # . . #"
+      ],
+      "stack": ["purple", "red", "blue", "purple", "red"]
+    },
+    {
+      "title": "Black Ice",
+      "no_revisit": true,
+      "map": [
+        ". r . . . .",
+        "# ~ # S # .",
+        "# y2 # . # .",
+        "v # # # ~ .",
+        "# p # y # .",
+        "# # # # # .",
+        ". . y2 . . ."
+      ],
+      "stack": ["purple", "yellow", "yellow", "red", "yellow", "yellow", "yellow"]
+    },
+    {
+      "title": "Snowplough",
+      "no_revisit": true,
+      "map": [
+        ". . r . . .",
+        ". # # # # #",
+        ". ~ . S . #",
+        ". ~ . # # v",
+        "p # . # y2 #",
+        ". # y # . #",
+        "p2 # # # # #"
+      ],
+      "stack": ["yellow", "yellow", "red", "purple", "yellow", "purple", "purple"]
+    },
+    {
+      "title": "Avalanche",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "~ y2 . . . #",
+        "# # ~ # . #",
+        "# . p2 # y2 #",
+        "# # # v # #",
+        "# . p2 # p2 #",
+        "S # # # # #"
+      ],
+      "stack": ["purple", "purple", "purple", "purple", "yellow", "yellow", "yellow", "yellow", "purple", "purple"]
+    },
+    {
+      "title": "Hot Chocolate",
+      "hint": "Breather. Warm hands, cold roads.",
+      "no_revisit": true,
+      "map": [
+        ". . r2 . .",
+        "# S # # #",
+        "# . # r ~",
+        "# # # # #",
+        "# b2 y2 . v",
+        "# # # # #"
+      ],
+      "stack": ["blue", "blue", "red", "red", "red", "yellow", "yellow"]
+    },
+    {
+      "title": "Unmarked",
+      "no_revisit": true,
+      "map": [
+        ". # . # # #",
+        ". # r # p ~",
+        ". v # # r #",
+        ". ^ . . . ~",
+        ". # y p2 r #",
+        ". # # # # ~",
+        ". # . S . #",
+        ". # # # # #"
+      ],
+      "stack": ["red", "purple", "red", "red", "yellow", "purple", "purple"]
+    },
+    {
+      "title": "Whiteout",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # #",
+        ". ~ . # b ^",
+        "b2 # # # # #",
+        ". # b # r2 #",
+        ". # b2 # y2 #",
+        "b # # v # #",
+        ". ~ . ~ . #",
+        ". S # # # #"
+      ],
+      "stack": ["red", "red", "yellow", "yellow", "blue", "blue", "blue", "blue", "blue", "blue", "blue"]
+    },
+    {
+      "title": "Low Tide",
+      "hint": "Pickups and ice, together at last.",
+      "no_revisit": true,
+      "map": [
+        "# ~ # S #",
+        "# b r . #",
+        "# # # # #",
+        ". y # b #",
+        ". . # B #",
+        "# # # # #"
+      ],
+      "stack": ["yellow", "red", "blue"]
+    },
+    {
+      "title": "Fish Market",
+      "no_revisit": true,
+      "map": [
+        "# # # # # .",
+        "# y ~ b . .",
+        "# # + # # B",
+        "# . # r # .",
+        "# . # # # y",
+        "# . # . # p",
+        "# . # # S ."
+      ],
+      "stack": ["red", "yellow", "yellow", "purple"]
+    },
+    {
+      "title": "Lighthouse Keeper",
+      "no_revisit": true,
+      "map": [
+        ". . . . . Y",
+        "# # # # # #",
+        "# . # b b #",
+        "# S + ~ # #",
+        "# . # y r #",
+        "# # # # # #",
+        ". . b . . ."
+      ],
+      "stack": ["blue", "blue", "red", "blue"]
+    },
+    {
+      "title": "Seagulls",
+      "no_revisit": true,
+      "map": [
+        "# ~ # # #",
+        "# . y . #",
+        "# B # . #",
+        "# b # . #",
+        "# y # b #",
+        "S # # # #"
+      ],
+      "stack": ["yellow", "yellow", "blue"]
+    },
+    {
+      "title": "Ferry Crossing",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# . # . r #",
+        "# R # . b ~",
+        "S . # r p #",
+        "# # + # # #",
+        "# y # . . #",
+        "# # # # # #"
+      ],
+      "stack": ["purple", "blue", "red", "yellow"]
+    },
+    {
+      "title": "Storm Surge",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# r R p . #",
+        "# r # # # #",
+        "# . # P . .",
+        "# b ~ . . .",
+        "# # + # # #",
+        "# r # . b #",
+        "# # # S # #"
+      ],
+      "stack": ["blue", "red", "red", "blue"]
+    },
+    {
+      "title": "Same Street, Again",
+      "no_revisit": true,
+      "map": [
+        "R # # # y #",
+        ". ~ . # . #",
+        ". # # + # #",
+        ". # b # r #",
+        ". # # # # S",
+        ". . . b p .",
+        ". . . . . ."
+      ],
+      "stack": ["yellow", "blue", "blue", "purple"]
+    },
+    {
+      "title": "Any Colour",
+      "hint": "Lockers take whatever's on top. Any colour at all.",
+      "no_revisit": true,
+      "map": [
+        ". . . y .",
+        "S # # # #",
+        "# y # y y",
+        "# # # # #",
+        "# . # w #",
+        "# # > # #"
+      ],
+      "stack": ["yellow", "yellow", "yellow", "yellow", "blue"]
+    },
+    {
+      "title": "Arcade",
+      "no_revisit": true,
+      "map": [
+        ". . . . p .",
+        "# S # # =p #",
+        "# . # y . #",
+        "# # # # # #",
+        "# y # r b .",
+        "# # # # # #",
+        "w . . . . ."
+      ],
+      "stack": ["red", "blue", "purple", "yellow", "purple", "yellow"]
+    },
+    {
+      "title": "Night Owls",
+      "no_revisit": true,
+      "map": [
+        "# # # # # b",
+        "# . S . # .",
+        "# < # # # r",
+        "# b # y # .",
+        "# p # w =y .",
+        "# . # . # w",
+        "# # # # # .",
+        ". . . . . ."
+      ],
+      "stack": ["blue", "red", "yellow", "blue", "blue", "purple", "blue"]
+    },
+    {
+      "title": "Neon Nightmare",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        "w . g . b .",
+        "# # # # # #",
+        "# g # . . #",
+        "# # # > # #",
+        "# . # . w #",
+        "# # # # =r #",
+        "# . # r p b",
+        "# S # # # #"
+      ],
+      "stack": ["blue", "purple", "red", "purple", "blue", "green", "blue", "green"]
+    },
+    {
+      "title": "Vending Machine",
+      "no_revisit": true,
+      "map": [
+        ". . r . . .",
+        "# =r # . S .",
+        "# p # . # .",
+        "# # # # # .",
+        "# y # . # .",
+        "# # # # # .",
+        "r . p w . ."
+      ],
+      "stack": ["purple", "red", "yellow", "red", "purple", "yellow"]
+    },
+    {
+      "title": "Karaoke",
+      "no_revisit": true,
+      "map": [
+        ". . . . . .",
+        "# # # # # p",
+        "# b # . =p p",
+        "# . # . # b",
+        "# S # # # .",
+        "# . ^ w # .",
+        "# # # # # w",
+        ". . y . . ."
+      ],
+      "stack": ["yellow", "yellow", "purple", "blue", "purple", "purple", "blue"]
+    },
+    {
+      "title": "Last Train",
+      "no_revisit": true,
+      "map": [
+        "# # # > # #",
+        "# p # . p #",
+        "# =b # # # #",
+        "p b # w . #",
+        ". . # . b #",
+        "# # # # # #",
+        "# . S . w #",
+        "# . # # # #"
+      ],
+      "stack": ["purple", "purple", "purple", "blue", "blue", "blue", "yellow"]
+    },
+    {
+      "title": "Apple Cart",
+      "hint": "Lockers out in the country. Mind what's on top.",
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # #",
+        ". # . S . #",
+        ". # b # . #",
+        ". # # # # #",
+        ". . y # y #",
+        ". # # # # #",
+        ". . . w p p"
+      ],
+      "stack": ["yellow", "purple", "purple", "red", "yellow", "blue"]
+    },
+    {
+      "title": "Cider Run",
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # #",
+        "w # y b y #",
+        "r # # # # #",
+        ". # b # . S",
+        ". # # # # #",
+        ". # . # . #",
+        ". # . # # #"
+      ],
+      "stack": ["yellow", "yellow", "yellow", "red", "blue", "blue"]
+    },
+    {
+      "title": "Scarecrow",
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        "# S # # # w",
+        "# . # . # .",
+        "# # # # # .",
+        "# p # . # .",
+        "# . # # # p",
+        "# r . r # .",
+        "# # # # # r"
+      ],
+      "stack": ["yellow", "purple", "purple", "red", "red", "red"]
+    },
+    {
+      "title": "Hay Bales",
+      "hint": "Easy does it.",
+      "no_revisit": true,
+      "map": [
+        ". # # # #",
+        ". # B w #",
+        "b # . . #",
+        "y # # S #",
+        "r # b . #",
+        ". # # # #"
+      ],
+      "stack": ["blue", "blue", "red", "yellow"]
+    },
+    {
+      "title": "Pumpkin Patch",
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # #",
+        ". y . # . #",
+        ". # # # # #",
+        ". # R # r #",
+        ". # w # y #",
+        "y # # # # #",
+        "r # . S . #",
+        "w # # # # #"
+      ],
+      "stack": ["blue", "red", "yellow", "yellow", "red", "yellow"]
+    },
+    {
+      "title": "Harvest Moon",
+      "challenge": true,
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# b # w b #",
+        "# # # # # #",
+        "# . # . . #",
+        "# # # S # #",
+        "# y r . . #",
+        "# # # # # #",
+        ". . w Y . y"
+      ],
+      "stack": ["red", "blue", "red", "blue", "yellow", "yellow"]
+    },
+    {
+      "title": "No Return Address",
+      "return": true,
+      "no_revisit": true,
+      "map": [
+        "# # # # # p",
+        "# p # y # .",
+        "# w # . # .",
+        "# . # # # .",
+        "# p # . S .",
+        "# # # # # .",
+        "r . . . . ."
+      ],
+      "stack": ["yellow", "purple", "purple", "red", "purple", "red"]
+    },
+    {
+      "title": "Men at Work",
+      "hint": "Roadworks open once you've made enough deliveries. The sign counts down.",
+      "no_revisit": true,
+      "map": [
+        "# # # # b",
+        "# . y ^ .",
+        "# # c2 # .",
+        "# . . S .",
+        "# # # # r",
+        ". . b . ."
+      ],
+      "stack": ["yellow", "blue", "blue", "red"]
+    },
+    {
+      "title": "Diversion",
+      "no_revisit": true,
+      "map": [
+        "# # # # # .",
+        "@ . # r # p",
+        "# . # b # .",
+        "# # # . # .",
+        "# . c4 p # p",
+        "S # # # # .",
+        ". . . . . ."
+      ],
+      "stack": ["red", "purple", "purple", "purple", "blue"]
+    },
+    {
+      "title": "Rush Hour, Again",
+      "no_revisit": true,
+      "map": [
+        ". . . b . .",
+        ". # # # # #",
+        "p # . # . #",
+        ". # S > # #",
+        "b # . # b #",
+        ". # . # # c1",
+        ". # b # y #",
+        ". # c2 @ # #"
+      ],
+      "stack": ["blue", "purple", "blue", "blue", "yellow", "blue"]
+    },
+    {
+      "title": "Traffic Cone",
+      "no_revisit": true,
+      "map": [
+        "# # # # # .",
+        "# y c2 b # .",
+        "# b ^ # # .",
+        "# . # b # r",
+        "# . c5 b # .",
+        "# . @ . # .",
+        "# # # S # .",
+        ". . . . . ."
+      ],
+      "stack": ["blue", "blue", "blue", "yellow", "red", "blue"]
+    },
+    {
+      "title": "Gridlock Deluxe",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "c4 b r # b c2",
+        "# < # ^ # #",
+        "@ . b # r #",
+        "# . r # p #",
+        "# # # # # #",
+        "# . . . . S",
+        "# # # # # #"
+      ],
+      "stack": ["red", "red", "blue", "blue", "blue", "red", "purple"]
+    },
+    {
+      "title": "Lunch Break",
+      "hint": "Take five.",
+      "no_revisit": true,
+      "map": [
+        "# # # # # .",
+        "# . # . @ .",
+        "# b # . c4 .",
+        "# # # # # .",
+        "r b # b # .",
+        ". . # . S .",
+        "# # # # # y"
+      ],
+      "stack": ["blue", "blue", "red", "blue", "yellow"]
+    },
+    {
+      "title": "The Other Van",
+      "no_revisit": true,
+      "map": [
+        "r # # # # #",
+        ". c1 . S . #",
+        ". # # # # #",
+        ". # . # r #",
+        ". # p ^ . #",
+        "r # # # p #",
+        "p # . v p #",
+        ". @ # # # c5"
+      ],
+      "stack": ["red", "purple", "purple", "purple", "red", "purple", "red"]
+    },
+    {
+      "title": "Dust Devil",
+      "hint": "Roadworks, ice and lockers, all out in the desert.",
+      "no_revisit": true,
+      "map": [
+        "# # # # #",
+        "S . # y #",
+        "# . # y #",
+        "# # # # #",
+        "# b # y ~",
+        "# r c2 # #"
+      ],
+      "stack": ["yellow", "blue", "red", "yellow", "yellow"]
+    },
+    {
+      "title": "Flash Flood",
+      "no_revisit": true,
+      "map": [
+        "S # # # # #",
+        "# b # b y #",
+        "# # # c2 # #",
+        "# b # . r #",
+        "# c4 ~ # # #",
+        "y . # . w #",
+        "# # # . . #",
+        ". . . . . ."
+      ],
+      "stack": ["red", "red", "blue", "yellow", "blue", "yellow", "blue"]
+    },
+    {
+      "title": "Tumbleweed",
+      "no_revisit": true,
+      "map": [
+        "# # # # #",
+        "# . S . #",
+        "# # # y #",
+        "# r c2 y #",
+        "# # # ~ #",
+        ". r r . ."
+      ],
+      "stack": ["red", "yellow", "red", "red", "yellow"]
+    },
+    {
+      "title": "Cactus Mail",
+      "no_revisit": true,
+      "map": [
+        ". # # # c5 #",
+        "y # . S . #",
+        ". # # # # #",
+        "w # . # . #",
+        "b # # # # #",
+        "r # . . y #",
+        "y # # # # #"
+      ],
+      "stack": ["yellow", "yellow", "yellow", "red", "blue", "yellow"]
+    },
+    {
+      "title": "Lightning Rod",
+      "no_revisit": true,
+      "map": [
+        "# # # # # #",
+        "# . # . w #",
+        "# S # . . #",
+        "# . # . y #",
+        "# . # . y #",
+        "# r # # # c3",
+        "# p . y r #",
+        "# # ~ # # #"
+      ],
+      "stack": ["red", "purple", "purple", "yellow", "yellow", "yellow", "red"]
+    },
+    {
+      "title": "Siesta",
+      "hint": "Shade and a short route.",
+      "no_revisit": true,
+      "map": [
+        "r . . . . .",
+        "# # c3 # # .",
+        "# . # . # .",
+        "# y # p # b",
+        "# # # p # w",
+        "# . # . # .",
+        "# # # # S ."
+      ],
+      "stack": ["red", "yellow", "purple", "purple", "blue", "red"]
+    },
+    {
+      "title": "Mirage",
+      "no_revisit": true,
+      "map": [
+        ". . . p b y",
+        "# # # # # #",
+        "c2 . b . b #",
+        "# # # # # #",
+        "c2 . S . . #",
+        "~ # # # # #",
+        "# w # b . #",
+        "# # # . . #"
+      ],
+      "stack": ["blue", "yellow", "blue", "purple", "blue", "blue", "blue"]
+    },
+    {
+      "title": "Thunderclap",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        ". # # # # # #",
+        ". # r . # . #",
+        "r # # # # # #",
+        ". # b r # y ~",
+        ". # # # # # #",
+        ". # r . S . #",
+        ". c7 # # # # #",
+        ". w . . r . ."
+      ],
+      "stack": ["blue", "blue", "red", "red", "yellow", "red", "red", "red"]
+    },
+    {
+      "title": "Cloud Nine",
+      "hint": "The last climb. Everything you know, a bit higher up.",
+      "no_revisit": true,
+      "map": [
+        ". . . p . .",
+        ". # # # # #",
+        "y =y b # b #",
+        ". # # # p #",
+        ". # . # B #",
+        "b # . # . #",
+        ". S # c5 # #"
+      ],
+      "stack": ["purple", "blue", "purple", "yellow", "blue"]
+    },
+    {
+      "title": "Penthouse",
+      "no_revisit": true,
+      "map": [
+        ". S # # # # #",
+        ". # P . # b #",
+        ". # # # # . #",
+        ". =p . b p . #",
+        ". # . p . p #",
+        ". # c2 # # # c6",
+        ". # . p # b #",
+        ". # # # # # #"
+      ],
+      "stack": ["blue", "purple", "blue", "purple", "purple", "blue"]
+    },
+    {
+      "title": "Crane Lift",
+      "no_revisit": true,
+      "map": [
+        ". . . r . . Y3",
+        ". # # # # # #",
+        ". # p # y y #",
+        ". # # + c3 # #",
+        "y =y . S . y #",
+        ". c6 . # # # #",
+        ". # . # . . #",
+        "p # # # # # #"
+      ],
+      "stack": ["purple", "yellow", "purple", "red"]
+    },
+    {
+      "title": "Thin Air",
+      "no_revisit": true,
+      "map": [
+        ". . y b . B",
+        "# # =y # # #",
+        "# . . # b #",
+        "# # # # # #",
+        "# p . r . #",
+        "c3 # # # S #",
+        "b . . . . ."
+      ],
+      "stack": ["red", "purple", "blue", "yellow", "blue"]
+    },
+    {
+      "title": "Window Washer",
+      "no_revisit": true,
+      "map": [
+        ". . . . r . .",
+        "# # # # c1 # #",
+        "# . # p # r #",
+        "# . # . # . #",
+        "# c5 # # # # #",
+        "# . b y # . #",
+        "# =p # # # S #",
+        "B . p p . . ."
+      ],
+      "stack": ["purple", "purple", "purple", "yellow", "red", "red"]
+    },
+    {
+      "title": "Mile Zero",
+      "no_revisit": true,
+      "map": [
+        ". Y . r . y",
+        ". # # # # #",
+        ". =y y # . #",
+        ". # b # y c2",
+        ". # # # # #",
+        ". S . # b #",
+        ". # # # # #"
+      ],
+      "stack": ["blue", "red", "yellow", "yellow", "blue"]
+    },
+    {
+      "title": "Top of the World",
+      "challenge": true,
+      "no_revisit": true,
+      "map": [
+        "b . . r R . .",
+        "# # # =r # # #",
+        "# r # . # . #",
+        "# # c6 y # # #",
+        ". . # . # . b",
+        "# # # # + # #",
+        "# y . . # r #",
+        "# # S # # # #"
+      ],
+      "stack": ["yellow", "red", "blue", "red", "blue", "yellow"]
+    },
+    {
       "title": "Needle in a Haystack",
-      "hint": "Sneak peek: a huge map with a short answer. Most roads are a trap.",
-      "preview": true,
+      "hint": "A huge map with a short answer. Most roads are a trap.",
       "no_revisit": true,
       "map": [
         ". # # # # # # # #",
@@ -642,8 +1378,7 @@
     },
     {
       "title": "Last Orders",
-      "hint": "Sneak peek: everything out, then all the way home.",
-      "preview": true,
+      "hint": "Everything out, then all the way home.",
       "no_revisit": true,
       "return": true,
       "map": [
@@ -664,8 +1399,7 @@
     },
     {
       "title": "The Long Way Round",
-      "hint": "Sneak peek: one route, fifty-two tiles. Plan the whole shift.",
-      "preview": true,
+      "hint": "One route, fifty-two tiles. Plan the whole shift.",
       "no_revisit": true,
       "return": true,
       "map": [
@@ -686,8 +1420,7 @@
     },
     {
       "title": "Night Freight",
-      "hint": "Sneak peek: two gates, a hub, two shops. Get the order right.",
-      "preview": true,
+      "hint": "Two gates, a hub, two shops. Get the order right.",
       "no_revisit": true,
       "map": [
         "G   g   .   .   .   .   .   .",
@@ -708,8 +1441,7 @@
     {
       "title": "Grand Tour",
       "challenge": true,
-      "hint": "Sneak peek: everything at once. Good luck.",
-      "preview": true,
+      "hint": "Everything at once. Good luck.",
       "no_revisit": true,
       "return": true,
       "map": [
@@ -732,7 +1464,6 @@
       "title": "Bulk Order",
       "hint": "Warehouses (+N) load everything at once. Make room first.",
       "no_revisit": true,
-      "preview": true,
       "map": [
         "r   #   #   #   #   #   #   #   #",
         ".   #   .   r4  #   Y5  #   y2  ^",
@@ -752,7 +1483,6 @@
     {
       "title": "Peak Season",
       "no_revisit": true,
-      "preview": true,
       "map": [
         "p   #   #   #   #   S   #   #   #",
         ".   #   y3  #   r3  .   #   P4  #",
@@ -771,7 +1501,6 @@
     {
       "title": "Overstock",
       "no_revisit": true,
-      "preview": true,
       "map": [
         "#   #   v   #   #   #   #   #   #",
         "p   p5  #   b   .   r2  #   .   .",
@@ -790,7 +1519,6 @@
     {
       "title": "Cyber Monday",
       "no_revisit": true,
-      "preview": true,
       "map": [
         "#   #   #   #   #   #   #   #",
         "#   B5  y   #   .   y2  .   #",
@@ -812,7 +1540,6 @@
       "challenge": true,
       "hint": "Good luck, driver.",
       "no_revisit": true,
-      "preview": true,
       "map": [
         ".   .   .   .   r4  .   .   .   r2",
         "#   #   #   =r  #   #   #   #   #",

@@ -127,6 +127,8 @@ var _bonus_line := ""
 ## Mega routes: which part this is, and (arriving from the last part) the way the camera pans in from.
 var part := 0
 var pan_from := Vector2i.ZERO
+## Speedrun: the time already on the clock from earlier zones.
+var speed_elapsed := 0.0
 ## Seconds spent playing, from the first touch to the win (menus and the ad don't count).
 var play_time := 0.0
 var timing := false
@@ -205,9 +207,13 @@ func _twist() -> String:
 	return str(side.get("twist", ""))
 
 
-## A side road with a twist: no hints, no undos. (Mega routes allow both.)
+## A side road with a twist, or a speedrun: no hints, no undos. (Mega routes allow both.)
 func _strict_side() -> bool:
-	return not side.is_empty() and _twist() != "mega"
+	return not side.is_empty() and (_twist() != "mega" or _speedrun())
+
+
+func _speedrun() -> bool:
+	return bool(side.get("speedrun", false))
 
 
 func _parts() -> int:
@@ -220,16 +226,17 @@ func _part_done() -> void:
 	state = State.WON
 	timing = false
 	_clear_hint()
-	Progress.set_mega_part(str(side.get("id", "")), part + 1)
-	Progress.momentum += 1
+	if not _speedrun():
+		Progress.set_mega_part(str(side.get("id", "")), part + 1)
+		Progress.momentum += 1
 	Sfx.play("win")
 	Sfx.haptic(30)
 	var dir := level.exit_dir()
-	fx.say(board.size_px() / 2.0, "PART %d DONE!" % (part + 1), Palette.GOOD.darkened(0.15), int(board.tile * 0.5))
+	fx.say(board.size_px() / 2.0, ("ZONE %d!" if _speedrun() else "PART %d DONE!") % (part + 1), Palette.GOOD.darkened(0.15), int(board.tile * 0.5))
 	fx.burst(van.position, Color("38d9a9"), 16, board.tile * 3.0, board.tile * 0.1)
 	_say("Part %d of %d done! On to the next..." % [part + 1, _parts()], Palette.GOOD.darkened(0.2))
 	var tw := create_tween()
-	tw.tween_interval(0.5)
+	tw.tween_interval(0.5 if not _speedrun() else 0.15)
 	tw.tween_callback(func():
 		van.target_rotation = Vector2(dir).angle()
 		Sfx.play("whoosh", 1.1, -6.0))
@@ -242,6 +249,19 @@ func _part_done() -> void:
 func _start_side() -> void:
 	if _twist() == "melt":
 		timing = true
+	if _speedrun():
+		# The clock: a 3-2-1-GO before the first zone; straight on after that.
+		if part == 0 and not Progress.auto:
+			var cd := Countdown.new()
+			modal = cd
+			_ui_root.add_child(cd)
+			cd.done.connect(func():
+				modal = null
+				timing = true)
+		else:
+			timing = true
+		_side_status()
+		return
 	if part == 0 and ChallengeIntro.should_show_side(side):
 		var ci := ChallengeIntro.new()
 		ci.level = level
@@ -287,6 +307,8 @@ func _side_status() -> void:
 			t = "Fog in %d" % int(ceil(peek)) if not _fogged and peek > 0.0 else "In the fog"
 		"mega":
 			t = "Part %d of %d" % [part + 1, _parts()]
+			if _speedrun():
+				t = Speedrun.clock(speed_elapsed + play_time)
 	level_label.text = t
 	var warn := (_twist() == "fuel" and _fuel_left() <= 2) or (_twist() == "melt" and _melt_left() < 10.0)
 	level_label.add_theme_color_override("font_color", Palette.CRASH if warn else Palette.TEXT)
@@ -345,6 +367,8 @@ func _symbol_at(t: Vector2i) -> Dictionary:
 		if hd.pos == t:
 			var left: int = hd.order - int(sim_state["fills"][h])
 			var k := "house_done" if left <= 0 else ("houses" if left > 1 else "house")
+			if hd.color == "any":
+				return {"kind": "locker" if left > 0 else "house_done", "color": Color("8f98aa"), "name": "any", "count": left, "at": at}
 			return {"kind": k, "color": Palette.pkg(hd.color), "name": _color_word(hd.color), "count": left, "at": at}
 	for k in level.shops.size():
 		var sd = level.shops[k]
@@ -352,6 +376,10 @@ func _symbol_at(t: Vector2i) -> Dictionary:
 			var left: int = sd.count - int(sim_state["picked"][k])
 			var kind := "pickup_done" if left <= 0 else ("warehouse" if left > 1 else "pickup")
 			return {"kind": kind, "color": Palette.pkg(sd.color), "name": _color_word(sd.color), "count": left, "at": at}
+	if level.works.has(t):
+		return {"kind": "works", "count": maxi(int(level.works[t]) - Sim.delivered_count(sim_state), 0), "at": at}
+	if level.ice.has(t):
+		return {"kind": "ice", "at": at}
 	if level.oneway.has(t):
 		return {"kind": "oneway", "at": at}
 	if level.bridges.has(t):
@@ -1324,6 +1352,7 @@ func _unblock() -> void:
 ## Houses waiting for the package that'll be next out of the van (as things stand at the end of the route
 ## being planned, or right now if none is) show a little parcel; houses the plan will fill show a ghost tick.
 func _refresh_tags() -> void:
+	board.update_works(Sim.delivered_count(sim_state))
 	if board.exit_zone:
 		board.exit_zone.open = Sim.all_delivered(level, sim_state)
 	var st: Dictionary = seg_states.back() if (state == State.DRAWING and not seg_states.is_empty()) else sim_state
@@ -2274,12 +2303,18 @@ func _win() -> void:
 	var gas_back := false
 	var crushed := false
 	var side_prize := ""
-	if not side.is_empty():
+	if _speedrun():
+		# A speedrun course done: the time, against the record.
+		var total := speed_elapsed + play_time
+		var best_before: float = Progress.speed_best.get(str(side.get("id", "")), 0.0)
+		if Progress.speed_record(str(side.get("id", "")), total):
+			_bonus_line = "NEW RECORD %s" % Speedrun.clock(total) + ("" if best_before <= 0.0 else " (was %s)" % Speedrun.clock(best_before))
+		else:
+			_bonus_line = "Best is still %s" % Speedrun.clock(best_before)
+	elif not side.is_empty():
 		# A side challenge: its ride, the first time.
 		if Progress.win_side(str(side.get("id", ""))):
 			side_prize = str(side.get("reward", ""))
-			if side.has("log"):
-				Progress.pending_log = str(side.get("id", ""))
 		_bonus_line = Progress.side_power_up(str(side.get("id", "")), side.get("bonus", {}))
 		if _twist() == "mega":
 			Progress.set_mega_part(str(side.get("id", "")), 0)
@@ -2355,7 +2390,9 @@ func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, misse
 	finish.daily = daily_day >= 0
 	finish.last_level = index + 1 >= total or not side.is_empty()
 	finish.side_title = str(side.get("title", ""))
-	finish.side_kind = "MEGA ROUTE" if _twist() == "mega" else "SIDE ROAD"
+	finish.side_kind = "SPEEDRUN" if _speedrun() else ("MEGA ROUTE" if _twist() == "mega" else "SIDE ROAD")
+	if _speedrun():
+		finish.secs = speed_elapsed + play_time
 	finish.bonus_line = _bonus_line
 	# Sideways the finish lives in its own portrait column, so rewards can't fly across to the wallet.
 	finish.coin_chip = null if Progress.landscape else coin_chip

@@ -4,10 +4,19 @@ extends RefCounted
 ## first). Bump NUMBER and add a release to the top of NOTES with each TestFlight version; the build number
 ## lives in export_presets.cfg (tools/testflight.sh bumps it).
 
-const NUMBER := "0.6"
-const NAME := "Road Signs"
+const NUMBER := "0.7"
+const NAME := "The Long Road"
 
 const NOTES := [
+	{"version": "0.7", "name": "The Long Road", "notes": [
+		"50 new levels (41 to 90) across seven new zones, each with its own mix of mechanics.",
+		"New on the road: ice (no turning on it), parcel lockers (they take whatever's on top) and roadworks (open after enough deliveries).",
+		"The old Long Haul and Death Valley levels are now the endgame, 91 to 100. Your progress on them moved with them.",
+		"Speedrun mode! Three courses of quick puzzles against the clock. Opens after level 18.",
+		"28 new daily puzzles, and each day says how spicy it is.",
+		"More treasure chests, every ten levels, and a Traffic Cone hat at 70.",
+		"Somebody else's van has been seen on the map.",
+	]},
 	{"version": "0.6", "name": "Road Signs", "notes": [
 		"Forgot what a symbol means? Tap it (or hold it) for a one-line reminder with a little picture.",
 		"Pickups look nothing like houses now: a dark loading dock in a chunky dashed outline, big bouncing packages, and +N for how many they give.",
@@ -15,7 +24,6 @@ const NOTES := [
 		"Package queue: Auto (the new default) puts it wherever gives the map the most room. You can still pin it left, right, top or bottom.",
 		"Hints don't restart anything: at a dead end they tell you so (Retry to start over), and cost no star.",
 		"Side roads hand out power-ups once a day: spare gas tanks (used only when you run dry), or free hints or undos for a while.",
-		"The driver's logbook: each side road's first win finds a page. Who's the Dispatcher?",
 	]},
 	{"version": "0.5", "name": "Side Roads", "notes": [
 		"Mega routes: big deliveries in parts. Clear a part, drive into its exit and the map pans on to the next. Saved as you go. Twin Towns (2 parts) and The Big Map (4) each win a paint job.",

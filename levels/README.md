@@ -37,6 +37,9 @@ so rows can be aligned when some tokens are two characters). Every row needs the
 | `=r`, `=b`, ... | Colour gate (road): can only be entered while the top package is that colour. Put it on a straight piece of road |
 | `@` | Sorting hub (road): swaps the top two packages when the van drives onto it |
 | `E` | Exit (road, on the map's edge): a mega route's part is won by delivering everything and then finishing here |
+| `~` | Ice (road): no turning on it; you leave it the way you drove on |
+| `w`, `w2`, ... | Parcel locker: takes whatever package is on top (that many). Colour totals: every colour still needs enough packages, and the lockers take the spare ones |
+| `c2`, `c3`, ... | Roadworks (road): closed until that many packages have been delivered |
 
 The loader rejects levels where:
 - a house or shop touches no road, touches a bridge or hub, or touches the `S` tile (the van
@@ -56,7 +59,7 @@ Package colours, **first = bottom, last = top** (the top is delivered first). Fu
 stop it branches off, and which opens it), `reward` (the cosmetic it wins), and `twist`:
 `fuel` (the tank holds exactly the shortest route), `melt` (finish within `seconds`), `one_shot` (one drive
 for the whole run) or `fog` (the load's shown for `peek` seconds, then only the next package). Each side road also has a `bonus` (its once-a-day power-up:
-`{"kind": "reserve" | "hints" | "undos", "amount": tanks or minutes}`) and a `log` (its logbook page). A **mega route**
+`{"kind": "reserve" | "hints" | "undos", "amount": tanks or minutes}`). A **mega route**
 has `twist: "mega"`, a `grid` ([columns, rows]) and `parts`: levels of their own, each with `at` (its cell
 on the grid), played in order. Every part but the last needs an exit (`E`) on the edge toward the next
 part (its direction comes from the grid). `tools/make_mega.gd` turns generator output into parts:

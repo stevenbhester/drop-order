@@ -19,8 +19,15 @@ const TAUNTS := {
 	28: "The gates don't care about your feelings.",
 	32: "Lights out. Nerves of steel.",
 	36: "Sort it out... if you can.",
-	45: "Everything at once. Seriously.",
-	50: "The final run. Make it count, driver.",
+	47: "Snow blind. Plan every slide before you go.",
+	53: "Storm's coming in. The ice won't wait.",
+	58: "The lockers are hungry. Feed them carefully.",
+	67: "Harvest moon. Everything has to come home.",
+	73: "Every road's dug up. Every delivery counts.",
+	83: "Ice, lockers, roadworks. All at once.",
+	90: "Top of the world. One last climb.",
+	95: "Everything at once. Seriously.",
+	100: "The final run. Make it count, driver.",
 }
 
 ## Levels whose intro has played this session.

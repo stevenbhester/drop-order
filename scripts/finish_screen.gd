@@ -31,6 +31,8 @@ var last_level := false
 ## A side road's title (the label says SIDE ROAD instead of the level number).
 var side_title := ""
 var side_kind := "SIDE ROAD"
+## Almost always "DELIVERED!". Almost.
+var _word := "DELIVERED!" if randf() > 0.02 else "DELIVERED?"
 ## A side road's power-up ("Free hints for 10 minutes"), or "".
 var bonus_line := ""
 ## First win on a challenge level.
@@ -300,7 +302,7 @@ func _draw() -> void:
 			_skewed("CHALLENGE", Vector2(v.x / 2.0, _center.y + 205.0) + shake, int(84 * s), Color.WHITE, INK, 14, alpha, Color(base_col.darkened(0.3), alpha))
 			_skewed("CRUSHED!", Vector2(v.x / 2.0, _center.y + 320.0) + shake, int(156 * s), Color("fff3c4"), INK, 18, alpha, Color(Color("ff5a3c"), alpha))
 		else:
-			_skewed("DELIVERED!", Vector2(v.x / 2.0, _center.y + 300.0) + shake, int(150 * s), Color("fff3c4"), INK, 18, alpha, Color(base_col.darkened(0.25), alpha))
+			_skewed(_word, Vector2(v.x / 2.0, _center.y + 300.0) + shake, int(150 * s), Color("fff3c4"), INK, 18, alpha, Color(base_col.darkened(0.25), alpha))
 	# Stat panels.
 	var stats := [["TIME", Daily.clock(secs)], ["STARS", ""], ["MOMENTUM", "×%d" % momentum if momentum > 0 else "–"]]
 	for i in mini(_panels, 3):

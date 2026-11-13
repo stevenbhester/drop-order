@@ -2,7 +2,7 @@ class_name Daily
 extends RefCounted
 ## The daily puzzle: which one is today's, and the text people share after solving it.
 ## Days are whole local calendar days, counted as "days since 1970-01-01" so they're easy to step through.
-## Daily #1 was FIRST_DAY; the ten puzzles in levels/daily.json then repeat in order.
+## Daily #1 was FIRST_DAY; the puzzles in levels/daily.json then repeat in order. Each says how spicy it is.
 
 const PATH := "res://levels/daily.json"
 const FIRST_DAY := "2026-11-10"

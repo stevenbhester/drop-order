@@ -21,6 +21,14 @@ static func new_state(L: LevelData) -> Dictionary:
 	return {"stack": L.stack.duplicate(), "fills": fills, "picked": picked}
 
 
+## Packages delivered so far (roadworks open after enough of them).
+static func delivered_count(s: Dictionary) -> int:
+	var n := 0
+	for f in s["fills"]:
+		n += f
+	return n
+
+
 static func copy_state(s: Dictionary) -> Dictionary:
 	return {"stack": s["stack"].duplicate(), "fills": s["fills"].duplicate(), "picked": s["picked"].duplicate()}
 
@@ -60,6 +68,8 @@ static func is_won(L: LevelData, s: Dictionary, route: Array) -> bool:
 ##   and you must leave it moving the way the arrow points
 ## - bridges must be driven straight across, and (no-revisit levels) once per axis
 ## - colour gates may only be entered while the top package is their colour
+## - roadworks open only once enough packages have been delivered
+## - ice: no turning on it (you leave it the way you drove on)
 ## - no-revisit levels (all of them now: the road behind the van is wrecked): any other tile at most
 ##   once, except driving home to the depot
 ## - once parked at the depot, the shift is over
@@ -78,7 +88,11 @@ static func can_extend(L: LevelData, route: Array, next: Vector2i, s: Dictionary
 		return false
 	if L.gates.has(next) and top_color(L, s) != L.gates[next]:
 		return false
+	if L.works.has(next) and delivered_count(s) < L.works[next]:
+		return false
 	var n := route.size()
+	if L.ice.has(last) and n >= 2 and d != last - route[n - 2]:
+		return false
 	if L.bridges.has(last) and n >= 2 and d != last - route[n - 2]:
 		return false
 	if L.bridges.has(next):
@@ -131,13 +145,17 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 		progress = false
 		if not stack.is_empty():
 			var top: String = stack.back()
-			for h in adj_h:
-				if L.houses[h].color == top and fills[h] < L.houses[h].order:
-					fills[h] += 1
-					stack.pop_back()
-					delivered[h] = true
-					events.append({"type": "deliver", "house": h, "color": top})
-					progress = true
+			# A house wanting that colour first; a locker (any colour) only if none does.
+			for pass_any in [false, true]:
+				for h in adj_h:
+					if (L.houses[h].color == "any") == pass_any and (pass_any or L.houses[h].color == top) and fills[h] < L.houses[h].order:
+						fills[h] += 1
+						stack.pop_back()
+						delivered[h] = true
+						events.append({"type": "deliver", "house": h, "color": top})
+						progress = true
+						break
+				if progress:
 					break
 		if progress:
 			continue
@@ -152,7 +170,7 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 	if not stack.is_empty():
 		var top: String = stack.back()
 		for h in adj_h:
-			if fills[h] < L.houses[h].order and L.houses[h].color != top and not delivered.has(h):
+			if fills[h] < L.houses[h].order and L.houses[h].color != top and L.houses[h].color != "any" and not delivered.has(h):
 				nopes.append(h)
 	return {"events": events, "nopes": nopes}
 

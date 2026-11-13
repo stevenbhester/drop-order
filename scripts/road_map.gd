@@ -37,9 +37,17 @@ const REGIONS := [
 	{"name": "Cactus Canyon", "from": 22, "to": 28, "kind": "canyon", "ground": Color("f4c993")},
 	{"name": "Pine Peaks", "from": 29, "to": 34, "kind": "peaks", "ground": Color("b7dcc3")},
 	{"name": "Seaside Lights", "from": 35, "to": 40, "kind": "sea", "ground": Color("f7e6b8")},
-	{"name": "The Long Haul", "from": 41, "to": 45, "kind": "night", "ground": Color("2c2457"),
-		"title": "Sneak Peek · The Long Haul", "note": "A taste of later chapters. Very hard!", "barrier": true},
-	{"name": "Death Valley", "from": 46, "to": 50, "kind": "night", "ground": Color("3b1426"),
+	# Part 3: each zone brings a new idea and retires an old one (see levels/README.md).
+	{"name": "Frostbite Pass", "from": 41, "to": 47, "kind": "peaks", "ground": Color("e4eff8")},
+	{"name": "Harbour Lights", "from": 48, "to": 54, "kind": "sea", "ground": Color("d2e9e6")},
+	{"name": "Neon Alley", "from": 55, "to": 61, "kind": "city", "ground": Color("cfc8ea")},
+	{"name": "Orchard Hills", "from": 62, "to": 68, "kind": "farm", "ground": Color("d3e8a8")},
+	{"name": "Detour City", "from": 69, "to": 75, "kind": "city", "ground": Color("e4d8c6")},
+	{"name": "Thunder Mesa", "from": 76, "to": 83, "kind": "canyon", "ground": Color("ebbd92")},
+	{"name": "Skyline Summit", "from": 84, "to": 90, "kind": "peaks", "ground": Color("cbd9ea")},
+	{"name": "The Long Haul", "from": 91, "to": 95, "kind": "night", "ground": Color("2c2457"),
+		"title": "Endgame · The Long Haul", "note": "Everything at once. Very hard!"},
+	{"name": "Death Valley", "from": 96, "to": 100, "kind": "night", "ground": Color("3b1426"),
 		"title": "Insane · Death Valley", "note": "25+ packages each. Bring snacks."},
 ]
 
@@ -488,6 +496,9 @@ func _draw() -> void:
 	for i in stops.size():
 		if stops[i].y > y0 and stops[i].y < y1:
 			_draw_stop(i)
+	_draw_other_van()
+	if y0 < 420.0:
+		_draw_road_end()
 	for sp in spurs:
 		var b: Vector2 = sp["b"]
 		if b.y > y0 - 100.0 and b.y < y1 + 100.0:
@@ -733,6 +744,43 @@ func _draw_stop(i: int) -> void:
 		var t := c + Vector2(0, -r - 14)
 		DrawUtil.rrect(self, Rect2(t + Vector2(-tw / 2.0 - 12, -16), Vector2(tw + 24, 32)), PEEK, 16)
 		draw_string(f, t + Vector2(-tw / 2.0, 8), "PEEK", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+
+
+# ---------------------------------------------------------------- odd things
+
+## Somebody else's van: grey, parked a few stops further up the road, facing away, a "?" parcel on its
+## roof. However far you get, it's always a little further on. (Nobody's ever explained it.)
+func _draw_other_van() -> void:
+	if next < 3 or stops.size() < 5:
+		return
+	var i := mini(next + 3, stops.size() - 1)
+	var s: Vector2 = stops[i]
+	var dx := 1.0 if s.x < W / 2.0 else -1.0
+	var at := s + Vector2(dx * 175.0, 70.0)
+	for sp in spurs:
+		if at.distance_to(sp["b"]) < 150.0:
+			at = s + Vector2(-dx * 175.0, 70.0)
+	var c := _o(at)
+	var L := 92.0
+	var Wd := 56.0
+	draw_set_transform(c, -PI / 2.0 + 0.15 * dx, Vector2.ONE)
+	DrawUtil.rrect(self, Rect2(-L / 2 - 3, -Wd / 2 + 2, L + 6, Wd + 6), Color(0, 0, 0, 0.18), Wd * 0.3)
+	DrawUtil.rrect(self, Rect2(-L / 2, -Wd / 2, L, Wd), Color("8d8f99"), Wd * 0.28)
+	DrawUtil.rrect(self, Rect2(L / 2 - L * 0.3, -Wd / 2, L * 0.3, Wd), Color("4a4c57"), Wd * 0.28)
+	DrawUtil.parcel(self, Vector2(-L * 0.12, 0), Vector2(Wd * 0.62, Wd * 0.46), Palette.pkg("purple"), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Past the last stop the road runs on into fog, by a sign nobody has a number for.
+func _draw_road_end() -> void:
+	var top := _o(Vector2(0, 0))
+	for k in 6:
+		draw_rect(Rect2(Vector2(0, top.y - 200.0 + k * 50.0), Vector2(W, 60.0)), Color(1, 1, 1, 0.16 - k * 0.022))
+	var rp := _road_point_at_y(110.0)
+	var p := _o(rp + Vector2(-170.0 if rp.x > W / 2.0 else 170.0, 0))
+	draw_line(p + Vector2(0, 40), p + Vector2(0, -30), Color("8a6a4a"), 8.0)
+	DrawUtil.rrect(self, Rect2(p + Vector2(-80, -86), Vector2(160, 64)), Color("2fb49a"), 10)
+	_text("MILE ???", p + Vector2(0, -54), 28, Color.WHITE)
 
 
 # ---------------------------------------------------------------- side roads

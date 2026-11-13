@@ -29,6 +29,8 @@ var oneway := {}                 # road Vector2i -> Vector2i: the only direction
 var bridges := {}                # road Vector2i -> true: crossable once per axis, straight through
 var gates := {}                  # road Vector2i -> colour: enterable only with that colour on top
 var hubs := {}                   # road Vector2i -> true: swaps the top two packages
+var ice := {}                    # road Vector2i -> true: no turning on it (leave the way you came in)
+var works := {}                  # road Vector2i -> int: roadworks, closed until that many deliveries are made
 var adjacent_houses := {}        # road Vector2i -> Array[int] of house indices
 var adjacent_shops := {}         # road Vector2i -> Array[int] of shop indices
 var house_roads: Array = []      # per house: Array[Vector2i] of touching road tiles
@@ -37,6 +39,7 @@ var gift := Vector2i(-1, -1)     # a road tile with a cosmetic on it (optional; 
 var gift_item := ""              # Cosmetics id
 var preview := false             # a sneak-peek level (harder than the release would have yet)
 var challenge := false           # a spike: much harder than its neighbours (an intro, a badge, a big win)
+var spice := 0                   # dailies: how hard today's is, 1 (mild) to 3 (spicy); 0 = not said
 var errors: Array = []
 ## The most a level may start with aboard, and the most its winning route may ever carry (the truck's
 ## comfortable size; bigger levels get their packages from warehouses along the way).
@@ -52,6 +55,7 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L.return_depot = bool(d.get("return", false))
 	L.preview = bool(d.get("preview", false))
 	L.challenge = bool(d.get("challenge", false))
+	L.spice = int(d.get("spice", 0))
 	var ew = d.get("exit_dir", null)
 	if ew is Array and ew.size() == 2:
 		L.exit_way = Vector2i(int(ew[0]), int(ew[1]))
@@ -107,12 +111,24 @@ func _parse_token(t: String, p: Vector2i) -> void:
 			bridges[p] = true
 		"@":
 			hubs[p] = true
+		"~":
+			ice[p] = true
 		"^", ">", "v", "<":
 			oneway[p] = ARROWS[t]
 		_:
 			var code := t.substr(0, 1)
 			if code == "=" and t.length() == 2 and COLOR_CODES.has(t.substr(1)):
 				gates[p] = COLOR_CODES[t.substr(1)]
+			elif code == "c" and t.length() > 1 and t.substr(1).is_valid_int():
+				# Roadworks: closed until this many deliveries have been made.
+				works[p] = maxi(1, t.substr(1).to_int())
+			elif code == "w" and (t.length() == 1 or t.substr(1).is_valid_int()):
+				# A parcel locker: takes whatever package is on top (wN: that many).
+				cells[i] = Cell.HOUSE
+				var lorder := 1
+				if t.length() > 1:
+					lorder = maxi(1, t.substr(1).to_int())
+				houses.append({"pos": p, "color": "any", "order": lorder})
 			elif COLOR_CODES.has(code):
 				cells[i] = Cell.HOUSE
 				var order := 1
@@ -165,22 +181,39 @@ func _validate() -> void:
 			errors.append("the exit (E) must be on the map's edge")
 		if return_depot:
 			errors.append("a level can't have both an exit and a return to the depot")
-	if bridges.has(start) or oneway.has(start) or gates.has(start) or hubs.has(start):
+	for w in works:
+		if w == start:
+			errors.append("roadworks can't be on the start tile")
+	if bridges.has(start) or oneway.has(start) or gates.has(start) or hubs.has(start) or ice.has(start):
 		errors.append("the start tile must be plain road")
 	if adjacent_houses.has(start) or adjacent_shops.has(start):
 		errors.append("a house/shop touches the start tile (the van only acts on tiles it drives onto)")
 
 	# House orders must match the packages that exist (van stack + shop parcels) exactly.
+	# Lockers ("any") take whatever's left over: every colour must have enough, and the totals must match.
 	var need := {}
+	var any := 0
 	for h in houses:
-		need[h.color] = need.get(h.color, 0) + h.order
+		if h.color == "any":
+			any += h.order
+		else:
+			need[h.color] = need.get(h.color, 0) + h.order
 	var have := {}
 	for c in stack:
 		have[c] = have.get(c, 0) + 1
 	for s in shops:
 		have[s.color] = have.get(s.color, 0) + s.count
-	if need != have:
-		errors.append("house orders %s don't match packages (stack + shops) %s" % [need, have])
+	var spare := 0
+	var ok := true
+	for c in have:
+		if have[c] < need.get(c, 0):
+			ok = false
+		spare += have[c] - need.get(c, 0)
+	for c in need:
+		if not have.has(c):
+			ok = false
+	if not ok or spare != any:
+		errors.append("house orders %s (+%d any) don't match packages (stack + shops) %s" % [need, any, have])
 	if stack.size() > MAX_LOAD:
 		errors.append("starts with %d packages aboard; the most is %d (use warehouses for more)" % [stack.size(), MAX_LOAD])
 

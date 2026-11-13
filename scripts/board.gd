@@ -10,6 +10,7 @@ var shop_nodes: Array = []       # Shop, same order as L.shops
 var gate_nodes := {}             # Vector2i -> Gate
 var hub_nodes := {}              # Vector2i -> Hub
 var depot: DepotGlow
+var works_nodes := {}            # road Vector2i -> Roadworks
 ## A mega route's way on to the next part (null on other levels).
 var exit_zone: ExitZone
 var gift: Gift
@@ -91,7 +92,8 @@ func setup(level: LevelData, tile_size: float) -> void:
 	add_child(hint_head)
 	for h in L.houses:
 		var n := House.new()
-		n.color = Palette.pkg(h.color)
+		n.locker = h.color == "any"
+		n.color = Palette.pkg(h.color) if not n.locker else Color("8f98aa")
 		n.order = h.order
 		n.size = tile
 		n.base_pos = center(h.pos) + Vector2(0, tile * 0.3)
@@ -115,6 +117,13 @@ func setup(level: LevelData, tile_size: float) -> void:
 		gift.position = center(L.gift)
 		gift.z_index = 3
 		add_child(gift)
+	for p in L.works:
+		var wk := Roadworks.new()
+		wk.tile = tile
+		wk.need = L.works[p]
+		wk.position = center(p)
+		add_child(wk)
+		works_nodes[p] = wk
 	for p in L.gates:
 		var g := Gate.new()
 		g.color = Palette.pkg(L.gates[p])
@@ -127,6 +136,12 @@ func setup(level: LevelData, tile_size: float) -> void:
 		add_child(g)
 		gate_nodes[p] = g
 	queue_redraw()
+
+
+## Roadworks count down with each delivery and clear away once there have been enough.
+func update_works(done: int) -> void:
+	for p in works_nodes:
+		works_nodes[p].set_done(done)
 
 
 ## Lift/lower every gate for the given top package colour.
@@ -248,6 +263,8 @@ func _draw() -> void:
 				if L.is_road(p + d) and not _busy(p) and not _busy(p + d):
 					draw_dashed_line(center(p), center(p + d), Palette.ROAD_MARK, tile * 0.035, tile * 0.11, true, true)
 
+	for p in L.ice:
+		_ice(p, m, rw)
 	for b in L.bridges:
 		_bridge(b, m, rw)
 	for p in L.oneway:
@@ -257,7 +274,23 @@ func _draw() -> void:
 
 ## Tiles whose centre is occupied by a marking, so lane dashes skip them.
 func _busy(p: Vector2i) -> bool:
-	return L.oneway.has(p) or L.hubs.has(p) or L.gates.has(p)
+	return L.oneway.has(p) or L.hubs.has(p) or L.gates.has(p) or L.ice.has(p) or L.works.has(p)
+
+
+## An ice tile: pale blue sheen over the road, with streaks along it and a snowflake. No turning on it.
+func _ice(p: Vector2i, m: float, rw: float) -> void:
+	var o := Vector2(p) * tile
+	var r := Rect2(o + Vector2(m, m), Vector2(rw, rw)).grow(tile * 0.02)
+	DrawUtil.rrect(self, r, Color("bfe6ff", 0.85), tile * 0.2)
+	DrawUtil.rrect(self, r.grow(-tile * 0.06), Color("e3f5ff", 0.9), tile * 0.16)
+	var c := center(p)
+	for k in 3:
+		var a := Vector2(-0.3 + k * 0.12, -0.28 + k * 0.2) * tile
+		draw_line(c + a, c + a + Vector2(0.22, 0.0).rotated(-0.5) * tile, Color(1, 1, 1, 0.95), tile * 0.03, true)
+	for k in 3:
+		var ang := k * PI / 3.0
+		var d := Vector2(cos(ang), sin(ang)) * tile * 0.13
+		draw_line(c + Vector2(tile * 0.18, tile * 0.18) - d, c + Vector2(tile * 0.18, tile * 0.18) + d, Color("7cc4f2"), tile * 0.03, true)
 
 
 func _tree(c: Vector2, r: float) -> void:

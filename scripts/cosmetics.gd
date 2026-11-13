@@ -22,6 +22,7 @@ const ITEMS := {
 	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
 	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
 	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
+	"cone_hat": {"kind": "topper", "name": "Traffic Cone", "from": ""},
 	"drizzlet": {"kind": "topper", "name": "Drizzlet", "from": "Frontiers Celestia"},
 	"bonkle": {"kind": "topper", "name": "Bonkle Ears", "from": "Frontiers Celestia"},
 	"sprout": {"kind": "topper", "name": "Sprout & Orbit", "from": "Frontiers Celestia"},
@@ -32,7 +33,7 @@ const ITEMS := {
 ## Garage order.
 const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
 	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
-	"party_hat", "hard_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
+	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
 ## Rides that move (they're redrawn every frame in the garage).
 const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat"]
 
@@ -57,6 +58,7 @@ static func tint(id: String) -> Color:
 		"party_hat": return Color("ff5fa2")
 		"hard_hat": return Color("ffc93c")
 		"crown": return Color("ffcf4d")
+		"cone_hat": return Color("ff8a3d")
 	return ITEMS.get(id, {}).get("body", Palette.ACCENT)
 
 
@@ -181,6 +183,13 @@ static func draw_topper(ci: CanvasItem, id: String, c: Vector2, s: float, t := 0
 			ci.draw_circle(c, u * 0.78, Color("ffc93c"))
 			ci.draw_line(c + Vector2(-u * 0.7, 0), c + Vector2(u * 0.7, 0), Color("e0a92a"), u * 0.16, true)
 			ci.draw_circle(c + Vector2(u * 0.2, -u * 0.25), u * 0.12, Color(1, 1, 1, 0.55))
+		"cone_hat":
+			# A traffic cone from above: orange rings and a white band round its tip.
+			ci.draw_circle(c, u * 1.0, Color("e0702a"))
+			ci.draw_circle(c, u * 0.8, Color("ff8a3d"))
+			ci.draw_circle(c, u * 0.55, Color.WHITE)
+			ci.draw_circle(c, u * 0.38, Color("ff8a3d"))
+			ci.draw_circle(c + Vector2(u * 0.1, -u * 0.1), u * 0.12, Color(1, 1, 1, 0.6))
 		"crown":
 			# A gold crown: a ring of points round a red jewel.
 			var pts := PackedVector2Array()

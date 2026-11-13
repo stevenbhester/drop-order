@@ -9,7 +9,7 @@ extends SceneTree
 func _init() -> void:
 	var ablate := OS.get_cmdline_user_args().has("--ablate")
 	var ok := true
-	var levels := Levels.load_all() + Daily.puzzles() + SideRoads.all_levels()
+	var levels := Levels.load_all() + Daily.puzzles() + SideRoads.all_levels() + Speedrun.all_levels()
 	for L in levels:
 		var r := Solver.solve(L)
 		if r["count"] > 0:
@@ -42,7 +42,10 @@ func _init() -> void:
 				var kind := "on the route" if Sim.is_won(L, Sim.run(L, gr), gr) and gr.back() != L.gift else "extra mile"
 				feats.append("gift %s, %s" % [L.gift_item, kind])
 		var tag := "D%02d" % (L.number - Daily.NUMBER_BASE) if L.number > Daily.NUMBER_BASE else "L%02d" % L.number
-		if L.number >= SideRoads.NUMBER_BASE + 20 and L.number < Daily.NUMBER_BASE:
+		if L.number >= Speedrun.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
+			tag = "R%02d" % (L.number - Speedrun.NUMBER_BASE)
+			feats.append("SPEEDRUN")
+		elif L.number >= SideRoads.NUMBER_BASE + 20 and L.number < Daily.NUMBER_BASE:
 			tag = "M%02d" % (L.number - SideRoads.NUMBER_BASE - 20)
 		elif L.number >= SideRoads.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
 			tag = "S%02d" % (L.number - SideRoads.NUMBER_BASE + 1)
@@ -58,5 +61,5 @@ func _init() -> void:
 				L.set(field, {})
 				print("       without %s: %s" % [field, Solver.describe(L, Solver.solve(L))])
 				L.set(field, saved)
-	print("%d levels (with dailies and side roads), %s" % [levels.size(), "all solvable" if ok else "PROBLEMS FOUND"])
+	print("%d levels (with dailies, side roads and speedruns), %s" % [levels.size(), "all solvable" if ok else "PROBLEMS FOUND"])
 	quit(0 if ok else 1)

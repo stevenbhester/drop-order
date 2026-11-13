@@ -112,6 +112,19 @@ func _text(text: String, at: Vector2, px: int, col: Color, outline := 0) -> void
 	draw_string(f, at + Vector2(-w / 2.0, px * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, col)
 
 
+func _chilli(c: Vector2, lit: bool) -> void:
+	var col := Color("e8473c") if lit else Color(Palette.TEXT, 0.14)
+	var pts := PackedVector2Array()
+	for k in 13:
+		var u := k / 12.0
+		pts.append(c + Vector2(-14.0 + u * 30.0, -6.0 + 12.0 * u * u) + Vector2(0, -9.0 * sin(PI * u) * (1.0 - u * 0.6)))
+	for k in range(12, -1, -1):
+		var u := k / 12.0
+		pts.append(c + Vector2(-14.0 + u * 30.0, -6.0 + 12.0 * u * u) + Vector2(0, 9.0 * sin(PI * u) * (1.0 - u * 0.6)))
+	draw_colored_polygon(pts, col)
+	draw_line(c + Vector2(-14, -4), c + Vector2(-22, -14), Color("35c27a") if lit else Color(Palette.TEXT, 0.14), 5.0, true)
+
+
 func _draw() -> void:
 	var v := size
 	var cx := v.x / 2.0
@@ -123,6 +136,12 @@ func _draw() -> void:
 	if L:
 		_text("“%s”" % L.title, Vector2(cx, y0 + 250), 54, Palette.TEXT)
 		_text("%d × %d · %d packages" % [L.width, L.height, L.total_orders()], Vector2(cx, y0 + 320), 38, Palette.TEXT_SOFT)
+		if L.spice > 0:
+			# How hot today's is: one to three chillies.
+			var word: String = ["", "Mild", "Medium", "Spicy!"][clampi(L.spice, 1, 3)]
+			for i in 3:
+				_chilli(Vector2(cx - 150 + i * 56, y0 + 392), i < L.spice)
+			_text(word, Vector2(cx + 60, y0 + 392), 40, Palette.CRASH if L.spice >= 3 else Palette.TEXT_SOFT)
 
 	# Streak, with fire that grows with it.
 	var streak := Progress.streak(_day)

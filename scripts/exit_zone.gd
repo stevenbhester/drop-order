@@ -1,8 +1,8 @@
 class_name ExitZone
 extends Node2D
-## The way on to the next part of a mega route: a pad on its edge tile with chevrons pointing off the map
-## and a little "NEXT PART" tag. Dim until everything in this part is delivered; then it lights up and the
-## chevrons run, calling the van over. Origin at the tile's centre.
+## The way on to the next part of a mega route (or speedrun zone): a pad on its edge tile with chevrons
+## pointing off the map. Dim until everything in this part is delivered; then it lights up and the chevrons
+## run, calling the van over. (Tap it for what it is.) Origin at the tile's centre.
 
 var tile := 100.0
 var dir := Vector2i(1, 0)
@@ -12,7 +12,6 @@ var open := false:
 		if v != open:
 			open = v
 			queue_redraw()
-var label := "NEXT PART"
 var _t := 0.0
 
 
@@ -40,13 +39,3 @@ func _draw() -> void:
 		var w := tile * 0.2
 		draw_polyline(PackedVector2Array([c - d * w * 0.5 + side * w, c + d * w * 0.5, c - d * w * 0.5 - side * w]),
 			Color(Color.WHITE, a * fade), tile * 0.07, true)
-	# The tag, on the inside of the tile.
-	var f := UiTheme.font()
-	var px := int(tile * 0.15)
-	var tw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
-	var at := -d * tile * 0.62
-	if dir.y != 0:
-		at = -d * tile * 0.6
-	var tag := Rect2(at - Vector2(tw / 2.0 + tile * 0.06, px * 0.7), Vector2(tw + tile * 0.12, px * 1.4))
-	DrawUtil.rrect(self, tag, Color(col.darkened(0.25), 0.55 + 0.4 * a), px * 0.7)
-	draw_string(f, at + Vector2(-tw / 2.0, px * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)

@@ -52,7 +52,15 @@ func _ready() -> void:
 			direct = true
 		elif a.begins_with("--auto"):
 			direct = true
-	if side_id != "":
+	var speed_id := ""
+	for a in args:
+		if a.begins_with("--speedrun="):
+			speed_id = a.trim_prefix("--speedrun=")
+	if speed_id == "list":
+		show_speedrun()
+	elif speed_id != "":
+		play_speed(speed_id)
+	elif side_id != "":
 		# Debug: --side-part=N starts a mega route at part N (as if just arrived: it pans in).
 		var pan := Vector2i.ZERO
 		for a in args:
@@ -176,6 +184,7 @@ func show_title() -> void:
 	t.garage_pressed.connect(show_garage)
 	t.options_pressed.connect(open_options)
 	t.notes_pressed.connect(open_notes)
+	t.speedrun_pressed.connect(show_speedrun)
 	_swap(t)
 
 
@@ -209,6 +218,43 @@ func _start(i: int, paid := false) -> void:
 	g.level_requested.connect(play)
 	g.retry_requested.connect(func(j): _start(j, g.retry_paid))
 	g.menu_requested.connect(show_select)
+	_swap(g)
+
+
+## Speedrun mode: the course list (locked until level Speedrun.UNLOCK_LEVEL is beaten).
+func show_speedrun() -> void:
+	_reshow = show_speedrun
+	var s := SpeedrunScreen.new()
+	s.course_chosen.connect(play_speed)
+	s.back_pressed.connect(show_title)
+	_swap(s)
+
+
+func play_speed(id: String) -> void:
+	_start_speed(id, 0, 0.0, Vector2i.ZERO)
+
+
+## Zone `k` of a speedrun course, with `elapsed` already on the clock; `pan` is the way the camera came.
+func _start_speed(id: String, k: int, elapsed: float, pan: Vector2i) -> void:
+	var d := Speedrun.get_def(id)
+	var L := Speedrun.zone_level(id, k)
+	if L == null:
+		show_speedrun()
+		return
+	var key := "speed_%s_%d" % [id, k]
+	if not solved.has(key):
+		solved[key] = Solver.solve(L)
+	_reshow = Callable()
+	var g := Game.new()
+	g.side = d
+	g.part = k
+	g.pan_from = pan
+	g.speed_elapsed = elapsed
+	g.options_requested.connect(open_options.bind(g))
+	g.setup(L, 0, 1, solved[key])
+	g.retry_requested.connect(func(_i): _start_speed(id, 0, 0.0, Vector2i.ZERO))
+	g.menu_requested.connect(show_speedrun)
+	g.part_finished.connect(func(dir: Vector2i): _start_speed(id, k + 1, elapsed + g.play_time, dir))
 	_swap(g)
 
 

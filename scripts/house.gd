@@ -3,6 +3,8 @@ extends Node2D
 ## A customer house. Origin is at the house's base so squash/pop scales from the ground.
 
 var color := Color.RED
+## A parcel locker: takes whatever package is on top (drawn as a bank of little doors).
+var locker := false
 var order := 1
 var filled := 0
 var size := 180.0
@@ -128,7 +130,9 @@ func _draw() -> void:
 	DrawUtil.rrect(self, Rect2(-w * 0.62, -s * 0.05, w * 1.24, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
 	# Each colour is a different kind of place (its packages' class): same footprint, same light walls and
 	# coloured roof, so it's still the colour you read.
-	match Palette.kind_of(color):
+	match "locker" if locker else Palette.kind_of(color):
+		"locker":
+			_locker(s, w, h, done, glass)
 		"biohazard":
 			_lab(s, w, h, wall, roof, ink, glass)
 		"caution":
@@ -143,7 +147,7 @@ func _draw() -> void:
 			_home(s, w, h, wall, roof, ink, glass)
 	# Colorblind mode: the package class's mark on a round sign on the building itself (never out over the
 	# road), so the place can be matched to its packages by shape.
-	if DrawUtil.bold_marks and Palette.kind_of(color) != "":
+	if DrawUtil.bold_marks and Palette.kind_of(color) != "" and not locker:
 		var kind := Palette.kind_of(color)
 		var pc := _sign_at(kind, s, w, h)
 		var pr := s * 0.14
@@ -202,6 +206,35 @@ func _soft_poly(pts: PackedVector2Array, col: Color, rad: float) -> void:
 	draw_polyline(outline, col, rad * 2.0, true)
 	for p in pts:
 		draw_circle(p, rad, col)
+
+
+## A parcel locker: a grey bank of little doors (one swings open as each package goes in) and a "?" on
+## top: it takes any package.
+func _locker(s: float, w: float, h: float, done: bool, glass: Color) -> void:
+	var body := Color("8f98aa") if not done else Color("c9ced8")
+	var lw := w * 1.0
+	var lh := h * 1.1
+	DrawUtil.rrect(self, Rect2(-lw / 2, -lh, lw, lh), body.darkened(0.15), s * 0.05)
+	DrawUtil.rrect(self, Rect2(-lw / 2 + s * 0.02, -lh + s * 0.02, lw - s * 0.04, lh - s * 0.04), body, s * 0.04)
+	var cols := 3
+	var rows := 2
+	var cw := (lw - s * 0.1) / cols
+	var ch := (lh - s * 0.16) / rows
+	var k := 0
+	for ry in rows:
+		for cx in cols:
+			var r := Rect2(Vector2(-lw / 2 + s * 0.05 + cx * cw, -lh + s * 0.1 + ry * ch), Vector2(cw - s * 0.02, ch - s * 0.02))
+			var used := k < filled
+			DrawUtil.rrect(self, r, Color("e9ecf2") if not used else Palette.CHECK.lightened(0.3), s * 0.02)
+			draw_circle(r.position + Vector2(r.size.x * 0.8, r.size.y * 0.5), s * 0.012, Color("6b7385"))
+			k += 1
+	# The "?" sign on top: any colour goes.
+	var c := Vector2(0, -lh - s * 0.1)
+	DrawUtil.rrect(self, Rect2(c - Vector2(s * 0.12, s * 0.09), Vector2(s * 0.24, s * 0.18)), Color("ffc93c") if not done else Color("d6d2dc"), s * 0.05)
+	var f := UiTheme.font()
+	var px := int(s * 0.16)
+	var tw := f.get_string_size("?", HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	draw_string(f, c + Vector2(-tw / 2.0, px * 0.36), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color("2b2233"))
 
 
 ## Gifts: a home with a gable roof.

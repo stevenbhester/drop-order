@@ -19,7 +19,12 @@ const CHESTS := {
 	20: {"gas": 3, "coins": 400, "hat": "party_hat"},
 	30: {"gas": 3, "coins": 600},
 	40: {"gas": 4, "coins": 800, "hat": "hard_hat"},
-	50: {"gas": 5, "coins": 1500, "hat": "crown"},
+	50: {"gas": 4, "coins": 1000},
+	60: {"gas": 4, "coins": 1100},
+	70: {"gas": 5, "coins": 1200, "hat": "cone_hat"},
+	80: {"gas": 5, "coins": 1300},
+	90: {"gas": 5, "coins": 1400},
+	100: {"gas": 5, "coins": 2500, "hat": "crown"},
 }
 ## What each twist is called on its sign and in the game's top bar.
 const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route"}
@@ -70,6 +75,13 @@ static func part_level(id: String, k: int) -> LevelData:
 		var d: Dictionary = all[i]
 		if d.get("id", "") != id:
 			continue
+		return part_level_of(d, k, NUMBER_BASE + 20 + i * 6 + k)
+	return null
+
+
+## Part `k` of any parted route (a mega route here, or a speedrun course), numbered `number`.
+static func part_level_of(d: Dictionary, k: int, number: int) -> LevelData:
+	if true:
 		var parts: Array = d.get("parts", [])
 		k = clampi(k, 0, parts.size() - 1)
 		var pd: Dictionary = (parts[k] as Dictionary).duplicate(true)
@@ -80,7 +92,7 @@ static func part_level(id: String, k: int) -> LevelData:
 			var there: Array = parts[k + 1].get("at", [k + 1, 0])
 			pd["exit_dir"] = [signi(int(there[0]) - int(here[0])), signi(int(there[1]) - int(here[1]))]
 		pd["hint"] = d.get("hint", "") if k == 0 else ("Part %d of %d. Deliver everything, then take the exit." % [k + 1, parts.size()] if k < parts.size() - 1 else "Last part! Deliver everything to finish the route.")
-		return LevelData.from_dict(pd, NUMBER_BASE + 20 + i * 6 + k)
+		return LevelData.from_dict(pd, number)
 	return null
 
 

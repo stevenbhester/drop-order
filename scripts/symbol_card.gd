@@ -55,6 +55,9 @@ func line() -> String:
 		"exit": return "Deliver everything, then drive in here to go on."
 		"pitstop": return "Finish here: park back at the pit stop."
 		"gift": return "A present! Drive over it to keep it."
+		"ice": return "Ice! No turning on it: slide straight across."
+		"locker": return "Locker: takes whatever package is on top." if count <= 1 else "Locker: takes the next %d packages, whatever they are." % count
+		"works": return "Roadworks: opens after %d more deliver%s." % [count, "y" if count == 1 else "ies"] if count > 0 else "Roadworks: open now!"
 		"wreck": return "Torn-up road. You can't drive here again."
 	return ""
 
@@ -261,6 +264,32 @@ func _picture(p: Rect2) -> void:
 			else:
 				Icons.star(self, c + Vector2(s * 0.1, -s * 0.2), s * 0.1 * (1.0 + (u - 0.55)), Palette.STAR_GOLD, _t)
 			_van(c + Vector2(lerpf(-s * 0.4, s * 0.4, u), 0), s * 0.28, 0.0)
+		"ice":
+			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.42, 0), s * 0.3)
+			DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.18, -s * 0.15), Vector2(s * 0.36, s * 0.3)), Color("d8f0ff"), s * 0.06)
+			var u := loop
+			_van(c + Vector2(lerpf(-s * 0.4, s * 0.4, u), 0), s * 0.26, sin(u * 18.0) * 0.12 * (1.0 if absf(u - 0.5) < 0.15 else 0.0))
+			_tick(c + Vector2(s * 0.3, -s * 0.3), s * 0.09)
+		"locker":
+			DrawUtil.rrect(self, Rect2(c + Vector2(0, -s * 0.22), Vector2(s * 0.34, s * 0.4)), Color("8f98aa"), s * 0.04)
+			for i in 3:
+				var cl: Color = [Palette.pkg("red"), Palette.pkg("blue"), Palette.pkg("yellow")][i]
+				var u := clampf((loop - i * 0.28) / 0.25, 0.0, 1.0)
+				if u > 0.0 and u < 1.0:
+					var at := (c + Vector2(-s * 0.32, s * 0.15)).lerp(c + Vector2(s * 0.17, -s * 0.02), u) + Vector2(0, -sin(PI * u) * s * 0.2)
+					DrawUtil.parcel(self, at, Vector2(s * 0.2, s * 0.15), cl, false)
+			draw_string(UiTheme.font(), c + Vector2(s * 0.12, s * 0.04), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, int(s * 0.22), Color.WHITE)
+		"works":
+			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.42, 0), s * 0.3)
+			var open := loop > 0.55
+			draw_set_transform(_org + (c + Vector2(s * 0.05, 0)) * _scl, -1.2 if open else 0.0, Vector2.ONE * _scl)
+			DrawUtil.rrect(self, Rect2(Vector2(-s * 0.2, -s * 0.04), Vector2(s * 0.4, s * 0.08)), Color("ff6b3d"), s * 0.02)
+			draw_set_transform(_org, 0.0, Vector2.ONE * _scl)
+			var dn := mini(int(loop * 4.0), 2)
+			for i in 2:
+				Icons.star(self, c + Vector2(-s * 0.3 + i * s * 0.15, -s * 0.3), s * 0.06, Palette.STAR_GOLD if i < dn else Color(Palette.TEXT, 0.15))
+			if open:
+				_van(c + Vector2(lerpf(-s * 0.3, s * 0.4, (loop - 0.55) / 0.45), 0), s * 0.26, 0.0)
 		"wreck":
 			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.42, 0), s * 0.3)
 			for i in 7:

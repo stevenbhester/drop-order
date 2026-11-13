@@ -122,13 +122,6 @@ func _ready() -> void:
 		if a.begins_with("--map-scroll="):
 			focus_on = a.trim_prefix("--map-scroll=").to_int() - 1
 	map.focus(focus_on)
-	# A side road's first win found a page of the driver's logbook: show it here, over the map.
-	if Progress.pending_log != "":
-		var page := LogbookCard.new()
-		page.side_id = Progress.pending_log
-		Progress.pending_log = ""
-		Progress.save_now()
-		add_child(page)
 
 
 ## A milestone chest tapped open: it pops open over the map, then any hat in it gets its own unlock card.

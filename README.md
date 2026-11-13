@@ -3,19 +3,43 @@
 One-thumb portrait puzzle: draw a route from the van and it drives it, delivering the **top**
 package of its stack to each matching house it passes. Deliver everything to win.
 
-Godot 4.7, GDScript, 1080×1920 portrait. 40 levels in two parts, 5 sneak-peek levels, and 10 daily puzzles.
+Godot 4.7, GDScript, 1080×1920 portrait. 100 levels in three parts plus an endgame, 38 daily puzzles,
+side roads, and a speedrun mode.
 - **Part 1 · The Suburbs (1–20):** stack order (1–2), the road tears up behind you so you can't cross
   your own tracks (3), planning a loop (4), undo (5), ×2 houses (7), one-way streets (9), bridges (13),
   then combinations.
 - **Part 2 · The City (21–40):** parcel shops that load a parcel onto your stack (21), colour
   gates that only lift for the matching top package (25), finishing back at the depot (29),
   sorting hubs that swap your top two packages (33), then combinations.
-- **Sneak Peek · The Long Haul (41–45):** huge, very hard levels showing what later chapters could feel
-  like. Flagged `"preview": true`; a real release would hold these back.
-- **Insane · Death Valley (46–50):** 25+ packages each. The van never holds more than 12 at once: the
-  rest wait in **warehouses** along the way (a shop with a "×N" that loads all its parcels as you pass),
-  so you have to make room before you collect.
-- **Daily puzzle:** one a day from `levels/daily.json` (ten, repeating). Daily #1 was 2026-11-10.
+- **Part 3 · The Long Road (41–90):** seven zones, each with a small, capped roster of mechanics: a new
+  idea comes in and an old one steps out, so small maps keep feeling fresh instead of everything just
+  getting bigger. **Ice** (no turning on it), **parcel lockers** (take whatever package is on top) and
+  **roadworks** (open after N deliveries) arrive here.
+
+  | Zone | Levels | Roster |
+  |---|---|---|
+  | Frostbite Pass | 41–47 | ice (new), one-way, ×N houses |
+  | Harbour Lights | 48–54 | ice, pickups, bridges |
+  | Neon Alley | 55–61 | lockers (new), gates, one-way |
+  | Orchard Hills | 62–68 | lockers, pickups, back to the pit stop |
+  | Detour City | 69–75 | roadworks (new), one-way, spinners |
+  | Thunder Mesa | 76–83 | roadworks, ice, lockers |
+  | Skyline Summit | 84–90 | roadworks, gates, pickups/warehouses, bridges |
+
+  Every level is rated (`tools/twist_levels.gd --rate`: search size, route length, mechanics) and each
+  zone is ordered like a training load rather than a straight ramp: a moderate intro for the new idea,
+  mid-tier runs, a spike (the zone's challenge level), then a cooldown; easy ones as breathers. Not
+  always in that order: Harbour Lights ends on a breather, Thunder Mesa saves its spike for last.
+- **Endgame · The Long Haul (91–95):** huge, very hard levels, everything at once.
+- **Insane · Death Valley (96–100):** 25+ packages each. The van never holds more than 12 at once: the
+  rest wait in **warehouses** along the way (a pickup with a "+N" that loads all its parcels as you pass),
+  so you have to make room before you collect. (These were 41–50 before Part 3; old saves move across.)
+- **Daily puzzle:** one a day from `levels/daily.json` (38, repeating), each with its own spice (one to
+  three chillies on the Daily screen: Mild, Medium, Spicy!). Daily #1 was 2026-11-10.
+- **Speedrun** (title screen; opens after level 18): three courses of small puzzles against the clock.
+  A course is a run of 3–5 zones: clear one, drive into its exit, the camera pans on and the next zone
+  loads its own packages; the clock runs from 3-2-1-GO to the last delivery. No hints, no undos; Retry
+  starts the course over. Each course keeps its best time. Courses are in `levels/speedrun.json`.
 
 ## Run
 - **Editor:** open `project.godot` in Godot 4.7 and press Play (F5).
@@ -92,11 +116,9 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
 - **Power-ups:** every side road (mega routes too) hands one out once a day when you win it: spare gas
   tanks (up to 3, shown as little cans by the gauge, used only when the tank's empty), or free hints or
   free undos for 10–15 minutes ("FREE" on the button; they cost no star).
-- **The driver's logbook:** each side road's first win finds a page, shown over the map and kept in the
-  Garage. A line at a time, they hint at who the driver is and who the Dispatcher might be.
-- **Treasure chests** at levels 10, 20, 30, 40 and 50: once that level's beaten, tap the chest to open
-  it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40 and 50
-  a hat.
+- **Treasure chests** every ten levels (10–100): once that level's beaten, tap the chest to open
+  it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40, 70 and
+  100 a hat (Party Hat, Hard Hat, Traffic Cone, Gold Crown).
 
 ### Momentum and the finish
 - Every win in a row this session (hints and undos are fine) adds **momentum**. A retry, or walking away
@@ -178,7 +200,7 @@ as a little flame inside the Daily button.
   and the packages hop back aboard.
 - **The start is a pit stop** (painted bay, tyre stacks, checkered line). On levels where you must end
   there, a checkered flag rides in the chute behind the last package.
-- **Challenge levels** (5, 14, 20, 28, 32, 36, 45, 50) are a big step up from their neighbours. They
+- **Challenge levels** (5, 14, 20, 28, 32, 36, 47, 53, 58, 67, 73, 83, 90, 95, 100) are a big step up from their neighbours. They
   wear a hazard-striped rim and a flame badge on the map, open with a hazard-tape "CHALLENGE!" intro
   (once a session, until beaten), and the first win goes big: "CHALLENGE CRUSHED!" and a 500 Dollaroo
   bonus. Each region's rhythm runs easy (a new idea, feel smart), moderate, then the spike.
@@ -230,8 +252,10 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's exit pad; the package trail (drones behind the van) |
+| `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |
+| `scripts/roadworks.gd` | Roadworks on a road tile (counts down deliveries, then clears) |
+| `tools/twist_levels.gd`, `make_mega.gd` | Design aids: add ice/lockers/roadworks to generated levels and rate difficulty (`--rate`); add exits for parted routes |
 | `scripts/symbol_card.gd`, `tip_bubble.gd` | "What's this?" explainers for board symbols; one-time tips pointing at things |
-| `scripts/logbook_card.gd` | A page of the driver's logbook (found on side roads; listed in the Garage) |
 | `ads/playable/` | The playable ad (one MRAID 2.0 HTML file for Tapjoy and co.; see its README) |
 | `scripts/portrait_host.gd` | Sideways play: a portrait column in the middle of the screen for menus and pop-ups |
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |

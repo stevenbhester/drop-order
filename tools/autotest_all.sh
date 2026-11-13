@@ -9,8 +9,10 @@ shift 2 2>/dev/null
 if [ $# -eq 0 ]; then modes=(autodrag autoseg autoundo autohint autodpad autobrake autoside); else modes=("$@"); fi
 out=$(mktemp -d)
 for mode in $modes; do
+  # In batches of 50 at a time (100 Godots at once is a lot of memory).
   for L in $(seq $first $last); do
     $G --headless --path . --quit-after 30000 -- --level=$L --$mode > $out/$mode-$L.txt 2>&1 &
+    if (( (L - first + 1) % 50 == 0 )); then wait; fi
   done
   wait
 done
@@ -23,12 +25,13 @@ for mode in $modes; do
 done
 # The ten daily puzzles (as if it were each of the next ten days), dragged in one go each.
 if [ $first -eq 1 ]; then
-  for k in $(seq 0 9); do
+  nd=$(python3 -c "import json;print(len(json.load(open('levels/daily.json'))['levels']))")
+  for k in $(seq 0 $((nd - 1))); do
     $G --headless --path . --quit-after 6000 -- --daily --autodrag --day=+$k > $out/daily-$k.txt 2>&1 &
   done
   wait
   won=$(cat $out/daily-*.txt | grep -c 'state=WON')
-  echo "daily puzzles: $won/10 won"
+  echo "daily puzzles: $won/$nd won"
   grep -h "SCRIPT ERROR" $out/daily-*.txt | head -5
 fi
 # The side roads: each driven in one go (it must win), and its twist checked (it must bite).
@@ -42,6 +45,14 @@ if [ $first -eq 1 ]; then
   won=$(cat $out/side-*.txt | grep -c 'AUTOTEST autoplay.*state=WON')
   bites=$(cat $out/twist-*.txt | grep -c 'ok=true')
   echo "side roads: $won/${#ids} won, $bites/${#ids} twists bite"
+  # Speedrun courses: every zone, driven in one go each.
+  cids=($(python3 -c "import json;print(' '.join(d['id'] for d in json.load(open('levels/speedrun.json'))['courses']))"))
+  for id in $cids; do
+    $G --headless --path . --quit-after 30000 -- --speedrun=$id --autoplay > $out/speed-$id.txt 2>&1 &
+  done
+  wait
+  sw=$(cat $out/speed-*.txt | grep -c 'AUTOTEST autoplay.*state=WON')
+  echo "speedrun courses: $sw/${#cids} finished"
   grep -h "SCRIPT ERROR" $out/side-*.txt $out/twist-*.txt | head -5
 fi
 rm -rf $out
