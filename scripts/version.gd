@@ -8,7 +8,7 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 12
+const BUILD := 13
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [
