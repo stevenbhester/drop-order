@@ -11,8 +11,9 @@
  *
  * Three pages, most important first. Google Forms only keeps answers that get submitted, so each page
  * ends with "keep going, or send my answers now?": someone short on time sends page 1 and it still counts.
- *   Page 1 (a minute): how far, still playing, difficulty, recommend 0-10, what kind of puzzle player
- *     they are, and the one thing they'd change. Enough to judge a build, and who it's landing with.
+ *   Page 1 (a minute or so): how far, still playing, difficulty, recommend 0-10, how often they play six
+ *     kinds of puzzle game (a grid: who's playing), and the one thing they'd change. Enough to judge a
+ *     build, and who it's landing with.
  *   Page 2 (a minute of taps): why they stopped, Draw vs D-pad, which modes they enjoyed, the gas
  *     system, and real ads vs purchases once the placeholders go.
  *   Page 3 (optional): confusing levels or symbols, and their name.
@@ -58,14 +59,20 @@ function createLastMilePlaytestForm() {
     .setLabels('Not at all', 'Already have')
     .setRequired(true);
 
-  form.addMultipleChoiceItem()
-    .setTitle('Which sounds most like you and puzzle games on your phone?')
-    .setChoiceValues([
-      'I don\'t really play games on my phone',
-      'A few minutes here and there (solitaire, Candy Crush, word games)',
-      'Puzzles are part of my day (Wordle, NYT Games, daily streaks)',
-      'I go looking for clever puzzle games (Monument Valley, Mini Metro, Baba Is You)',
+  // Who's playing: each row is a kind of puzzle player, from casual to keen. Sort & unjam and Path &
+  // logic are Last Mile's nearest neighbours.
+  form.addGridItem()
+    .setTitle('How often do you play these kinds of phone games?')
+    .setHelpText('One tap per row.')
+    .setRows([
+      'Match & pop (Candy Crush, Royal Match, Toon Blast)',
+      'Sort & unjam (Water Sort, Parking Jam, Screw Sort)',
+      'Daily brain teasers (Wordle, Connections, sudoku, crosswords)',
+      'Path & logic puzzles (Flow Free, nonograms, Rush Hour)',
+      'Clever indie puzzlers (Monument Valley, Mini Metro, Baba Is You)',
+      'Classic cards & tiles (Solitaire, Mahjong, 2048)',
     ])
+    .setColumns(['Never', 'Used to', 'Sometimes', 'Most days'])
     .setRequired(true);
 
   form.addParagraphTextItem()
