@@ -12,7 +12,10 @@ const BUILD := 18
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := []
+const BUILD_NOTES := [
+	"iPhone only for now: on an iPad it runs at iPhone size, so nothing gets cut off.",
+	"The Frontiers Celestia ad's Playtest button now opens its page.",
+]
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [

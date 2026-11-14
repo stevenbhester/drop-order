@@ -1,13 +1,15 @@
 class_name FakeAd
 extends CanvasLayer
 ## A pretend rewarded ad, for fun: thirteen seconds of Frontiers Celestia (the studio's other game) drawn in
-## code in that game's colours, then an end card with a "Playtest now" button. It isn't a real ad: there's no
-## ad network, no tracking and no link, and nobody is paid. A Skip button appears after SKIP_AFTER seconds;
+## code in that game's colours, then an end card with a "Playtest now" button (it opens the game's page on the
+## studio site). It isn't a real ad: there's no ad network and no tracking, and nobody is paid. A Skip button appears after SKIP_AFTER seconds;
 ## skipping, closing or finishing all emit `finished`, and the caller hands over the reward.
 
 signal finished
 
 const SKIP_AFTER := 1.0
+## Where "Playtest now" goes: the game's page on the studio site.
+const PAGE := "https://www.stevenhester.com/frontiers-celestia/?utm_source=lastmile&utm_campaign=fake_ad"
 const END_AT := 13.2
 const SKY_TOP := Color(0.05, 0.04, 0.12)
 const SKY_BOTTOM := Color(0.2, 0.12, 0.3)
@@ -143,12 +145,14 @@ func _on_skip() -> void:
 	_close()
 
 
+## Opens Frontiers Celestia's page on the studio site, says so, and closes the ad (the reward still comes).
 func _on_cta() -> void:
 	if _toast_at >= 0.0:
 		return
 	Sfx.play("ad_chirp1")
 	_toast_at = _t
 	_cta.breathe(false)
+	OS.shell_open(PAGE)
 
 
 func _close() -> void:
@@ -403,5 +407,5 @@ func _draw_end_card(w: float, h: float) -> void:
 		var k := _pop((_t - _toast_at) / 0.3)
 		var box := Rect2(w / 2.0 - 440.0 * k, _cta.position.y + _cta.size.y + 130.0, 880.0 * k, 190.0)
 		DrawUtil.rrect(r, box, CREAM, 44)
-		_text("Beep. This link goes nowhere (yet).", box.get_center() + Vector2(0, -36), 40, SKY_BOTTOM, box.size.x - 50.0)
-		_text("Ask whoever handed you this game.", box.get_center() + Vector2(0, 30), 40, SKY_BOTTOM, box.size.x - 50.0)
+		_text("Opening its page in your browser.", box.get_center() + Vector2(0, -36), 40, SKY_BOTTOM, box.size.x - 50.0)
+		_text("Your undos are waiting back here.", box.get_center() + Vector2(0, 30), 40, SKY_BOTTOM, box.size.x - 50.0)

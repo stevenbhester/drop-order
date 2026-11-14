@@ -89,6 +89,9 @@ static var _music := {}
 static var _music_task := -1
 static var _bait_music := {}
 static var _bait_task := -1
+## What the workers are filling (handed over to _music / _bait_music once they're done).
+static var _music_out := {}
+static var _bait_out := {}
 ## Debug: this kind next (-1: at random).
 static var force := -1
 
@@ -317,8 +320,11 @@ func _setup_bait() -> void:
 	add_child(_bait_bed)
 	if _bait_music.is_empty() and _bait_task < 0:
 		var len := _end_at + 4.0
+		var out := {}
+		_bait_out = out
 		_bait_task = WorkerThreadPool.add_task(func():
-			PromoAd._bait_music = {"bed": PromoMusic.bait(len), "trombone": PromoMusic.sad_trombone()})
+			out["bed"] = PromoMusic.bait(len)
+			out["trombone"] = PromoMusic.sad_trombone())
 	_face = "🙂"
 	_face_t0 = 0.0
 
@@ -351,18 +357,20 @@ func _make_music() -> void:
 	for h in HITS:
 		song_hits.append(h - SONG_AT)
 	var length := _end_at + 1.0 - SONG_AT
+	# The worker fills `out` (made here); nothing reads it until the task's done.
+	var out := {}
+	_music_out = out
 	_music_task = WorkerThreadPool.add_task(func():
-		var m := {}
-		m["bed"] = PromoMusic.news_bed(6.9, [0.3, 2.5, 4.7])
-		m["scratch"] = PromoMusic.scratch()
-		m["song"] = PromoMusic.hype(length, 0.53, BEAT, song_hits)
-		PromoAd._music = m)
+		out["bed"] = PromoMusic.news_bed(6.9, [0.3, 2.5, 4.7])
+		out["scratch"] = PromoMusic.scratch()
+		out["song"] = PromoMusic.hype(length, 0.53, BEAT, song_hits))
 
 
 func _music_ready() -> bool:
 	if _music_task >= 0 and WorkerThreadPool.is_task_completed(_music_task):
 		WorkerThreadPool.wait_for_task_completion(_music_task)
 		_music_task = -1
+		_music = _music_out
 	return _music_task < 0 and not _music.is_empty()
 
 
@@ -1156,6 +1164,7 @@ func _bait_ready() -> bool:
 	if _bait_task >= 0 and WorkerThreadPool.is_task_completed(_bait_task):
 		WorkerThreadPool.wait_for_task_completion(_bait_task)
 		_bait_task = -1
+		_bait_music = _bait_out
 	return _bait_task < 0 and not _bait_music.is_empty()
 
 
