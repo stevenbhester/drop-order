@@ -26,6 +26,8 @@ var planned := false:
 			planned = v
 			queue_redraw()
 var _t := randf() * TAU
+## Draw its own loading-zone frame (off: something else draws the ground under it).
+var zone := true
 var _tw: Tween
 
 
@@ -69,16 +71,17 @@ func _draw() -> void:
 	var w := s * 0.74
 	var h := s * 0.2
 	# The loading zone: a chunky dashed outline in its parcels' colour (only pickups have one).
-	var zone := Rect2(-s * 0.44, -s * 0.74, s * 0.88, s * 0.82)
-	var rim := color if not empty else Color(0.6, 0.6, 0.62)
-	DrawUtil.rrect(self, zone.grow(s * 0.045), Color(rim, 0.95), s * 0.16)
-	DrawUtil.rrect(self, zone, Color(0.97, 0.96, 0.93, 0.92) if not empty else Color(0.92, 0.92, 0.9, 0.9), s * 0.12)
-	var dash := s * 0.09
-	var x := zone.position.x + s * 0.06
-	while x < zone.end.x - s * 0.06:
-		draw_line(Vector2(x, zone.position.y - s * 0.022), Vector2(minf(x + dash * 0.5, zone.end.x - s * 0.06), zone.position.y - s * 0.022), Color.WHITE, s * 0.03)
-		draw_line(Vector2(x, zone.end.y + s * 0.022), Vector2(minf(x + dash * 0.5, zone.end.x - s * 0.06), zone.end.y + s * 0.022), Color.WHITE, s * 0.03)
-		x += dash
+	if zone:
+		var zr := Rect2(-s * 0.44, -s * 0.74, s * 0.88, s * 0.82)
+		var rim := color if not empty else Color(0.6, 0.6, 0.62)
+		DrawUtil.rrect(self, zr.grow(s * 0.045), Color(rim, 0.95), s * 0.16)
+		DrawUtil.rrect(self, zr, Color(0.97, 0.96, 0.93, 0.92) if not empty else Color(0.92, 0.92, 0.9, 0.9), s * 0.12)
+		var dash := s * 0.09
+		var x := zr.position.x + s * 0.06
+		while x < zr.end.x - s * 0.06:
+			draw_line(Vector2(x, zr.position.y - s * 0.022), Vector2(minf(x + dash * 0.5, zr.end.x - s * 0.06), zr.position.y - s * 0.022), Color.WHITE, s * 0.03)
+			draw_line(Vector2(x, zr.end.y + s * 0.022), Vector2(minf(x + dash * 0.5, zr.end.x - s * 0.06), zr.end.y + s * 0.022), Color.WHITE, s * 0.03)
+			x += dash
 	# The dock itself: plain and dark, so the parcels stand out.
 	var dock := Rect2(-w / 2, -h - s * 0.02, w, h)
 	DrawUtil.rrect(self, Rect2(dock.position + Vector2(0, s * 0.03), dock.size), Color(0, 0, 0, 0.18), s * 0.05)

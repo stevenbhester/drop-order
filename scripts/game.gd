@@ -22,6 +22,8 @@ extends Node2D
 
 signal menu_requested
 signal level_requested(index: int)   # go to a level (Next): Main charges gas if it's unbeaten
+## Next after a win on the main road: Main shows the map, the van drives on to `to`, and the Next card.
+signal next_requested(from: int, to: int)
 signal retry_requested(index: int)   # the same level again: gas already paid here
 signal daily_menu_requested
 signal segment_finished
@@ -2449,6 +2451,8 @@ func _win() -> void:
 	momentum_ctl.visible = false
 	Sfx.play("win")
 	Sfx.haptic(30)
+	# The ride's own celebration (RideWins), and the finish card waits for it.
+	van.celebrate()
 	if board.depot:
 		board.depot.calling = false
 	for i in board.house_nodes.size():
@@ -2461,7 +2465,7 @@ func _win() -> void:
 	drive_button.visible = false
 	mode_button.visible = false
 	var tw := create_tween()
-	tw.tween_interval(0.35)
+	tw.tween_interval(0.35 if Progress.auto else maxf(0.35, RideWins.time(Progress.ride) + 0.1))
 	if crushed:
 		# A big reaction on the board first: every house cheers, confetti everywhere, the screen jolts.
 		Sfx.play("kaching", 1.0, -2.0)
@@ -2540,7 +2544,11 @@ func _next() -> void:
 	elif daily_day >= 0:
 		daily_menu_requested.emit()
 	elif index + 1 < total:
-		level_requested.emit(index + 1)
+		# Self-tests chain straight on; players see the van drive up the map first.
+		if Progress.auto:
+			level_requested.emit(index + 1)
+		else:
+			next_requested.emit(index, index + 1)
 	else:
 		menu_requested.emit()
 

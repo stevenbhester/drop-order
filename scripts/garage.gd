@@ -64,6 +64,10 @@ func _ready() -> void:
 	_fx = Fx.new()
 	add_child(_fx)
 	Progress.changed.connect(queue_redraw)
+	# Coming in: whatever it's riding shows off once.
+	get_tree().create_timer(0.45).timeout.connect(func():
+		if is_instance_valid(_van):
+			_van.celebrate())
 
 
 ## Where each cosmetic can be found, from the levels' gifts.
@@ -90,7 +94,11 @@ func _tile(id: String) -> Button:
 		Progress.wear(id)
 		Sfx.play("pop", 1.1)
 		Sfx.haptic(10)
-		_van.squash()
+		# Picking a ride (or the van back) shows off its win celebration; anything else just bounces.
+		if Cosmetics.kind_of(id) == "ride" or (Cosmetics.kind_of(id) == "paint" and Progress.ride == ""):
+			_van.celebrate.call_deferred()
+		else:
+			_van.squash()
 		_fx.burst(_van.position, Cosmetics.tint(id), 16, 600.0, 20.0)
 		for g in get_tree().get_nodes_in_group("garage_tiles"):
 			g.queue_redraw())
@@ -153,7 +161,7 @@ class ItemTile:
 			DrawUtil.rrect(self, Rect2(Vector2(10, 6), size - Vector2(20, 26)), Color(Palette.GOOD, 0.18), 26)
 		if owned and Cosmetics.kind_of(id) == "ride":
 			draw_set_transform(mid, -0.25, Vector2.ONE)
-			Cosmetics.draw_ride(self, id, 190.0 * 0.74 * 0.9, 190.0 * 0.46 * 0.9, Palette.pkg("blue"), _t, Progress.paint)
+			Cosmetics.draw_ride(self, id, 190.0 * 0.74 * 0.9, 190.0 * 0.46 * 0.9, Palette.pkg("blue"), _t, Progress.paint, -1.0, Vector2.UP.rotated(0.25))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif owned:
 			var paint := id if Cosmetics.kind_of(id) == "paint" else "classic"

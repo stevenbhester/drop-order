@@ -642,7 +642,10 @@ func _draw() -> void:
 		var at := Vector2.INF
 		if q == 0:
 			at = Vector2.ZERO
-		elif q < _places and fit.behind == 0 and fit.front == 0:
+		elif q <= _places and fit.behind == 0 and fit.front == 0:
+			# Just behind the last package. The chute is sized for the load, so at the start (a full load) the
+			# flag sits one place past the last slot, in the open tube: it has to show from the very start, or
+			# a route gets planned without knowing it must end back at the depot.
 			at = _at_place(q)
 		if at != Vector2.INF:
 			Icons.finish_flag(self, at, ph * 0.86, Time.get_ticks_msec() / 1000.0)

@@ -102,12 +102,26 @@ sticker and opens that offer instead.
 - Map stops with a present still waiting show a little gift icon.
 - Finding one pops up a big **NEW RIDE / PAINT JOB / TOPPER!** card over the finish screen, with
   **Wear it now** or **Keep my look**. Nothing is worn unless you pick it.
-- Title → **Garage** to wear what you've found: 5 rides (**Kuma's Monster Truck** from level 6's
-  present; Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van from the side roads), 6 paint jobs and 9
+- Title → **Garage** to wear what you've found: 10 rides (**Kuma's Monster Truck** from level 6's
+  present; Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van from the side roads; the friends' rides
+  from the treasure chests: **Sam's Race Car** at 30, **James' Evil Bassinet** at 50, **Tara's Hungry
+  Caterpillar** at 60, **Orin's Green Car** at 80, **Violet's Tower** at 90; anyone past those chests
+  already gets them), 6 paint jobs and 9
   toppers, mostly from Frontiers Celestia (Deep Field, Gloaming, Duskwood, Mosaic Moth, Drizzlet,
   Bonkle Ears, Sprout & Orbit, Rivet, Puffball), plus Racing Stripes, a Door Bowl soup bowl and the
   chest hats (Party Hat, Hard Hat, Gold Crown). Paint jobs work on every ride (Classic Cream leaves
   a ride in its own colours).
+- **Win celebrations** (`scripts/ride_wins.gd`): every ride shows off when a level's won, and when it's
+  picked in the Garage: the van hops twice; the monster truck bounces on crazy hydraulics; the scooter
+  pops a wheelie and spins; Mr. Frosty twirls to its jingle; the rocket van boosts; the hover van lifts
+  and spins; Sam's car does donuts in tyre smoke; James' bassinet shudders while its eyes go everywhere;
+  Tara's caterpillar tosses a green package and eats it; Orin's van slides its doors open, BEEP BEEP;
+  a tiny someone jumps off Violet's tower into its puddle. The finish card waits for the celebration,
+  so each ride sets its own pause (0.7 s for the van, up to 1.8 s for the caterpillar).
+- **Next**, after a win on the main road: the map, the van driving up from the stop just beaten to the
+  one just unlocked (a tap hurries it), then a sheet with the next level and a big **Drive!** (with the
+  gas it costs), and **Detour available** under it when a side road branches off the stop just beaten
+  (its twist and its prize). `-- --next=N` shows it arriving at level N.
 
 ### Side roads and treasure chests
 Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `levels/side.json`):

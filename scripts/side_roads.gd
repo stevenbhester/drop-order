@@ -9,7 +9,7 @@ extends RefCounted
 ##     level of its own ending at an exit (E) on the edge toward the next; the camera pans on; progress is
 ##     saved part by part; finishing the last part wins. Hints and undos are allowed on mega routes.
 ## - Treasure chests at milestone levels (CHESTS): once that level's beaten, a spur leads to a chest to open
-##   for gas, Dollaroos and sometimes a hat.
+##   for gas, Dollaroos and sometimes a hat or a ride (the "hat" key holds any cosmetic).
 
 const PATH := "res://levels/side.json"
 ## Level numbers side levels play as (never real level numbers, so they never touch level progress).
@@ -17,13 +17,13 @@ const NUMBER_BASE := 800
 const CHESTS := {
 	10: {"gas": 2, "coins": 250},
 	20: {"gas": 3, "coins": 400, "hat": "party_hat"},
-	30: {"gas": 3, "coins": 600},
+	30: {"gas": 3, "coins": 600, "hat": "race_car"},
 	40: {"gas": 4, "coins": 800, "hat": "hard_hat"},
-	50: {"gas": 4, "coins": 1000},
-	60: {"gas": 4, "coins": 1100},
+	50: {"gas": 4, "coins": 1000, "hat": "bassinet"},
+	60: {"gas": 4, "coins": 1100, "hat": "caterpillar"},
 	70: {"gas": 5, "coins": 1200, "hat": "cone_hat"},
-	80: {"gas": 5, "coins": 1300},
-	90: {"gas": 5, "coins": 1400},
+	80: {"gas": 5, "coins": 1300, "hat": "minivan"},
+	90: {"gas": 5, "coins": 1400, "hat": "pillow_tower"},
 	100: {"gas": 5, "coins": 2500, "hat": "crown"},
 }
 ## What each twist is called on its sign and in the game's top bar.

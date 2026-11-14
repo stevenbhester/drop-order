@@ -104,6 +104,11 @@ func _ready() -> void:
 			if a.contains("="):
 				ad.kind = a.trim_prefix("--promo-ad=")
 			add_child.call_deferred(ad)
+	for a in args:
+		if a.begins_with("--next="):
+			# Debug: as if level N-1 was just won: the van drives up to N, then the Next card.
+			var n := a.trim_prefix("--next=").to_int()
+			show_next.call_deferred(n - 2, n - 1)
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
 		open_feedback.call_deferred()
@@ -285,6 +290,7 @@ func _start(i: int, paid := false) -> void:
 	g.setup(L, i, levels.size(), solved[i])
 	g.options_requested.connect(open_options.bind(g))
 	g.level_requested.connect(play)
+	g.next_requested.connect(show_next)
 	g.retry_requested.connect(func(j): _start(j, g.retry_paid))
 	g.menu_requested.connect(show_select)
 	_swap(g)
@@ -415,6 +421,12 @@ func _out_of_gas(then: Callable) -> void:
 		_modal = null
 		if bought:
 			then.call())
+
+
+## After a win: the map, the van driving up to the next stop, then the Next card.
+func show_next(from_i: int, to_i: int) -> void:
+	show_select()
+	(screen as LevelSelect).advance(from_i, to_i)
 
 
 func show_select() -> void:

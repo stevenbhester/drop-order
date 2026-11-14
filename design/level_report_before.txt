@@ -1,0 +1,64 @@
+
+L41  First Frost              1 sol       30 nodes  len 23  cover  76%  score   7.3  one-way, ice                       EASY DECOR(ice) 2/2 ice idle
+L42  Black Ice                1 sol       23 nodes  len 17  cover  80%  score   7.0  one-way, multi, ice                EASY 2/2 ice idle
+L43  Snowplough               1 sol       23 nodes  len 19  cover  82%  score   7.2  one-way, multi, ice                EASY DECOR(ice) 2/2 ice idle
+L44  Avalanche                1 sol       50 nodes  len 25  cover  80%  score   8.6  one-way, multi, ice                EASY 1/2 ice idle
+L45  Hot Chocolate            1 sol       24 nodes  len 17  cover  85%  score   7.1  one-way, multi, ice                EASY DECOR(ice) 1/1 ice idle
+L46  Unmarked                 1 sol       24 nodes  len 20  cover  71%  score   7.3  one-way, multi, ice                EASY DECOR(ice) 2/2 ice idle
+L47  Whiteout                 1 sol       53 nodes  len 23  cover  71%  score   8.6  one-way, multi, ice                EASY DECOR(ice) 3/3 ice idle
+L48  Low Tide                 1 sol       29 nodes  len 17  cover  80%  score   6.9  pickup, ice                        EASY
+L49  Fish Market              1 sol       28 nodes  len 16  cover  57%  score   7.3  bridge, pickup, ice                EASY DECOR(ice) 1/1 ice idle
+L50  Lighthouse Keeper        1 sol       34 nodes  len 14  cover  54%  score   7.4  bridge, pickup, ice                EASY DECOR(ice) 1/1 ice idle
+L51  Seagulls                 1 sol       33 nodes  len 18  cover  85%  score   7.1  pickup, ice                        EASY
+L52  Ferry Crossing           1 sol       51 nodes  len 18  cover  60%  score   8.3  bridge, pickup, ice                EASY
+L53  Storm Surge              2 sol       87 nodes  len 26  cover  78%  score   9.0  bridge, pickup                     EASY
+L54  Same Street, Again       1 sol       29 nodes  len 14  cover  65%  score   7.2  bridge, pickup, ice                EASY DECOR(ice) 1/1 ice idle
+L55  Any Colour               1 sol       19 nodes  len 16  cover  80%  score   6.2  one-way, locker                    EASY
+L56  Arcade                   1 sol       39 nodes  len 19  cover  82%  score   7.4  gate, locker                       EASY
+L57  Night Owls               1 sol       65 nodes  len 14  cover  51%  score   8.4  one-way, gate, locker              EASY
+L58  Neon Nightmare           1 sol      106 nodes  len 25  cover  78%  score   9.7  one-way, gate, locker              EASY
+L59  Vending Machine          1 sol       32 nodes  len 16  cover  80%  score   7.0  gate, locker                       EASY
+L60  Karaoke                  2 sol       50 nodes  len 14  cover  58%  score   8.0  one-way, gate, locker              EASY
+L61  Last Train               2 sol       70 nodes  len 19  cover  57%  score   8.8  one-way, gate, locker              EASY
+L62  Apple Cart               1 sol       39 nodes  len 15  cover  60%  score   7.2  return, locker                     EASY
+L63  Cider Run                2 sol       65 nodes  len 17  cover  59%  score   8.0  return, locker                     EASY
+L64  Scarecrow                1 sol       65 nodes  len 25  cover  88%  score   8.5  return, locker                     EASY
+L65  Hay Bales                1 sol       31 nodes  len 18  cover 100%  score   7.0  pickup, locker                     EASY
+L66  Pumpkin Patch            1 sol      100 nodes  len 15  cover  45%  score   9.0  pickup, return, locker             EASY LOW-COVER
+L67  Harvest Moon             1 sol      124 nodes  len 29  cover  87%  score  10.2  pickup, return, locker             EASY
+L68  No Return Address        1 sol       40 nodes  len 19  cover  78%  score   7.5  return, locker                     EASY
+L69  Men at Work              1 sol       19 nodes  len 13  cover  81%  score   6.0  one-way, works                     EASY DECOR(roadworks)
+L70  Diversion                1 sol       34 nodes  len 21  cover  91%  score   7.3  hub, works                         EASY DECOR(roadworks)
+L71  Rush Hour, Again         1 sol       35 nodes  len 20  cover  71%  score   7.8  one-way, hub, works                EASY DECOR(roadworks)
+L72  Traffic Cone             1 sol       54 nodes  len 23  cover  88%  score   8.6  one-way, hub, works                EASY
+L73  Gridlock Deluxe          1 sol       82 nodes  len 24  cover  68%  score   9.3  one-way, hub, works                EASY DECOR(roadworks)
+L74  Lunch Break              2 sol       28 nodes  len 20  cover  80%  score   7.0  hub, works                         EASY DECOR(roadworks)
+L75  The Other Van            1 sol       75 nodes  len 19  cover  61%  score   8.9  one-way, hub, works                EASY DECOR(roadworks)
+L76  Dust Devil               1 sol       24 nodes  len 14  cover  60%  score   6.4  ice, works                         EASY DECOR(roadworks)
+L77  Flash Flood              1 sol       48 nodes  len 19  cover  63%  score   8.2  ice, locker, works                 EASY DECOR(ice, roadworks) 1/1 ice idle
+L78  Tumbleweed               1 sol       42 nodes  len 17  cover  85%  score   6.9  works                              EASY
+L79  Cactus Mail              1 sol       88 nodes  len 23  cover  82%  score   8.8  locker, works                      EASY DECOR(roadworks)
+L80  Lightning Rod            1 sol       52 nodes  len 29  cover  90%  score   8.9  ice, locker, works                 EASY DECOR(ice, roadworks) 1/1 ice idle
+L81  Siesta                   2 sol       48 nodes  len 16  cover  69%  score   7.5  locker, works                      EASY DECOR(roadworks)
+L82  Mirage                   1 sol       62 nodes  len 18  cover  60%  score   8.5  ice, locker, works                 EASY DECOR(ice, roadworks) 1/1 ice idle
+L83  Thunderclap              1 sol      129 nodes  len 27  cover  81%  score  10.1  ice, locker, works                 EASY DECOR(ice) 1/1 ice idle
+L84  Cloud Nine               3 sol       36 nodes  len 19  cover  82%  score   7.8  gate, pickup, works                EASY DECOR(roadworks)
+L85  Penthouse                1 sol       57 nodes  len 21  cover  63%  score   8.6  gate, pickup, works                EASY
+L86  Crane Lift               1 sol       68 nodes  len 18  cover  53%  score   9.2  bridge, gate, warehouse, works     EASY DECOR(roadworks)
+L87  Thin Air                 1 sol       31 nodes  len 18  cover  78%  score   7.5  gate, pickup, works                EASY DECOR(roadworks)
+L88  Window Washer            1 sol      105 nodes  len 24  cover  75%  score   9.7  gate, pickup, works                EASY DECOR(roadworks)
+L89  Mile Zero                1 sol       58 nodes  len 17  cover  70%  score   8.4  gate, pickup, works                EASY
+L90  Top of the World         2 sol       82 nodes  len 29  cover  77%  score  10.1  bridge, gate, pickup, works        EASY DECOR(roadworks)
+L91  Needle in a Haystack     1 sol     1083 nodes  len 15  cover  25%  score  12.0  one-way, pickup                    LOW-COVER
+L92  Last Orders              1 sol      484 nodes  len 45  cover  75%  score  14.1  one-way, bridge, hub, pickup, return 
+L93  The Long Way Round       1 sol      576 nodes  len 53  cover  80%  score  14.8  one-way, bridge, hub, pickup, return 
+L94  Night Freight            1 sol     2139 nodes  len 18  cover  32%  score  14.1  one-way, gate, hub, pickup         LOW-COVER
+L95  Grand Tour               1 sol     2227 nodes  len 35  cover  49%  score  16.7  one-way, bridge, gate, hub, pickup, return, multi LOW-COVER
+L96  Bulk Order               1 sol      761 nodes  len 47  cover  69%  score  14.9  one-way, gate, hub, warehouse, multi 
+L97  Peak Season              1 sol      837 nodes  len 48  cover  81%  score  15.1  one-way, gate, hub, warehouse, multi 
+L98  Overstock                1 sol     1081 nodes  len 41  cover  59%  score  14.5  one-way, gate, warehouse, multi    
+L99  Cyber Monday             1 sol     1113 nodes  len 41  cover  60%  score  14.6  one-way, gate, warehouse, multi    
+L100 The Last Mile            1 sol     1173 nodes  len 48  cover  65%  score  15.1  one-way, gate, warehouse, multi    
+
+50 EASY, 26 with a decorative mechanic, between levels 41 and 100
+easy streak: levels 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90

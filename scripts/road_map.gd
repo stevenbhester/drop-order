@@ -13,6 +13,8 @@ signal reset_pressed
 ## A side road's sign (SideRoads) or a milestone chest was tapped.
 signal side_pressed(id: String)
 signal chest_pressed(level_number: int)
+## The van's drive to the next stop (drive()) is over (or was tapped through).
+signal drive_done
 
 const W := 1080.0
 const SPACING := 245.0           # road distance between stops (vertically)
@@ -73,6 +75,13 @@ var spurs: Array = []
 var _pressed_spur := -1
 var next := 0                    # next level to play (index); -1 when every level is done
 var van: Van
+# The drive to the next stop after a win: along the road from one distance to another.
+var _drive_from := 0.0
+var _drive_to := 0.0
+var _drive_t := -1.0
+var _drive_dur := 1.0
+var _pop_stop := -1
+var _pop_t0 := 0.0
 
 var _t := 0.0
 var _vel := 0.0
@@ -346,6 +355,63 @@ func max_scroll() -> float:
 	return maxf(min_scroll(), world_h - size.y + pad_bottom)
 
 
+## After a win: the van starts at stop `from_i` and drives up the road to wait at stop `to_i`, the camera
+## following; the stop pops as it arrives (it's just been unlocked). A tap hurries it. drive_done when it's
+## there.
+func drive(from_i: int, to_i: int) -> void:
+	if stops.is_empty():
+		drive_done.emit.call_deferred()
+		return
+	from_i = clampi(from_i, 0, stops.size() - 1)
+	to_i = clampi(to_i, 0, stops.size() - 1)
+	next = to_i
+	_drive_from = road_len[stop_sample[from_i]]
+	_drive_to = road_len[stop_sample[to_i]] - 135.0
+	_drive_dur = clampf((_drive_to - _drive_from) / 900.0, 0.8, 1.6)
+	_drive_t = 0.0
+	focus(from_i)
+	van.inviting = false
+	Sfx.play("whoosh", 1.0, -6.0)
+
+
+func driving() -> bool:
+	return _drive_t >= 0.0
+
+
+## Skip to the end of the drive.
+func finish_drive() -> void:
+	if _drive_t >= 0.0:
+		_drive_t = _drive_dur
+
+
+func _roll_van() -> void:
+	var u := clampf(_drive_t / _drive_dur, 0.0, 1.0)
+	var e := u * u * (3.0 - 2.0 * u)
+	var d := lerpf(_drive_from, _drive_to, e)
+	var s := 1
+	while s < road.size() - 2 and road_len[s] < d:
+		s += 1
+	var a: Vector2 = road[s - 1]
+	var b: Vector2 = road[s]
+	var k := clampf((d - road_len[s - 1]) / maxf(road_len[s] - road_len[s - 1], 0.001), 0.0, 1.0)
+	var wp := a.lerp(b, k)
+	var dir := (b - a).angle()
+	# Follow it: keep the van a little below the middle of the visible map.
+	var visible_mid := pad_top + (size.y - pad_top - pad_bottom) * 0.6
+	scroll = clampf(lerpf(scroll, wp.y - visible_mid, 0.25), min_scroll(), max_scroll())
+	van.position = wp - Vector2(0, scroll) + Vector2(0, -6.0 * absf(sin(_t * 18.0)))
+	van.target_rotation = dir
+	if u >= 1.0:
+		_drive_t = -1.0
+		_pop_stop = next
+		_pop_t0 = _t
+		van.inviting = true
+		Sfx.play("pop", 1.1, -2.0)
+		Sfx.play("star", 1.2, -8.0)
+		Sfx.haptic(16)
+		drive_done.emit()
+
+
 ## Scroll so level `i` sits a little below the middle of the visible map.
 func focus(i: int) -> void:
 	if stops.is_empty():
@@ -357,6 +423,11 @@ func focus(i: int) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
+	if _drive_t >= 0.0:
+		if event is InputEventMouseButton and event.pressed:
+			finish_drive()
+		accept_event()
+		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
@@ -420,6 +491,8 @@ func _stop_at(local: Vector2) -> int:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _drive_t >= 0.0:
+		_drive_t += delta
 	for sp in spurs:
 		sp["shake"] = maxf(0.0, sp["shake"] - delta)
 	if not _down:
@@ -446,6 +519,9 @@ func _process(delta: float) -> void:
 ## The van waits on the road just short of the next stop (or at the end of the road when all are done).
 func _park_van() -> void:
 	if van == null or stops.is_empty():
+		return
+	if _drive_t >= 0.0:
+		_roll_van()
 		return
 	# A fixed distance back along the road from the stop, so it never sits on a sign or the barrier.
 	var s: int = stop_sample[next] if next >= 0 else stop_sample[stops.size() - 1]
@@ -687,6 +763,9 @@ func _draw_stop(i: int) -> void:
 		c.y += -6.0 * absf(sin(_t * 2.0))
 	if i == _pressed:
 		scale *= 0.9
+	if i == _pop_stop:
+		var pk := clampf((_t - _pop_t0) / 0.45, 0.0, 1.0)
+		scale *= 1.0 + 0.45 * sin(PI * pk) * (1.0 - pk * 0.5)
 	var r := PIN_R * scale
 	var bg := Color.WHITE
 	var fg := Color(Palette.TEXT, 0.55)

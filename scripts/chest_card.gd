@@ -157,4 +157,4 @@ func _draw() -> void:
 			_text("(tank's full: %d gas can%s cashed in)" % [cashed, "" if cashed == 1 else "s"], Vector2(v.x / 2.0, y - 18.0), int(32 * k), Color(1, 1, 1, 0.75), 6)
 			y += 50.0
 		if str(got.get("hat", "")) != "":
-			_text("and a hat!", Vector2(v.x / 2.0, y), int(58 * k), Color("ffb3d9"), 12)
+			_text("and a ride!" if Cosmetics.kind_of(str(got["hat"])) == "ride" else "and a hat!", Vector2(v.x / 2.0, y), int(58 * k), Color("ffb3d9"), 12)

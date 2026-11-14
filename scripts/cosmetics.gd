@@ -19,6 +19,11 @@ const ITEMS := {
 	"ice_cream": {"kind": "ride", "name": "Mr. Frosty", "from": "", "body": Color("fff4f8"), "cab": Color("ff7aa8")},
 	"rocket_van": {"kind": "ride", "name": "Rocket Van", "from": "", "body": Color("e9edf5"), "cab": Color("4a57ff")},
 	"hover_van": {"kind": "ride", "name": "Hover Van", "from": "", "body": Color("bfe9ff"), "cab": Color("3b3577")},
+	"race_car": {"kind": "ride", "name": "Sam's Race Car", "from": "", "body": Color("1e2852"), "cab": Color("e4002b")},
+	"bassinet": {"kind": "ride", "name": "James' Evil Bassinet", "from": "", "body": Color("2a1f2e"), "cab": Color("120c16")},
+	"caterpillar": {"kind": "ride", "name": "Tara's Hungry Caterpillar", "from": "", "body": Color("6cc04a"), "cab": Color("c6e85a")},
+	"minivan": {"kind": "ride", "name": "Orin's Green Car", "from": "", "body": Color("2f6b45"), "cab": Color("1f2a24")},
+	"pillow_tower": {"kind": "ride", "name": "Violet's Tower", "from": "", "body": Color("c8a8ff"), "cab": Color("8a5cf5")},
 	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
 	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
 	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
@@ -32,10 +37,12 @@ const ITEMS := {
 }
 ## Garage order.
 const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
+	"race_car", "bassinet", "caterpillar", "minivan", "pillow_tower",
 	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
 	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
 ## Rides that move (they're redrawn every frame in the garage).
-const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat"]
+const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat",
+	"bassinet", "caterpillar", "pillow_tower"]
 
 
 static func name_of(id: String) -> String:
@@ -212,8 +219,11 @@ static func draw_topper(ci: CanvasItem, id: String, c: Vector2, s: float, t := 0
 
 ## A whole vehicle in place of the van, facing +x, `L` long and `W` wide (the van's own size). Returns where
 ## the topper goes. `cargo` is the top package's colour (or null for an empty bed). `paint` recolours it
-## (and puts the paint's pattern on its sides); Classic Cream leaves its own colours.
-static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0, paint := "classic") -> Vector2:
+## (and puts the paint's pattern on its sides); Classic Cream leaves its own colours. `win` is seconds into
+## its win celebration (RideWins), or -1; `up` is screen-up in its own space (for the pillow tower).
+static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0, paint := "classic", win := -1.0, up := Vector2.UP) -> Vector2:
+	if id in ["race_car", "bassinet", "caterpillar", "minivan", "pillow_tower"]:
+		return FriendRides.draw(ci, id, L, W, cargo, t, paint, win, up)
 	match id:
 		"monster_truck":
 			return _monster_truck(ci, L, W, cargo, t, paint)

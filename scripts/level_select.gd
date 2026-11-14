@@ -125,6 +125,26 @@ func _ready() -> void:
 
 
 ## A milestone chest tapped open: it pops open over the map, then any hat in it gets its own unlock card.
+## After a win: the van drives from stop `from_i` up to `to_i`, then the Next card pops up (Drive!, and a
+## Detour if a side road branches off the stop just beaten).
+func advance(from_i: int, to_i: int) -> void:
+	map.drive(from_i, to_i)
+	await map.drive_done
+	if not is_inside_tree():
+		return
+	var card := NextCard.new()
+	card.level = levels[to_i]
+	card.costs_gas = not Progress.is_complete(levels[to_i].number)
+	var beat: int = levels[from_i].number
+	for d in SideRoads.defs():
+		if int(d.get("after", 0)) == beat and Progress.side_open(d) and not Progress.side_done.has(str(d.get("id", ""))):
+			card.detour = d
+			break
+	card.go_pressed.connect(func(): level_chosen.emit(to_i))
+	card.detour_pressed.connect(func(): side_chosen.emit(str(card.detour.get("id", ""))))
+	add_child(card)
+
+
 func _open_chest(n: int) -> void:
 	var got := Progress.open_chest(n)
 	if got.is_empty():

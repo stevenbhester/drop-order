@@ -118,6 +118,10 @@ func _ready() -> void:
 			peek = true
 		elif a == "--colorblind":
 			colorblind = true
+		elif a.begins_with("--ride="):
+			# Debug: ride this (owned for the run).
+			ride = a.trim_prefix("--ride=")
+			owned[ride] = true
 	Palette.apply(night)
 	DrawUtil.bold_marks = colorblind
 	apply_volume()
@@ -195,6 +199,11 @@ func _load() -> void:
 	dollaroos = int(d.get("dollaroos", 0))
 	for id in d.get("owned", []):
 		owned[str(id)] = true
+	# Chests opened before they held rides (0.7 build 20): their rides arrive now.
+	for n in d.get("chests", []):
+		var item := str(SideRoads.CHESTS.get(int(n), {}).get("hat", ""))
+		if item != "":
+			owned[item] = true
 	paint = str(d.get("paint", "classic"))
 	topper = str(d.get("topper", ""))
 	ride = str(d.get("ride", ""))

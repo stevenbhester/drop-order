@@ -6,7 +6,7 @@ extends RefCounted
 const RATE := 44100
 const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click", "rewind", "pickup", "swap", "gate",
 		"coin", "star", "kaching", "jingle", "empty", "hint", "sparkle", "punch", "slam", "whoomp",
-		"crunch", "crash", "screech"]
+		"crunch", "crash", "screech", "beep"]
 
 
 static func make(sound: String) -> AudioStreamWAV:
@@ -38,6 +38,7 @@ static func make(sound: String) -> AudioStreamWAV:
 		"crunch": b = _crunch()
 		"crash": b = _crash()
 		"screech": b = _screech()
+		"beep": b = _beep()
 		_: b = PackedFloat32Array([0.0])
 	return _wav(b)
 
@@ -259,4 +260,15 @@ static func _screech() -> PackedFloat32Array:
 		var env := minf(1.0, t * 40.0) * pow(1.0 - k, 0.7)
 		var thump := sin(TAU * 70.0 * t) * exp(-maxf(t - 0.4, 0.0) * 30.0) * (0.5 if t > 0.4 else 0.0)
 		b[i] = (squeal * (0.75 + 0.25 * lp) + lp * 0.08) * env + thump
+	return b
+
+
+## A car horn: two buzzy tones a third apart, short.
+static func _beep() -> PackedFloat32Array:
+	var b := _buf(0.16)
+	for i in b.size():
+		var t := float(i) / RATE
+		var env := minf(1.0, t * 300.0) * minf(1.0, (0.16 - t) * 60.0)
+		var v := signf(sin(TAU * 415.0 * t)) * 0.5 + signf(sin(TAU * 523.0 * t)) * 0.5
+		b[i] = v * env * 0.16
 	return b

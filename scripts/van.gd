@@ -23,12 +23,28 @@ var _has_top := false
 var _t := 0.0
 var _scale_tw: Tween
 var _pos_tw: Tween
+## Seconds into a win celebration (RideWins), or -1.
+var _win_t := -1.0
+var _win_ride := ""
+var _fx: Node2D
+var _fx_under: Node2D
 
 
 func _ready() -> void:
+	# The celebration's ground effects go under the ride (smoke, splashes), its words and flourishes over.
+	_fx_under = Node2D.new()
+	_fx_under.draw.connect(func():
+		if _win_t >= 0.0:
+			RideWins.overlay(_fx_under, _win_ride, _win_t, size, global_rotation, true))
+	add_child(_fx_under)
 	body = Node2D.new()
 	add_child(body)
 	body.draw.connect(_draw_body)
+	_fx = Node2D.new()
+	_fx.draw.connect(func():
+		if _win_t >= 0.0:
+			RideWins.overlay(_fx, _win_ride, _win_t, size, global_rotation))
+	add_child(_fx)
 	rotation = target_rotation
 	if follow_progress:
 		_wear()
@@ -54,10 +70,49 @@ func set_top(color_name: String) -> void:
 func _process(delta: float) -> void:
 	rotation = lerp_angle(rotation, target_rotation, 1.0 - exp(-24.0 * delta))
 	_t += delta
+	if _win_t >= 0.0:
+		_celebration(delta)
 	if inviting:
 		queue_redraw()
 	if topper == "sprout" or topper == "rivet" or topper == "puffball" or ride != "":
 		body.queue_redraw()
+	if ride == "pillow_tower":
+		# It stacks up the screen, whichever way it's facing.
+		body.queue_redraw()
+
+
+## The win celebration for whatever it's riding (RideWins): its moves, its sounds, its effects.
+func celebrate() -> void:
+	_win_ride = ride
+	_win_t = 0.0
+	for tw in [_scale_tw, _pos_tw]:
+		if tw and tw.is_valid():
+			tw.kill()
+
+
+func celebrating() -> bool:
+	return _win_t >= 0.0
+
+
+func _celebration(delta: float) -> void:
+	var before := _win_t
+	_win_t += delta
+	for c in RideWins.cues(_win_ride):
+		if float(c[0]) >= before and float(c[0]) < _win_t:
+			Sfx.play(c[1], c[2], c[3])
+	if _win_t > RideWins.time(_win_ride) + 0.15:
+		_win_t = -1.0
+		body.position = Vector2.ZERO
+		body.rotation = 0.0
+		body.scale = Vector2.ONE
+	else:
+		var p := RideWins.pose(_win_ride, _win_t, size)
+		body.position = p["pos"]
+		body.rotation = p["rot"]
+		body.scale = p["scale"]
+	body.queue_redraw()
+	_fx.queue_redraw()
+	_fx_under.queue_redraw()
 
 
 func squash() -> void:
@@ -104,7 +159,8 @@ func _draw_body() -> void:
 	var L := size * 0.74
 	var W := size * 0.46
 	if ride != "":
-		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t, paint if paint != "" else "classic")
+		var up := Vector2.UP.rotated(-(global_rotation + b.rotation))
+		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t, paint if paint != "" else "classic", _win_t if _win_ride == ride else -1.0, up)
 		if topper != "":
 			Cosmetics.draw_topper(b, topper, at, W, _t)
 		return

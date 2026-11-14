@@ -37,6 +37,11 @@ func _ready() -> void:
 	_van.ride = item if kind == "ride" else ""
 	add_child(_van)
 	_van.set_top("yellow")
+	# A new ride shows off its win celebration once it's in.
+	if kind == "ride":
+		get_tree().create_timer(0.7).timeout.connect(func():
+			if is_instance_valid(_van):
+				_van.celebrate())
 	_fx = Fx.new()
 	add_child(_fx)
 
