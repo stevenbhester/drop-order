@@ -8,20 +8,11 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 22
+const BUILD := 23
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := [
-	"Hints: you start each level with one; the chests at 10 and 20 add one each. A hint stays up until you drive, asking again is free, and a pulsing ring shows where to stop.",
-	"Scrap a route: drag it down onto the crusher, hold till the ring closes, let go.",
-	"New option: Replay ghost path. After a retry, your last try shows faintly, with arrows where you turned.",
-	"Trails have depth, burst as they hit, and stay alive behind you; momentum makes them wilder.",
-	"Keys! Some levels hide one. Keys open locked detours.",
-	"A boss has moved in after level 45. He's very rich and very rude.",
-	"New things to collect much later on, in new Garage tabs: roads, package shapes, buildings, the package queue, button colours.",
-	"Levels that get redesigned after you've beaten them will show it on the map.",
-]
+const BUILD_NOTES := []
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [

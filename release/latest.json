@@ -1,10 +1,11 @@
 {
-	"build": 21,
+	"build": 22,
 	"name": "The Long Road",
 	"notes": [
-		"Trails! Unlock new things for the road to turn into behind you with stars: a river, mountains, hearts, meteors, lava and zombies.",
-		"Drop-offs stand on a bullseye in their colour, so they're easy to tell from pickups."
+		"Hints: you start each level with one; the chests at 10 and 20 add one each. A hint stays up until you drive, asking again is free, and a pulsing ring shows where to stop.",
+		"Scrap a route: drag it down onto the crusher, hold till the ring closes, let go.",
+		"New option: Replay ghost path. After a retry, your last try shows faintly, with arrows where you turned."
 	],
-	"ready_at": 1794632030,
+	"ready_at": 1794637524,
 	"version": "0.7"
 }
