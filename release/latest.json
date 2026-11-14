@@ -1,11 +1,10 @@
 {
-	"build": 20,
+	"build": 21,
 	"name": "The Long Road",
 	"notes": [
-		"Next drives your van up the map to the new stop, then one big Drive! button (and a Detour button when there's a side road).",
-		"Five new rides in the treasure chests: Sam's Race Car, James' Evil Bassinet, Tara's Hungry Caterpillar, Orin's Green Car and Violet's Tower.",
-		"Every ride celebrates a win its own way (and in the Garage). Return levels show their finish flag from the start."
+		"Trails! Unlock new things for the road to turn into behind you with stars: a river, mountains, hearts, meteors, lava and zombies.",
+		"Drop-offs stand on a bullseye in their colour, so they're easy to tell from pickups."
 	],
-	"ready_at": 1794630517,
+	"ready_at": 1794632030,
 	"version": "0.7"
 }
