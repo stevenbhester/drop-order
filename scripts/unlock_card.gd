@@ -37,6 +37,17 @@ func _ready() -> void:
 	_van.ride = item if kind == "ride" else ""
 	add_child(_van)
 	_van.set_top("yellow")
+	# A new trail: a stretch of road torn up its way, instead of the van.
+	if kind == "trail":
+		_van.visible = false
+		var tp := TrailPreview.new()
+		tp.style = item
+		tp.tile = 130.0
+		tp.position = _c + Vector2(0, 40)
+		add_child(tp)
+		get_tree().create_timer(0.6).timeout.connect(func():
+			if is_instance_valid(tp):
+				tp.replay())
 	# A new ride shows off its win celebration once it's in.
 	if kind == "ride":
 		get_tree().create_timer(0.7).timeout.connect(func():
@@ -138,7 +149,7 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Banner.
 	var kind := Cosmetics.kind_of(item)
-	var head: String = {"ride": "NEW RIDE!", "paint": "NEW PAINT JOB!", "topper": "NEW TOPPER!"}.get(kind, "NEW!")
+	var head: String = {"ride": "NEW RIDE!", "paint": "NEW PAINT JOB!", "topper": "NEW TOPPER!", "trail": "NEW TRAIL!"}.get(kind, "NEW!")
 	var k := clampf(_t / 0.35, 0.0, 1.0)
 	var by := v.y * 0.13
 	var band := PackedVector2Array([Vector2(-20, by - 70 + 30), Vector2(v.x * k + 20, by - 70 - 30), Vector2(v.x * k + 20, by + 70 - 30), Vector2(-20, by + 70 + 30)])
@@ -160,7 +171,7 @@ func _draw() -> void:
 	draw_string_outline(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, 16, Color(0.1, 0.07, 0.16))
 	draw_string(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, tint.lightened(0.35))
 	var from: String = Cosmetics.ITEMS.get(item, {}).get("from", "")
-	var sub := ("from " + from) if from != "" else "found on the road"
+	var sub := ("from " + from) if from != "" else ("unlocked with %d stars" % Cosmetics.stars_for(item) if kind == "trail" else "found on the road")
 	sub += "  ·  yours to keep"
 	var sw := f.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 38).x
 	draw_string(f, Vector2((v.x - sw) / 2.0, ny + 66), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color(1, 1, 1, 0.7))

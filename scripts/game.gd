@@ -2408,6 +2408,7 @@ func _win() -> void:
 	var gas_back := false
 	var crushed := false
 	var side_prize := ""
+	var stars_before := -1
 	if _speedrun():
 		# A speedrun course done: the time, against the record.
 		var total := speed_elapsed + play_time
@@ -2431,6 +2432,7 @@ func _win() -> void:
 			gas_back = true
 	else:
 		gas_back = not Progress.is_complete(level.number)
+		stars_before = Progress.total_stars()
 		pay = Progress.mark_complete(level.number, earned)
 		# First time through a challenge level: a bonus, and the finish goes big.
 		crushed = level.challenge and gas_back
@@ -2446,6 +2448,13 @@ func _win() -> void:
 		new_item = level.gift_item
 	if side_prize != "" and Progress.give(side_prize):
 		new_item = side_prize
+	# Enough stars now for a new trail?
+	if new_item == "" and stars_before >= 0:
+		for id in Cosmetics.ORDER:
+			var need := Cosmetics.stars_for(id)
+			if Cosmetics.kind_of(id) == "trail" and need > stars_before and need <= Progress.total_stars():
+				new_item = id
+				break
 	var missed := board.gift != null and not gift_taken
 	Progress.momentum += 1
 	momentum_ctl.visible = false

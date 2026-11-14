@@ -47,9 +47,9 @@ func _ready() -> void:
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 20)
 	scroll.add_child(col)
-	for kind in ["ride", "paint", "topper"]:
+	for kind in ["ride", "paint", "topper", "trail"]:
 		var head := Label.new()
-		head.text = {"ride": "Rides", "paint": "Paint jobs", "topper": "Toppers"}[kind]
+		head.text = {"ride": "Rides", "paint": "Paint jobs", "topper": "Toppers", "trail": "Trails  ·  what the road turns into behind you"}[kind]
 		head.add_theme_font_size_override("font_size", 48)
 		head.add_theme_color_override("font_color", Palette.TEXT_SOFT)
 		col.add_child(head)
@@ -72,6 +72,8 @@ func _ready() -> void:
 
 ## Where each cosmetic can be found, from the levels' gifts.
 func _where(id: String) -> String:
+	if Cosmetics.kind_of(id) == "trail":
+		return "Unlocks at %d ★ (you have %d)" % [Cosmetics.stars_for(id), Progress.total_stars()]
 	for L in levels:
 		if L.gift_item == id:
 			return "Level %d" % L.number
@@ -94,6 +96,8 @@ func _tile(id: String) -> Button:
 		Progress.wear(id)
 		Sfx.play("pop", 1.1)
 		Sfx.haptic(10)
+		if Cosmetics.kind_of(id) == "trail":
+			t.replay()
 		# Picking a ride (or the van back) shows off its win celebration; anything else just bounces.
 		if Cosmetics.kind_of(id) == "ride" or (Cosmetics.kind_of(id) == "paint" and Progress.ride == ""):
 			_van.celebrate.call_deferred()
@@ -142,10 +146,22 @@ class ItemTile:
 	var id := ""
 	var where := ""
 	var _t := 0.0
+	var _trail: TrailPreview
 
 	func _ready() -> void:
 		super._ready()
 		add_to_group("garage_tiles")
+		# A trail shows a little stretch of road torn up its way.
+		if Cosmetics.kind_of(id) == "trail" and Progress.owns(id):
+			_trail = TrailPreview.new()
+			_trail.style = id
+			_trail.tile = 52.0
+			_trail.position = Vector2(153, 100)
+			add_child(_trail)
+
+	func replay() -> void:
+		if _trail:
+			_trail.replay()
 
 	func _process(delta: float) -> void:
 		_t += delta

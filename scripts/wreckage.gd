@@ -8,6 +8,9 @@ extends Node2D
 ## Game calls set_route(tiles, upto): the first `upto` tiles of `tiles` (the route, in driving order)
 ## are wrecked; the rest (where the van is and the road ahead) aren't. Tiles that drop out (undo) fade.
 ##
+## The trail's look is a cosmetic (`style`, Progress.wake): the torn-up road by default, or lava, a river,
+## mountains, meteor strikes, zombies or hearts; each tears in its own way and still reads as "not again".
+##
 ## Drawn in two layers, so a long drive stays cheap: tiles that have finished tearing and cooling never
 ## change again, so this node draws them only when the route changes; a child layer redraws every frame
 ## just the tiles still tearing or fading, and the flames of a run hot enough to keep burning.
@@ -28,6 +31,8 @@ var momentum := 0
 var sturdy := Vector2i(-99, -99)
 ## Play a crunch as each tile tears (off while the level is being restored).
 var loud := true
+## The trail's look: "wreck" (torn-up road), "lava", "river", "mountains", "meteors", "zombies", "hearts".
+var style := "wreck"
 
 var _tiles: Array = []
 var _entries: Array = []         # per wrecked route index: {p, axis, t0, seed, bridge}
@@ -87,6 +92,8 @@ func _process(delta: float) -> void:
 
 ## How old a torn tile is when it stops changing: torn, and cooled to its lasting glow.
 func _settle_age() -> float:
+	if style != "wreck":
+		return _tear_time()
 	if momentum <= 0:
 		return TEAR
 	var life := 1.2 + 0.45 * mini(momentum, 10)
@@ -99,7 +106,7 @@ func _rest_heat() -> float:
 
 ## Hot enough that settled tiles keep burning (their flames flicker, so they're drawn live).
 func _burns() -> bool:
-	return momentum >= 3 and _rest_heat() > 0.3
+	return momentum >= 3 and _rest_heat() > 0.3 and (style == "wreck" or style == "lava")
 
 
 func center(p: Vector2i) -> Vector2:
@@ -143,6 +150,9 @@ func _heat(age: float) -> float:
 ## One torn tile. `settled`: drawn on the still layer, so without its flames (the live layer has those).
 func _draw_entry(e: Dictionary, i: int, alpha: float, settled := false) -> void:
 	if alpha <= 0.0:
+		return
+	if style != "wreck":
+		_draw_themed(e, i, alpha)
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = e["seed"]
@@ -234,6 +244,157 @@ func _draw_entry(e: Dictionary, i: int, alpha: float, settled := false) -> void:
 	# The hottest runs keep burning a while.
 	if not settled:
 		_burn(e, heat, pal, alpha)
+
+
+## How long a tile takes to change, per look (a meteor has to fall first).
+func _tear_time() -> float:
+	return {"meteors": 0.75, "mountains": 0.55, "zombies": 0.6, "hearts": 0.5}.get(style, TEAR)
+
+
+## A themed trail tile: what the road turns into behind the van, joined to its neighbours along the route.
+func _draw_themed(e: Dictionary, i: int, alpha: float) -> void:
+	if e["skip"]:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = e["seed"]
+	var c := center(e["p"])
+	var age: float = _t - e["t0"]
+	var k := clampf(age / _tear_time(), 0.0, 1.0)
+	var grow := 1.0 - pow(1.0 - k, 3.0)
+	var deck: bool = e["bridge"] and e["axis"] == 0
+	var dirs: Array[Vector2] = []
+	if i > 0 and i - 1 < _tiles.size():
+		dirs.append((center(_tiles[i - 1]) - c).normalized())
+	if i >= 0 and i + 1 < _tiles.size():
+		dirs.append((center(_tiles[i + 1]) - c).normalized())
+	var T := tile
+	match style:
+		"lava":
+			for d in dirs:
+				var a := c + d * (T * 0.42 if deck else 0.0)
+				var b := c + d * T * 0.5
+				_ci.draw_line(a, b, Color("3a2a2a", alpha), T * 0.46 * grow, true)
+				_ci.draw_line(a, b, Color("ff6a1a", alpha), T * 0.3 * grow, true)
+				_ci.draw_line(a, b, Color("ffd23f", alpha), T * 0.11 * grow, true)
+			if not deck:
+				_ci.draw_circle(c, T * 0.5 * grow, Color(1.0, 0.45, 0.1, 0.14 * alpha))
+				_blob(c, T * 0.4 * grow, rng, Color("3a2a2a", alpha))
+				_blob(c, T * 0.3 * grow, rng, Color("ff6a1a", alpha))
+				_ci.draw_circle(c, T * 0.16 * grow, Color("ffd23f", alpha))
+				for q in 3:
+					var p := c + Vector2(rng.randf_range(-0.2, 0.2), rng.randf_range(-0.2, 0.2)) * T * grow
+					_blob(p, T * rng.randf_range(0.04, 0.07) * grow, rng, Color("4a3434", alpha))
+		"river":
+			for d in dirs:
+				var a := c + d * (T * 0.42 if deck else 0.0)
+				var b := c + d * T * 0.5
+				_ci.draw_line(a, b, Color("d9c48f", alpha), T * 0.62 * grow, true)
+				_ci.draw_line(a, b, Color("4d9be6", alpha), T * 0.46 * grow, true)
+				_ci.draw_line(a, b, Color(0.55, 0.78, 1.0, 0.6 * alpha), T * 0.14 * grow, true)
+			if not deck:
+				_ci.draw_circle(c, T * 0.31 * grow, Color("d9c48f", alpha))
+				_ci.draw_circle(c, T * 0.23 * grow, Color("4d9be6", alpha))
+				for q in 2:
+					var p := c + Vector2(rng.randf_range(-0.1, 0.1), rng.randf_range(-0.1, 0.1)) * T
+					_ci.draw_arc(p, T * 0.06 * grow, PI * 1.1, PI * 1.9, 8, Color(1, 1, 1, 0.55 * alpha), T * 0.02, true)
+				if rng.randf() < 0.35:
+					var lp := c + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12)) * T
+					_ci.draw_circle(lp, T * 0.06 * grow, Color("5fae5b", alpha))
+		"mountains":
+			for d in dirs:
+				_ci.draw_line(c + d * (T * 0.42 if deck else 0.0), c + d * T * 0.5, Color("6b5b4a", alpha), T * 0.34 * grow, true)
+			if not deck:
+				_ci.draw_circle(c, T * 0.34 * grow, Color("6b5b4a", alpha))
+				var n := 2 + rng.randi() % 2
+				for q in n:
+					var base := c + Vector2(rng.randf_range(-0.16, 0.16), rng.randf_range(0.04, 0.18)) * T
+					var hgt := T * rng.randf_range(0.46, 0.66) * grow
+					var hw := T * rng.randf_range(0.18, 0.24)
+					var top := base + Vector2(0, -hgt)
+					_ci.draw_colored_polygon(PackedVector2Array([base + Vector2(-hw, 0), top, base]), Color("9aa1ae", alpha))
+					_ci.draw_colored_polygon(PackedVector2Array([base, top, base + Vector2(hw, 0)]), Color("6d7280", alpha))
+					var sn := 0.32
+					_ci.draw_colored_polygon(PackedVector2Array([top, top.lerp(base + Vector2(-hw, 0), sn), top.lerp(base, sn) + Vector2(0, -T * 0.02), top.lerp(base + Vector2(hw, 0), sn)]), Color(1, 1, 1, alpha))
+		"meteors":
+			var fall := 0.35
+			for d in dirs:
+				_ci.draw_line(c + d * (T * 0.42 if deck else 0.0), c + d * T * 0.5, Color(0.1, 0.08, 0.1, 0.35 * alpha * clampf((age - fall) / 0.1, 0.0, 1.0)), T * 0.22, true)
+			if not deck:
+				if age < fall:
+					var u := age / fall
+					var from := c + Vector2(T * 0.9, -T * 1.4)
+					var at := from.lerp(c, u)
+					_ci.draw_line(from.lerp(c, maxf(u - 0.35, 0.0)), at, Color(1.0, 0.6, 0.2, 0.8 * alpha), T * 0.12, true)
+					_ci.draw_circle(at, T * 0.1, Color("ffd23f", alpha))
+				else:
+					var g2 := clampf((age - fall) / 0.25, 0.0, 1.0)
+					var gg := 1.0 - pow(1.0 - g2, 3.0)
+					_blob(c, T * 0.38 * gg, rng, Color("3a3640", alpha))
+					_ci.draw_circle(c, T * 0.27 * gg, Color("23202a", alpha))
+					_ci.draw_circle(c, T * 0.2 * gg, Color(1.0, 0.45, 0.1, 0.25 * alpha))
+					_blob(c, T * 0.13 * gg, rng, Color("4a3f45", alpha))
+					for q in 3:
+						var a := rng.randf() * TAU
+						_ci.draw_line(c, c + Vector2(cos(a), sin(a)) * T * 0.11 * gg, Color("ff8a2a", alpha), T * 0.02, true)
+					var fl := clampf(1.0 - (age - fall) / 0.2, 0.0, 1.0)
+					if fl > 0.0:
+						_ci.draw_circle(c, T * 0.5, Color(1, 0.95, 0.8, 0.7 * fl * alpha))
+		"zombies":
+			for d in dirs:
+				_ci.draw_line(c + d * (T * 0.42 if deck else 0.0), c + d * T * 0.5, Color("2e313b", alpha), T * 0.3 * grow, true)
+			if not deck:
+				_blob(c, T * 0.36 * grow, rng, Color("3b3f36", alpha))
+				for q in 4:
+					var a := TAU * q / 4.0 + rng.randf_range(-0.3, 0.3)
+					_ci.draw_line(c, c + Vector2(cos(a), sin(a)) * T * 0.34 * grow, Color("23261f", alpha), T * 0.03, true)
+				for q in 2:
+					var foot := c + Vector2((q - 0.5) * T * 0.36, T * 0.2)
+					var rise := grow
+					var hh := T * 0.46 * rise
+					# Arms reaching out, a ragged shirt, a big green head with hollow eyes and a moaning mouth.
+					for sd in [-1.0, 1.0]:
+						_ci.draw_line(foot + Vector2(sd * T * 0.07, -hh * 0.7), foot + Vector2(sd * T * 0.05 + T * 0.16, -hh * 0.92), Color("8fbf6a", alpha), T * 0.05, true)
+					DrawUtil.rrect(_ci, Rect2(foot + Vector2(-T * 0.09, -hh * 0.78), Vector2(T * 0.18, hh * 0.78)), Color("5a4a6b", alpha), T * 0.04)
+					_ci.draw_line(foot + Vector2(-T * 0.09, -hh * 0.2), foot + Vector2(T * 0.09, -hh * 0.26), Color("3a2e48", alpha), T * 0.025)
+					var hc := foot + Vector2(0, -hh * 0.78 - T * 0.09)
+					_ci.draw_circle(hc, T * 0.12 * maxf(rise, 0.01), Color("8fbf6a", alpha))
+					if rise > 0.6:
+						for sd in [-1.0, 1.0]:
+							_ci.draw_circle(hc + Vector2(sd * T * 0.045, -T * 0.02), T * 0.03, Color("1a1a1a", alpha))
+						_ci.draw_circle(hc + Vector2(0, T * 0.05), T * 0.03, Color("3a1a1a", alpha))
+		"hearts":
+			for d in dirs:
+				var steps := 3
+				for q in steps:
+					var p := c + d * T * (0.15 + 0.35 * (q + 0.5) / steps)
+					if deck and q < 2:
+						continue
+					_heart(p, T * 0.06 * grow, Color("ff7aa8", alpha))
+			if not deck:
+				_ci.draw_circle(c, T * 0.34 * grow, Color("ffd6e6", alpha))
+				var pop := 1.0 + 0.25 * sin(PI * k) if k < 1.0 else 1.0
+				_heart(c, T * 0.26 * grow * pop, Color("c2185b", alpha))
+				_heart(c, T * 0.22 * grow * pop, Color("ff4d8d", alpha))
+				_ci.draw_circle(c + Vector2(-T * 0.08, -T * 0.06) * grow, T * 0.04 * grow, Color(1, 1, 1, 0.6 * alpha))
+
+
+## An irregular round blob (a lava pool, a crater, a crust island).
+func _blob(c: Vector2, r: float, rng: RandomNumberGenerator, col: Color) -> void:
+	if r <= 0.5:
+		return
+	var pts := PackedVector2Array()
+	for q in 10:
+		var a := TAU * q / 10.0
+		pts.append(c + Vector2(cos(a), sin(a)) * r * rng.randf_range(0.82, 1.08))
+	_ci.draw_colored_polygon(pts, col)
+
+
+func _heart(c: Vector2, s: float, col: Color) -> void:
+	if s <= 0.5:
+		return
+	_ci.draw_circle(c + Vector2(-s * 0.5, -s * 0.2), s * 0.56, col)
+	_ci.draw_circle(c + Vector2(s * 0.5, -s * 0.2), s * 0.56, col)
+	_ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-s * 1.02, 0.0), c + Vector2(s * 1.02, 0.0), c + Vector2(0, s * 1.2)]), col)
 
 
 ## A torn tile's fire, if it's hot enough to burn.

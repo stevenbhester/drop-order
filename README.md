@@ -111,6 +111,14 @@ sticker and opens that offer instead.
   Bonkle Ears, Sprout & Orbit, Rivet, Puffball), plus Racing Stripes, a Door Bowl soup bowl and the
   chest hats (Party Hat, Hard Hat, Gold Crown). Paint jobs work on every ride (Classic Cream leaves
   a ride in its own colours).
+- **Trails** (the Garage's fourth section): what the road turns into behind the van. The torn-up road,
+  or, unlocked with stars, **River Run** (30 ★), **Mountain Range** (60), **Heart Trail** (100), **Meteor
+  Strikes** (140, they streak in and hit), **Lava Flow** (180) and **Zombie Horde** (220). Each still reads
+  as "you can't drive here again"; the hottest runs' flames burn on the torn road and on lava. Crossing a
+  star mark pops a NEW TRAIL card. Drawn by `Wreckage` (`style`); `TrailPreview` shows a stretch in the
+  garage. `-- --wake=<id>` to try one, `-- --unlock=<id>` for its card.
+- **Drop-offs vs pickups:** every house that wants packages stands on a round bullseye in its colour
+  (grey for lockers); pickups keep their square lot with a dashed outline.
 - **Win celebrations** (`scripts/ride_wins.gd`): every ride shows off when a level's won, and when it's
   picked in the Garage: the van hops twice; the monster truck bounces on crazy hydraulics; the scooter
   pops a wheelie and spins; Mr. Frosty twirls to its jingle; the rocket van boosts; the hover van lifts

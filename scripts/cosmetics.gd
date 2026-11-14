@@ -24,6 +24,13 @@ const ITEMS := {
 	"caterpillar": {"kind": "ride", "name": "Tara's Hungry Caterpillar", "from": "", "body": Color("6cc04a"), "cab": Color("c6e85a")},
 	"minivan": {"kind": "ride", "name": "Orin's Green Car", "from": "", "body": Color("2f6b45"), "cab": Color("1f2a24")},
 	"pillow_tower": {"kind": "ride", "name": "Violet's Tower", "from": "", "body": Color("c8a8ff"), "cab": Color("8a5cf5")},
+	"wreck": {"kind": "trail", "name": "Torn-Up Road", "from": "", "stars": 0},
+	"river": {"kind": "trail", "name": "River Run", "from": "", "stars": 30},
+	"mountains": {"kind": "trail", "name": "Mountain Range", "from": "", "stars": 60},
+	"hearts": {"kind": "trail", "name": "Heart Trail", "from": "", "stars": 100},
+	"meteors": {"kind": "trail", "name": "Meteor Strikes", "from": "", "stars": 140},
+	"lava": {"kind": "trail", "name": "Lava Flow", "from": "", "stars": 180},
+	"zombies": {"kind": "trail", "name": "Zombie Horde", "from": "", "stars": 220},
 	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
 	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
 	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
@@ -39,7 +46,8 @@ const ITEMS := {
 const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
 	"race_car", "bassinet", "caterpillar", "minivan", "pillow_tower",
 	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
-	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl"]
+	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl",
+	"wreck", "river", "mountains", "hearts", "meteors", "lava", "zombies"]
 ## Rides that move (they're redrawn every frame in the garage).
 const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat",
 	"bassinet", "caterpillar", "pillow_tower"]
@@ -53,9 +61,21 @@ static func kind_of(id: String) -> String:
 	return ITEMS.get(id, {}).get("kind", "")
 
 
+## Trails (what the road turns into behind the van) unlock with stars: how many this one needs.
+static func stars_for(id: String) -> int:
+	return int(ITEMS.get(id, {}).get("stars", 0))
+
+
 ## A colour that stands for the item (for gift sparkles and garage tiles).
 static func tint(id: String) -> Color:
 	match id:
+		"wreck": return Color("6b7484")
+		"river": return Color("4d9be6")
+		"mountains": return Color("9aa1ae")
+		"hearts": return Color("ff4d8d")
+		"meteors": return Color("ff8a2a")
+		"lava": return Color("ff6a1a")
+		"zombies": return Color("8fbf6a")
 		"drizzlet": return Color(0.5, 0.78, 0.98)
 		"bonkle": return Color(0.98, 0.66, 0.46)
 		"sprout": return Color(0.5, 0.9, 0.74)

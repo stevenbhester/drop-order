@@ -55,6 +55,7 @@ func setup(level: LevelData, tile_size: float) -> void:
 	wreck.L = L
 	wreck.tile = tile
 	wreck.momentum = Progress.momentum
+	wreck.style = Progress.wake
 	if L.return_depot:
 		wreck.sturdy = L.start
 	add_child(wreck)
@@ -235,8 +236,17 @@ func _draw() -> void:
 					var hsh := ((x * 73856093) ^ (y * 19349663)) & 7
 					if hsh < 3:
 						_tree(center(p) + Vector2((hsh - 1) * tile * 0.14, -tile * 0.04), tile * (0.15 + hsh * 0.02))
-				LevelData.Cell.HOUSE, LevelData.Cell.SHOP:
+				LevelData.Cell.SHOP:
 					DrawUtil.rrect(self, r, Palette.YARD, tile * 0.18)
+	# Drop-offs stand on a round bullseye in the colour they want, so they can't be mistaken for pickups
+	# (square lots with a dashed outline).
+	for h in L.houses:
+		var col: Color = Palette.pkg(h.color) if h.color != "any" else Color("8f98aa")
+		var hc := center(h.pos) + Vector2(0, tile * 0.06)
+		draw_circle(hc, tile * 0.47, col.darkened(0.15))
+		draw_circle(hc, tile * 0.42, col.lerp(Palette.GRASS.lerp(Color.WHITE, 0.6), 0.78))
+		draw_circle(hc, tile * 0.3, col.lerp(Color.WHITE, 0.45))
+		draw_circle(hc, tile * 0.18, col.lerp(Palette.GRASS.lerp(Color.WHITE, 0.6), 0.78))
 
 	# Roads: rounded squares + bridges to right/down neighbours, with a darker curb pass first.
 	var m := tile * 0.12

@@ -12,7 +12,10 @@ const BUILD := 21
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := []
+const BUILD_NOTES := [
+	"Trails! Unlock new things for the road to turn into behind you with stars: a river, mountains, hearts, meteors, lava and zombies.",
+	"Drop-offs stand on a bullseye in their colour, so they're easy to tell from pickups.",
+]
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [

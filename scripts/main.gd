@@ -109,6 +109,12 @@ func _ready() -> void:
 			# Debug: as if level N-1 was just won: the van drives up to N, then the Next card.
 			var n := a.trim_prefix("--next=").to_int()
 			show_next.call_deferred(n - 2, n - 1)
+	for a in args:
+		if a.begins_with("--unlock="):
+			# Debug: the "you found something" card for this cosmetic.
+			var u := UnlockCard.new()
+			u.item = a.trim_prefix("--unlock=")
+			add_child.call_deferred(u)
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
 		open_feedback.call_deferred()

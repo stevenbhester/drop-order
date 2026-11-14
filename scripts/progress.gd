@@ -55,6 +55,8 @@ var oneway_levels := {}
 var symbol_tip_seen := false
 ## Seen the tip about the exit road (the gate to the next part or zone).
 var exit_tip_seen := false
+## The trail the van leaves (a Cosmetics "trail" id): the torn-up road unless another's been picked.
+var wake := "wreck"
 ## Option: hints never run out (no ads needed). They still cost a star.
 var unlimited_hints := false
 ## How many times the "out of hints" tip has shown (it stops after three), and whether they've ever
@@ -118,6 +120,9 @@ func _ready() -> void:
 			peek = true
 		elif a == "--colorblind":
 			colorblind = true
+		elif a.begins_with("--wake="):
+			# Debug: leave this trail.
+			wake = a.trim_prefix("--wake=")
 		elif a.begins_with("--ride="):
 			# Debug: ride this (owned for the run).
 			ride = a.trim_prefix("--ride=")
@@ -229,6 +234,7 @@ func _load() -> void:
 	symbol_tip_seen = bool(d.get("symbol_tip_seen", false))
 	exit_tip_seen = bool(d.get("exit_tip_seen", false))
 	unlimited_hints = bool(d.get("unlimited_hints", false))
+	wake = str(d.get("wake", "wreck"))
 	hint_tips = int(d.get("hint_tips", 0))
 	hint_ad_watched = bool(d.get("hint_ad_watched", false))
 	reserve_gas = clampi(int(d.get("reserve_gas", 0)), 0, MAX_RESERVE)
@@ -270,7 +276,7 @@ func _save() -> void:
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
-			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
+			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
 			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
 			"mega": mega}))
@@ -441,6 +447,8 @@ func use_bank_undo() -> bool:
 # ---------------------------------------------------------------- cosmetics
 
 func owns(id: String) -> bool:
+	if Cosmetics.kind_of(id) == "trail":
+		return owned.has(id) or total_stars() >= Cosmetics.stars_for(id)
 	return id == "classic" or owned.has(id)
 
 
@@ -457,7 +465,7 @@ func give(id: String) -> bool:
 
 ## Is the player wearing this right now?
 func wearing(id: String) -> bool:
-	return paint == id or topper == id or ride == id
+	return paint == id or topper == id or ride == id or wake == id
 
 
 ## Puts an owned item on (never takes it off, unlike wear()).
@@ -612,6 +620,8 @@ func wear(id: String) -> void:
 		topper = "" if topper == id else id
 	elif kind == "ride" and owns(id):
 		ride = "" if ride == id else id
+	elif kind == "trail" and owns(id):
+		wake = id
 	_save()
 	changed.emit()
 
