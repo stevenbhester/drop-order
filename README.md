@@ -249,8 +249,12 @@ as a little flame inside the Daily button.
   comes with **3 hints** (the count is on the button). Out of them, Hint plays a pretend ad instead: one of
   three short spots for Last Mile itself, drawn live in code with the game's own van, houses and sounds
   (`scripts/promo_ad.gd`; the ideas of the three trailers): **fun** (every package has someone waiting),
-  **bait** (a clickbait parody: 99% FAIL THIS LEVEL!, an IQ meter) and **trash** (breaking news about GTA
-  VI, "NO GAME DARES???", a fancam, a message for Rockstar). At random, never the same twice running, and
+  **bait** (a clickbait parody: 99% FAIL THIS LEVEL!, an IQ meter, and the trailer's emoji reaction cam,
+  NOOB then PRO) and **trash** (breaking news about GTA VI, a record scratch, "NO GAME DARES???", a slam on
+  the beat, a fancam of a burning run filmed through the trailer's shader with its follow cam, zoom
+  punches, tilts, RGB split, flashes and speed ramps, then a message for Rockstar). The trash talk's music
+  is synthesized on a worker thread while the news plays (`scripts/promo_music.gd`): a newsroom bed and a
+  half-time trap beat, since the trailer's song can't ship in the app. At random, never the same twice running, and
   Skip is there from the first frame. Watched or skipped, hints are then unlimited for the rest of the
   level. When the last hint goes, a tip by the button says so (only the first three times, and never once
   they've watched an ad). **Unlimited hints** in Options skips all that (a hint still costs a star).
@@ -284,7 +288,7 @@ as a little flame inside the Daily button.
 | `scripts/challenge_intro.gd` | The hazard-tape intro before an unbeaten challenge level (and its bonus) or a side road |
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's (or speedrun zone's) exit: the road on off the map and its gate; the package trail (drones behind the van) |
-| `scripts/promo_ad.gd` | The pretend Last Mile ads (fun, bait, trash) that unlock unlimited hints |
+| `scripts/promo_ad.gd`, `promo_music.gd` | The pretend Last Mile ads (fun, bait, trash) that unlock unlimited hints, and the trash talk's synthesized music |
 | `scripts/update_check.gd`, `update_card.gd` | "A new version is out!": reads `release/latest.json` from GitHub and offers a newer TestFlight build |
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |

@@ -6,9 +6,13 @@ extends CanvasLayer
 ##   fun    Cozy. "Every package has someone waiting." A finger draws one route; the van delivers them all.
 ##   bait   A clickbait parody. "99% FAIL THIS LEVEL!" The wrong way gets a NOPE and an IQ of 63; the
 ##          genius way delivers everything and the IQ meter maxes out.
-##   trash  Trash talk. Breaking news (publishers dodging GTA VI), a record scratch, "NO GAME DARES???",
-##          "LAST MILE DOESN'T GIVE A &@$*&!!!!" on the beat, a fancam of a burning run, then a message
-##          for Rockstar.
+##   trash  Trash talk, after the GTA VI trailer (tools/ads/gta_director.gd): breaking news (publishers
+##          dodging GTA VI), a record scratch, "NO GAME DARES???", "LAST MILE DOESN'T GIVE A &@$*&!!!!"
+##          slammed on the beat, a fancam of a burning run (the map filmed through the trailer's shader:
+##          follow cam, zoom punches, tilts, RGB split, flashes, black-and-white and inverted hits, blur,
+##          speed ramps, the fire getting hotter), then a message for Rockstar. Its music is PromoMusic's,
+##          synthesized on a worker thread while the news plays (the trailer's song can't ship in the app).
+## The clickbait has the trailer's reaction cam too: an emoji face (NOOB, then PRO) reacting in the corner.
 ## Skip is there from the first frame; skipping, closing or finishing all emit `finished`.
 
 signal finished
@@ -21,6 +25,44 @@ const NAVY := Color("0b1630")
 const YELLOW := Color("ffe14d")
 const HOT := Color("ff2e3e")
 const BEAT := 60.0 / 88.0
+## Trash talk: the beat comes in (its first downbeat at BEAT_AT, after a riser from SONG_AT), the fancam's
+## hits (every half beat), and when the run should be over.
+const BEAT_AT := 8.3
+const SONG_AT := BEAT_AT - 0.53
+const HITS := [10.35, 10.69, 11.03, 11.37, 11.71, 12.05, 12.39]
+const WIN_T := 12.5
+## The trailer's fancam look (tools/ads/gta_root.gd): RGB split, a radial blur, saturation and contrast,
+## invert, vignette, and a white flash.
+const FANCAM := """
+shader_type canvas_item;
+uniform float split = 0.0;
+uniform float flash = 0.0;
+uniform float sat = 1.0;
+uniform float contrast = 1.0;
+uniform float invert = 0.0;
+uniform float blur = 0.0;
+uniform float vignette = 0.0;
+void fragment() {
+	vec2 c = vec2(0.5);
+	vec2 d = UV - c;
+	vec3 col = vec3(0.0);
+	for (int i = 0; i < 6; i++) {
+		float k = float(i) / 6.0 * blur;
+		vec2 u = c + d * (1.0 - k);
+		col.r += texture(TEXTURE, u + vec2(split, 0.0) * TEXTURE_PIXEL_SIZE).r;
+		col.g += texture(TEXTURE, u).g;
+		col.b += texture(TEXTURE, u - vec2(split, 0.0) * TEXTURE_PIXEL_SIZE).b;
+	}
+	col /= 6.0;
+	float l = dot(col, vec3(0.299, 0.587, 0.114));
+	col = mix(vec3(l), col, sat);
+	col = (col - 0.5) * contrast + 0.5;
+	col = mix(col, 1.0 - col, invert);
+	col *= 1.0 - vignette * smoothstep(0.35, 0.85, length(d * vec2(1.0, 0.65)));
+	col = mix(col, vec3(1.0), flash);
+	COLOR = vec4(col, 1.0);
+}
+"""
 
 ## The little map every spot drives on (the game's level tokens: # road, S start, letters houses).
 const MAP_FUN := [". r . b .", "# # # # #", "# . y . #", "# # # # #", "S . . . ."]
@@ -32,6 +74,9 @@ const WAY := [Vector2i(0, 4), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Ve
 const WRONG := [Vector2i(0, 4), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 1), Vector2i(1, 1)]
 
 static var _last := -1
+## The trash talk's music, made once a session (on a worker thread) and kept.
+static var _music := {}
+static var _music_task := -1
 ## Debug: this kind next (-1: at random).
 static var force := -1
 
@@ -74,6 +119,29 @@ var _iq_to := 100.0
 var _flash := 0.0
 var _punch := 0.0
 var _shake := 0.0
+# The fancam (trash talk): the map renders into _cam_vp, shown through the FANCAM shader by _view.
+var _cam_vp: SubViewport
+var _view: Sprite2D
+var _cam_pt := Vector2.ZERO
+var _zoom := 1.0
+var _tilt := 0.0
+var _tilt_to := 0.0
+var _split := 0.0
+var _invert := 0.0
+var _mono := 0.0
+var _blur := 0.0
+var _heat_m := 3
+var _words: Array = []           # {text, t0, rot}
+var _hit_i := 0
+var _last_hit := -10.0
+var _bed: AudioStreamPlayer
+var _song: AudioStreamPlayer
+# The clickbait's reaction cam.
+var _face := ""
+var _face_name := "NOOB"
+var _face_t0 := 0.0
+var _say := ""
+var _say_t0 := 0.0
 
 
 ## Which spot plays next: any but the last one.
@@ -103,9 +171,32 @@ func _ready() -> void:
 	_root.draw.connect(_draw_back)
 	add_child(_root)
 	var vp := _root.get_viewport_rect().size
-	_tile = minf(170.0, (vp.x - 160.0) / 5.0)
+	_tile = minf(150.0 if kind == "bait" else 170.0, (vp.x - 160.0) / 5.0)
 	_stage = Node2D.new()
-	_root.add_child(_stage)
+	if kind == "trash":
+		# The map is filmed: it renders into its own viewport, shown through the fancam shader.
+		_cam_vp = SubViewport.new()
+		_cam_vp.size = Vector2i(vp)
+		_cam_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		_cam_vp.msaa_2d = Viewport.MSAA_2X
+		_root.add_child(_cam_vp)
+		var bg := ColorRect.new()
+		bg.color = Color("1a0d2b")
+		bg.size = vp
+		_cam_vp.add_child(bg)
+		_cam_vp.add_child(_stage)
+		_view = Sprite2D.new()
+		_view.texture = _cam_vp.get_texture()
+		var mat := ShaderMaterial.new()
+		var sh := Shader.new()
+		sh.code = FANCAM
+		mat.shader = sh
+		_view.material = mat
+		_view.visible = false
+		_root.add_child(_view)
+		_cam_pt = vp / 2.0
+	else:
+		_root.add_child(_stage)
 	_ground = Node2D.new()
 	_ground.draw.connect(_draw_ground)
 	_stage.add_child(_ground)
@@ -163,7 +254,7 @@ func _layout() -> void:
 ## The map's top-left on screen (it sits a little below the middle, under the captions).
 func _board_origin() -> Vector2:
 	var vp := _root.size if _root.size != Vector2.ZERO else _root.get_viewport_rect().size
-	return Vector2((vp.x - 5.0 * _tile) / 2.0, vp.y * 0.56 - 2.5 * _tile)
+	return Vector2((vp.x - 5.0 * _tile) / 2.0, vp.y * (0.47 if kind == "bait" else 0.56) - 2.5 * _tile)
 
 
 func _center(p: Vector2i) -> Vector2:
@@ -197,26 +288,53 @@ func _setup_bait() -> void:
 func _setup_trash() -> void:
 	_end_at = 15.8
 	_build(MAP_FUN, ["yellow", "blue", "red"])
-	_stage.visible = false
 	for i in 3:
 		_cue(0.3 + i * 2.2, "whoosh", 0.8, 0.0)
-	_cue(6.9, "screech", 1.0, -2.0)
-	_cue(6.95, "slam", 0.9, -2.0)
-	_cue(7.45, "slam", 1.0, -2.0)
-	# The beat, from the slam to the end card.
-	var k := 0
-	while 8.3 + k * BEAT < _end_at:
-		var bt := 8.3 + k * BEAT
-		_cue(bt, "thunk", 0.55, 0.0)
-		_cue(bt + BEAT * 0.5, "tick", 1.7, -12.0)
-		if k % 2 == 1:
-			_cue(bt, "punch", 1.4, -10.0)
-		k += 1
-	for at in [8.3, 8.3 + BEAT, 8.3 + 2.0 * BEAT]:
-		_cue(at, "slam", 1.0, -1.0)
-	for at in [12.9, 13.4, 13.9, 14.5]:
-		_cue(at, "slam", 0.9, -1.0)
+	_cue(6.95, "slam", 0.9, -4.0)
+	_cue(7.45, "slam", 1.0, -4.0)
+	for at in [BEAT_AT, BEAT_AT + BEAT, BEAT_AT + 2.0 * BEAT]:
+		_cue(at, "slam", 1.0, -6.0)
+	for k in 4:
+		_cue(BEAT_AT + (7 + k) * BEAT, "slam", 0.9, -6.0)
 	_cue(_end_at, "star", 1.0, -3.0)
+	_bed = AudioStreamPlayer.new()
+	_bed.volume_db = -4.0
+	add_child(_bed)
+	_song = AudioStreamPlayer.new()
+	add_child(_song)
+	_make_music()
+
+
+## The music, on a worker thread (once a session; it's kept for next time).
+func _make_music() -> void:
+	if not _music.is_empty() or _music_task >= 0:
+		return
+	var song_hits := []
+	for h in HITS:
+		song_hits.append(h - SONG_AT)
+	var length := _end_at + 1.0 - SONG_AT
+	_music_task = WorkerThreadPool.add_task(func():
+		var m := {}
+		m["bed"] = PromoMusic.news_bed(6.9, [0.3, 2.5, 4.7])
+		m["scratch"] = PromoMusic.scratch()
+		m["song"] = PromoMusic.hype(length, 0.53, BEAT, song_hits)
+		PromoAd._music = m)
+
+
+func _music_ready() -> bool:
+	if _music_task >= 0 and WorkerThreadPool.is_task_completed(_music_task):
+		WorkerThreadPool.wait_for_task_completion(_music_task)
+		_music_task = -1
+	return _music_task < 0 and not _music.is_empty()
+
+
+## Plays the track (from `from` seconds into the ad), late if it wasn't ready in time.
+func _play(p: AudioStreamPlayer, key: String, from: float) -> void:
+	if p.playing or not _music_ready():
+		return
+	p.stream = _music[key]
+	p.play(maxf(_t - from, 0.0))
+	print("[ad] music: %s from %.2f s" % [key, maxf(_t - from, 0.0)])
 
 
 func _cue(at: float, sound: String, pitch: float, db: float) -> void:
@@ -294,6 +412,21 @@ func _story() -> void:
 				if _once("hop%d" % i, 0.6 + i * 0.7):
 					_houses[i]["node"].hop()
 		"bait":
+			if _once("f0", 0.0):
+				_react("🙂")
+			if _once("f1", 2.2):
+				_react("🤔")
+			if _once("f2", 3.5):
+				_react("😬")
+			if _once("f3", 4.45):
+				_react("😭", "AWW MAN!")
+			if _once("f4", 5.2):
+				_face_name = "PRO"
+				_react("😎", "PSHAW.")
+			if _once("f5", 6.1):
+				_react("😎", "TOO EASY.")
+			if _once("f6", 7.4):
+				_react("😎")
 			if _once("wrong", 2.2):
 				_plan(WRONG, 2.2, 3.3, {4: ["nope", _house_at(Vector2i(1, 0))]})
 			if _once("go1", 3.5):
@@ -310,22 +443,52 @@ func _story() -> void:
 			if _once("go2", 7.4):
 				_go(4.6)
 			if _once("genius", 9.8):
-				_iq_to = 160.0
+				_iq_to = 999.0
+				_face_name = ""
+				_react("😱", "WHAAATTT?!")
 				Sfx.play("win")
 				Sfx.haptic(20)
 		"trash":
-			if _once("cam", 10.3):
-				_stage.visible = true
-				_plan(WAY, 10.3, 10.3, {3: ["deliver", _house_at(Vector2i(2, 2))], 8: ["deliver", _house_at(Vector2i(3, 0))],
+			if _t < 6.9:
+				_play(_bed, "bed", 0.0)
+			if _once("scratch", 6.9):
+				_bed.stop()
+				if _music_ready():
+					var sc := AudioStreamPlayer.new()
+					sc.stream = _music["scratch"]
+					add_child(sc)
+					sc.play()
+				else:
+					Sfx.play("screech", 1.0, -2.0)
+			if _t >= SONG_AT and _t < _end_at:
+				_play(_song, "song", SONG_AT)
+			if _once("cam", HITS[0] - 0.05):
+				# Cut in: tight on the van, tilted, split, flash.
+				_view.visible = true
+				_plan(WAY, 0.0, 0.0, {3: ["deliver", _house_at(Vector2i(2, 2))], 8: ["deliver", _house_at(Vector2i(3, 0))],
 					10: ["deliver", _house_at(Vector2i(1, 0))]})
 				_ink = 1.0
-				_go(5.6)
-			if _once("off", 12.8):
-				_stage.visible = false
-			for k in 7:
-				if _once("beat%d" % k, 10.3 + k * BEAT):
-					_punch = 1.0
-					_flash = 0.35
+				_go(5.0)
+				_cam_pt = _stage.position + _van.position
+				_flash = 1.0
+				_zoom = 2.0
+				_punch = 0.6
+				_tilt_to = -0.06
+				_split = 22.0
+			while _hit_i < HITS.size() and _t >= HITS[_hit_i]:
+				_hit(_hit_i)
+				_hit_i += 1
+			if _once("delivered", WIN_T + 0.05):
+				# Snap out to the whole map for the DELIVERED! slam.
+				_zoom = 1.0
+				_punch = 0.18
+				_tilt_to = 0.0
+				_flash = 0.8
+				_split = 18.0
+				_words = [{"text": "DELIVERED!", "t0": _t, "rot": 0.0}]
+				Sfx.play("win", 1.0, -4.0)
+			if _once("off", BEAT_AT + 7.0 * BEAT - 0.05):
+				_view.visible = false
 
 
 func _process(delta: float) -> void:
@@ -343,7 +506,14 @@ func _process(delta: float) -> void:
 		_ink = clampf((_t - _ink_from) / (_ink_to - _ink_from), 0.0, 1.0)
 	if _drive >= 0.0 and not _route.is_empty():
 		var was := _drive
-		_drive = minf(_drive + dt * _speed, _route.size() - 1.0)
+		var speed := _speed
+		if kind == "trash":
+			# Fancam speed: aim to finish by WIN_T, slammed down for a moment after each hit.
+			var left := _route.size() - 1.0 - _drive
+			var base := clampf(left / maxf(WIN_T - _t, 0.15), 1.5, 16.0)
+			var since := _t - _last_hit
+			speed = base * (0.3 if since < 0.12 else lerpf(0.75, 1.35, clampf((since - 0.12) / 0.35, 0.0, 1.0)))
+		_drive = minf(_drive + dt * speed, _route.size() - 1.0)
 		for k in range(int(floor(was)) + 1, int(floor(_drive)) + 1):
 			_reach(k)
 		var i := mini(int(floor(_drive)), _route.size() - 2)
@@ -356,19 +526,20 @@ func _process(delta: float) -> void:
 			_trail.append(_van.position)
 		if _drive >= _route.size() - 1.0:
 			_drive = -1.0
-	_iq = move_toward(_iq, _iq_to, dt * 90.0)
-	_flash = maxf(0.0, _flash - dt * 2.5)
-	_punch = maxf(0.0, _punch - dt * 2.4)
+	_iq = move_toward(_iq, _iq_to, dt * maxf(90.0, absf(_iq_to - _iq) * 2.5))
+	_flash = maxf(0.0, _flash - dt * (6.0 if kind == "trash" else 2.5))
+	_punch = maxf(0.0, _punch - dt * (2.8 if kind == "trash" else 2.4))
 	_shake = maxf(0.0, _shake - dt * 3.0)
+	_split = maxf(0.0, _split - dt * 60.0)
+	_invert = maxf(0.0, _invert - dt * 12.0)
+	_mono = maxf(0.0, _mono - dt * 3.0)
+	_blur = maxf(0.0, _blur - dt * 1.6)
+	_tilt = lerpf(_tilt, _tilt_to, 0.35)
+	_words = _words.filter(func(wd): return _t - float(wd["t0"]) < 0.8)
 	_flyers = _flyers.filter(func(f): return _t - float(f["t0"]) < 0.42)
 	_marks = _marks.filter(func(m): return _t - float(m["t0"]) < 1.6)
-	if kind == "trash" and _stage.visible:
-		# Fancam: punch in on the van with every beat.
-		var z := 1.0 + 0.32 * _punch
-		var focus := _van.position.lerp(Vector2(2.5, 2.5) * _tile, 1.0 - _punch)
-		var screen := _board_origin() + Vector2(2.5, 2.5) * _tile
-		_stage.scale = Vector2(z, z)
-		_stage.position = screen - focus * z
+	if _view and _view.visible:
+		_apply_view()
 	if _t >= _end_at:
 		_skip.icon_name = "x"
 		_skip.label = "Close"
@@ -384,6 +555,66 @@ func _process(delta: float) -> void:
 	_ground.queue_redraw()
 	_air.queue_redraw()
 	_hud.queue_redraw()
+
+
+## A fancam hit, the trailer's way: punch, split, flash, shake and a tilt every time; then, one by one, a
+## word, hotter fire, black and white, a word and an inverted frame, hotter still, a word and a blur.
+func _hit(i: int) -> void:
+	_last_hit = HITS[i]
+	_punch = 0.75
+	_split = 26.0
+	_flash = 0.55
+	_shake = 0.6
+	_tilt_to = 0.08 if i % 2 == 0 else -0.08
+	_blur = 0.12
+	match i:
+		1:
+			_words.append({"text": "NO BRAKES", "t0": _t, "rot": -0.12})
+		2:
+			_heat_m = 6
+			Sfx.play("whoomp", 1.0, 0.0)
+		3:
+			_mono = 1.0
+		4:
+			_words.append({"text": "NO FEAR", "t0": _t, "rot": 0.1})
+			_invert = 1.0
+		5:
+			_heat_m = 9
+			Sfx.play("whoomp", 1.1, 0.0)
+		6:
+			_words.append({"text": "NO DELAYS", "t0": _t, "rot": -0.12})
+			_blur = 0.25
+
+
+## The camera on the filmed map: follows the van while it drives, zoomed and tilted, shaken on hits.
+func _apply_view() -> void:
+	var vp := Vector2(_cam_vp.size)
+	var c := vp / 2.0
+	if _drive >= 0.0:
+		_cam_pt = _cam_pt.lerp(_stage.position + _van.position, 0.2)
+	elif _zoom <= 1.0:
+		_cam_pt = _cam_pt.lerp(c, 0.25)
+	var z := _zoom * (1.0 + _punch * 0.35)
+	var off := Vector2(randf_range(-1, 1), randf_range(-1, 1)) * 30.0 * _shake
+	_view.scale = Vector2.ONE * z
+	_view.rotation = _tilt
+	_view.position = c + off - ((_cam_pt - c) * z).rotated(_tilt)
+	var m: ShaderMaterial = _view.material
+	m.set_shader_parameter("split", _split)
+	m.set_shader_parameter("flash", _flash)
+	m.set_shader_parameter("invert", 1.0 if _invert > 0.5 else 0.0)
+	m.set_shader_parameter("sat", lerpf(1.25, 0.0, _mono))
+	m.set_shader_parameter("contrast", 1.12 + 0.3 * _mono)
+	m.set_shader_parameter("blur", _blur)
+	m.set_shader_parameter("vignette", 0.55)
+
+
+## The reaction cam's face changes (it pops), and maybe says something.
+func _react(face: String, say := "") -> void:
+	_face = face
+	_face_t0 = _t
+	_say = say
+	_say_t0 = _t
 
 
 ## The van reaches step k of the route: a delivery, or a NOPE.
@@ -446,6 +677,8 @@ func _pop(u: float) -> float:
 
 ## Centred text with an outline, shrunk to fit `max_w`.
 func _text(text: String, at: Vector2, px: int, col: Color, max_w := 0.0, outline := INK) -> void:
+	if px < 8 or col.a <= 0.0:
+		return
 	var f := UiTheme.font()
 	if max_w > 0.0:
 		while px > 20 and f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > max_w:
@@ -490,11 +723,11 @@ func _draw_back() -> void:
 				for k in 3:
 					var x := fmod(_t * 220.0 + k * 520.0, s.x + 600.0) - 300.0
 					r.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + 140, 0), Vector2(x - 260, s.y), Vector2(x - 400, s.y)]), Color(1, 1, 1, 0.04))
-			elif _t < 8.3 or (_t >= 12.8 and _t < _end_at):
-				r.draw_rect(Rect2(Vector2.ZERO, s), Color.BLACK if _t < 8.3 else Color("12060f"))
+			elif _t < BEAT_AT or (_t >= BEAT_AT + 7.0 * BEAT and _t < _end_at):
+				r.draw_rect(Rect2(Vector2.ZERO, s), Color.BLACK if _t < BEAT_AT else Color("12060f"))
 			else:
 				r.draw_rect(Rect2(Vector2.ZERO, s), Color("1a0d2b"))
-				if _t < 10.3:
+				if _t < HITS[0]:
 					# Purple-hot flames along the bottom for the slam.
 					var pal := AnimeFire.palette(8)
 					for k in 7:
@@ -523,7 +756,7 @@ func _draw_ground() -> void:
 			if _road.has(p + Vector2i(0, 1)):
 				g.draw_rect(Rect2(o + Vector2(m, _tile * 0.5), Vector2(rw, _tile)), col)
 	if kind == "trash" and not _trail.is_empty():
-		var pal := AnimeFire.palette(8)
+		var pal := AnimeFire.palette(_heat_m)
 		for i in _trail.size():
 			var p: Vector2 = _trail[i]
 			g.draw_circle(p, _tile * 0.26, Color("1d1f26"))
@@ -585,7 +818,7 @@ func _draw_hud() -> void:
 	var h := _hud.size.y
 	var board_top := _board_origin().y
 	# Captions sit above the load tray, which sits just above the map.
-	var cap_y := maxf(board_top - 290.0, 200.0 + _top)
+	var cap_y := maxf(board_top - (270.0 if kind == "bait" else 290.0), 200.0 + _top)
 	var shake := Vector2(sin(_t * 61.0), cos(_t * 47.0)) * 14.0 * _shake
 	match kind:
 		"fun":
@@ -613,10 +846,12 @@ func _draw_hud() -> void:
 			if _t < _end_at:
 				if _t >= 2.2:
 					_draw_load(Vector2(w / 2.0, board_top - 80.0))
-				_draw_iq(Rect2(80.0, _board_origin().y + 5.0 * _tile + 70.0, w - 160.0, 110.0))
+				var iq := Rect2(80.0, _board_origin().y + 5.0 * _tile + 70.0, w - 160.0, 110.0)
+				_draw_iq(iq)
+				_draw_cam(Vector2(w - 160.0, iq.end.y + 160.0), 100.0, shake)
 		_:
 			_draw_trash_hud(w, h, cap_y, shake)
-	if _flash > 0.0:
+	if _flash > 0.0 and not (_view and _view.visible):
 		_hud.draw_rect(Rect2(0, 0, w, h), Color(1, 1, 1, _flash))
 	if _t >= _end_at:
 		_draw_end_card(w, h)
@@ -666,6 +901,34 @@ func _draw_iq(r: Rect2) -> void:
 	_hud.draw_string(f, Vector2(r.end.x - 40.0 - nw, r.position.y + r.size.y * 0.7), num, HORIZONTAL_ALIGNMENT_LEFT, -1, 70, Color.WHITE)
 
 
+## The clickbait's reaction cam: an emoji face in a ring with a name tag (NOOB, then PRO), and whatever
+## it's shouting, in big tilted yellow letters beside it.
+func _draw_cam(at: Vector2, r: float, shake: Vector2) -> void:
+	if _face == "":
+		return
+	at += shake * 0.5
+	var k := _pop((_t - _face_t0) / 0.25)
+	_hud.draw_circle(at + Vector2(0, 12), r + 16, Color(0, 0, 0, 0.22))
+	_hud.draw_circle(at, r + 16, Color.WHITE)
+	var col := Color("8ea2b6") if _face_name == "NOOB" else (Color("ffd166") if _face_name == "PRO" else HOT)
+	_hud.draw_circle(at, r, col)
+	var f := UiTheme.font()
+	var px := int(r * 1.62 * (0.72 + 0.28 * k))
+	var fw := f.get_string_size(_face, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	_hud.draw_string(f, at + Vector2(-fw / 2.0, px * 0.36 + 4.0 * sin(_t * 9.0)), _face, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)
+	if _face_name != "":
+		var tw := f.get_string_size(_face_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x + 48.0
+		var tr := Rect2(at.x - tw / 2.0, at.y + r - 12.0, tw, 64)
+		DrawUtil.rrect(_hud, tr.grow(7), INK, 28)
+		DrawUtil.rrect(_hud, tr, col, 22)
+		_hud.draw_string(f, tr.position + Vector2(24, 47), _face_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, INK if _face_name == "PRO" else Color.WHITE)
+	if _say != "":
+		var sk := _pop((_t - _say_t0) / 0.25)
+		_hud.draw_set_transform(Vector2(at.x - r - 300.0, at.y) + shake, -0.06, Vector2.ONE * sk)
+		_text(_say, Vector2.ZERO, 96, YELLOW, 520.0)
+		_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 ## The trash talk: breaking news, the scratch, the slam, the fancam's words, the message for Rockstar.
 func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 	if _t < 6.9:
@@ -699,23 +962,29 @@ func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 			_hud.draw_string(f, Vector2(tx + r * tw, ty + 66), tick, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Color.WHITE)
 		_hud.draw_rect(Rect2(0, ty, 210, 100), YELLOW)
 		_text("GTA VI", Vector2(105, ty + 50), 50, INK, 190.0, Color(0, 0, 0, 0))
-	elif _t < 8.3:
+	elif _t < BEAT_AT:
 		_text("NO GAME", Vector2(w / 2.0, h * 0.42) + shake, int(170 * _pop((_t - 6.95) / 0.25)), Color.WHITE, w - 60.0, Color(0, 0, 0, 0))
 		if _t >= 7.45:
 			_text("DARES???", Vector2(w / 2.0, h * 0.42 + 190.0), int(170 * _pop((_t - 7.45) / 0.25)), YELLOW, w - 60.0, Color(0, 0, 0, 0))
-	elif _t < 10.3:
-		var words := [["LAST MILE", Palette.ACCENT, 8.3], ["DOESN'T GIVE A", Color.WHITE, 8.3 + BEAT], ["&@$*&!!!!", YELLOW, 8.3 + 2.0 * BEAT]]
+	elif _t < HITS[0]:
+		var words := [["LAST MILE", Palette.ACCENT, BEAT_AT], ["DOESN'T GIVE A", Color.WHITE, BEAT_AT + BEAT], ["&@$*&!!!!", YELLOW, BEAT_AT + 2.0 * BEAT]]
 		for i in 3:
 			var at: float = words[i][2]
 			if _t >= at:
 				_text(words[i][0], Vector2(w / 2.0, h * 0.3 + i * 200.0) + shake, int((150 if i != 1 else 110) * _pop((_t - at) / 0.22)), words[i][1], w - 60.0)
-	elif _t < 12.8:
-		var calls := [["NO BRAKES.", 10.6], ["NO DELAYS.", 11.3], ["DELIVERED!", 12.0]]
-		for c in calls:
-			if _t >= c[1] and _t < c[1] + 0.7:
-				_text(c[0], Vector2(w / 2.0, h * 0.86 - _bottom), int(130 * _pop((_t - c[1]) / 0.2)), YELLOW if c[0] != "DELIVERED!" else Color("35c27a"), w - 60.0)
+	elif _t < BEAT_AT + 7.0 * BEAT:
+		# The fancam's words, slammed in tilted over the bottom of the frame.
+		for wd in _words:
+			var age := _t - float(wd["t0"])
+			var k := _pop(age / 0.18)
+			var a := 1.0 - smoothstep(0.55, 0.8, age)
+			_hud.draw_set_transform(Vector2(w / 2.0, h * 0.8 - _bottom), wd["rot"], Vector2.ONE * k)
+			var green: bool = wd["text"] == "DELIVERED!"
+			_text(wd["text"], Vector2.ZERO, 160, Color(Color("35c27a") if green else YELLOW, a), w - 60.0)
+			_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
-		var msg := [["ROCKSTAR.", YELLOW, 12.9, 140], ["DELAY GTA VI", Color.WHITE, 13.4, 110], ["OR BE WRECKED", HOT, 13.9, 110], ["BY THE BEST GAME ON FOUR WHEELS.", Color.WHITE, 14.5, 64]]
+		var msg := [["ROCKSTAR.", YELLOW, BEAT_AT + 7.0 * BEAT, 140], ["DELAY GTA VI", Color.WHITE, BEAT_AT + 8.0 * BEAT, 110],
+			["OR BE WRECKED", HOT, BEAT_AT + 9.0 * BEAT, 110], ["BY THE BEST GAME ON FOUR WHEELS.", Color.WHITE, BEAT_AT + 10.0 * BEAT, 64]]
 		for i in msg.size():
 			var at: float = msg[i][2]
 			if _t >= at and _t < _end_at:
