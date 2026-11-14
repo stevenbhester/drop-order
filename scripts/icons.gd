@@ -185,6 +185,36 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 			ci.draw_colored_polygon(lid, col)
 			ci.draw_circle(c, s * 0.16, Color(Palette.CARD, 1.0) if col.a > 0.0 else col)
 			ci.draw_circle(c, s * 0.08, col)
+		"lock":
+			# A padlock.
+			ci.draw_arc(c + Vector2(0, -0.12) * s, s * 0.2, PI, TAU, 14, col, s * 0.09, true)
+			ci.draw_line(c + Vector2(-0.2, -0.12) * s, c + Vector2(-0.2, 0.0) * s, col, s * 0.09)
+			ci.draw_line(c + Vector2(0.2, -0.12) * s, c + Vector2(0.2, 0.0) * s, col, s * 0.09)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.32, -0.04) * s, Vector2(0.64, 0.48) * s), col, s * 0.1)
+			ci.draw_circle(c + Vector2(0, 0.17) * s, s * 0.06, Color(Palette.CARD, 1.0) if col.a > 0.0 else col)
+		"key":
+			# A key lying sideways: a round bow with a hole, the shaft, two teeth.
+			var bow := c + Vector2(-0.26, 0) * s
+			ci.draw_circle(bow + Vector2(0, s * 0.03), s * 0.24, col.darkened(0.25))
+			ci.draw_circle(bow, s * 0.24, col)
+			ci.draw_circle(bow, s * 0.1, col.darkened(0.45))
+			ci.draw_rect(Rect2(c + Vector2(-0.06, -0.06) * s, Vector2(0.5, 0.12) * s), col)
+			ci.draw_rect(Rect2(c + Vector2(0.28, 0.04) * s, Vector2(0.08, 0.14) * s), col)
+			ci.draw_rect(Rect2(c + Vector2(0.38, 0.04) * s, Vector2(0.06, 0.1) * s), col)
+			ci.draw_circle(bow + Vector2(-0.08, -0.1) * s, s * 0.05, Color(1, 1, 1, 0.5 * col.a))
+		"ghost":
+			# A little ghost: round head, wavy hem, two eyes.
+			var body := PackedVector2Array()
+			for k in 13:
+				var a := PI + PI * k / 12.0
+				body.append(c + Vector2(cos(a) * 0.36, -0.06 + sin(a) * 0.36) * s)
+			for k in 7:
+				var x := 0.36 - 0.72 * k / 6.0
+				body.append(c + Vector2(x, 0.42 - (0.1 if k % 2 == 1 else 0.0)) * s)
+			ci.draw_colored_polygon(body, col)
+			var hole := Color(Palette.CARD, 1.0) if col.a > 0.0 else col
+			ci.draw_circle(c + Vector2(-0.13, -0.08) * s, s * 0.07, hole)
+			ci.draw_circle(c + Vector2(0.13, -0.08) * s, s * 0.07, hole)
 		"peek":
 			# A thought bubble.
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.4, -0.36) * s, Vector2(0.8, 0.5) * s), col, s * 0.22)
@@ -242,6 +272,16 @@ static func star(ci: CanvasItem, c: Vector2, r: float, col: Color, spin := 0.0) 
 	ci.draw_polyline(loop, col, r * 0.14, true)
 	for p in pts:
 		ci.draw_circle(p, r * 0.07, col)
+
+
+## A star from a level that's been redesigned since: the gold outline, only a smaller star filled inside
+## it, breathing.
+static func star_stale(ci: CanvasItem, c: Vector2, r: float, t: float) -> void:
+	var outline := star_points(c, r, r * 0.45)
+	outline.append(outline[0])
+	ci.draw_polyline(outline, Palette.STAR_GOLD, maxf(1.5, r * 0.14), true)
+	var k := 0.5 + 0.5 * sin(t * 3.0)
+	ci.draw_colored_polygon(star_points(c, r * 0.5, r * 0.22), Color(Palette.STAR_GOLD, 0.45 + 0.35 * k))
 
 
 static func star_points(c: Vector2, outer: float, inner: float, spin := 0.0) -> PackedVector2Array:

@@ -79,6 +79,24 @@ var peek := false
 var colorblind := false
 ## The package trail: the next few packages on drones behind the van (off unless switched on).
 var trail := false
+## Option "Replay ghost path": after a restart, the last attempt's route shows faintly on the board (off
+## unless switched on).
+var ghost_path := false
+## The looks being worn (Looks): package shape, buildings, the queue's container, the road, the buttons.
+var look_package := "pkg_box"
+var look_building := "bld_classic"
+var look_queue := "q_chute"
+var look_road := "road_asphalt"
+var look_controls := "ui_classic"
+## Keys: some levels have a gold key on the road where a present would be (picked up on the way to a win,
+## like a present). Each one opens a locked side road for good. `keys` is how many are in hand,
+## `keys_found` which levels have given theirs, `sides_unlocked` which side roads a key has opened.
+var keys := 0
+var keys_found := {}
+## Each beaten level's fingerprint when it was last beaten (LevelData.fp): a redesign shows on the map.
+var level_fp := {}
+var _fp_save_queued := false
+var sides_unlocked := {}
 ## Side roads: challenges beaten (id -> true) and milestone chests opened (level number -> true).
 var side_done := {}
 var chests := {}
@@ -120,6 +138,12 @@ func _ready() -> void:
 			peek = true
 		elif a == "--colorblind":
 			colorblind = true
+		elif a.begins_with("--look="):
+			# Debug: wear this look (owned for the run).
+			var id := a.trim_prefix("--look=")
+			if Looks.is_look(Cosmetics.kind_of(id)):
+				owned[id] = true
+				set("look_" + Cosmetics.kind_of(id), id)
 		elif a.begins_with("--wake="):
 			# Debug: leave this trail.
 			wake = a.trim_prefix("--wake=")
@@ -129,6 +153,7 @@ func _ready() -> void:
 			owned[ride] = true
 	Palette.apply(night)
 	DrawUtil.bold_marks = colorblind
+	Looks.apply(self)
 	apply_volume()
 	tick()
 
@@ -155,6 +180,12 @@ func _apply_preset(preset: String) -> void:
 					stars[n] = [3, 3, 2, 3, 1][n % 5]
 			"momentum":
 				momentum = v
+			"keys":
+				keys = maxi(v, 0)
+			"stale":
+				# Levels 1..v were beaten on some older version of themselves (the map marks them).
+				for n in range(1, v + 1):
+					level_fp[n] = 1
 			"streak":
 				# v finished dailies on the days before today.
 				for k in range(1, v + 1):
@@ -252,11 +283,24 @@ func _load() -> void:
 	colorblind = bool(d.get("colorblind", false))
 	# Saves from before 0.7 build 15 had the trail on by default: it starts off once for everyone.
 	trail = bool(d.get("trail", false)) and int(d.get("prefs_v", 0)) >= 1
+	ghost_path = bool(d.get("ghost_path", false))
+	for k in Looks.KINDS:
+		var v := str(d.get("look_" + k, Looks.DEFAULTS[k]))
+		set("look_" + k, v if Cosmetics.kind_of(v) == k else Looks.DEFAULTS[k])
 	var sd = d.get("side_done", {})
 	if sd is Dictionary:
 		side_done = sd
 	for n in d.get("chests", []):
 		chests[int(n)] = true
+	keys = maxi(0, int(d.get("keys", 0)))
+	for n in d.get("keys_found", []):
+		keys_found[int(n)] = true
+	for id in d.get("sides_unlocked", []):
+		sides_unlocked[str(id)] = true
+	var lf = d.get("level_fp", {})
+	if lf is Dictionary:
+		for k in lf:
+			level_fp[int(k)] = int(lf[k])
 	var mg = d.get("mega", {})
 	if mg is Dictionary:
 		for k in mg:
@@ -278,7 +322,7 @@ func _save() -> void:
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
 			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
-			"colorblind": colorblind, "trail": trail, "side_done": side_done, "chests": chests.keys(),
+			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
 			"mega": mega}))
 
 
@@ -303,9 +347,15 @@ func total_stars() -> int:
 	return t
 
 
-## Records a win with `earned` stars. Returns the Dollaroos it paid (already added to the balance).
-func mark_complete(n: int, earned := 3) -> int:
+## Records a win with `earned` stars on the version of the level with fingerprint `fp` (LevelData.fp).
+## Returns the Dollaroos it paid (already added to the balance). A level redesigned since it was last beaten
+## starts its stars over: they're earned (and paid) afresh.
+func mark_complete(n: int, earned := 3, fp := 0) -> int:
 	earned = clampi(earned, 1, 3)
+	if fp != 0 and is_stale(n, fp):
+		stars.erase(n)
+	if fp != 0:
+		level_fp[n] = fp
 	var before := stars_for(n)
 	completed[n] = true
 	var pay: int = REPLAY_TIP
@@ -316,6 +366,21 @@ func mark_complete(n: int, earned := 3) -> int:
 	_save()
 	changed.emit()
 	return pay
+
+
+## Beaten, but on an older version of the level than the one with fingerprint `fp`. Levels beaten before
+## fingerprints were kept (0.7 build 22) take the version they're first seen with as the one they were
+## beaten on.
+func is_stale(n: int, fp: int) -> bool:
+	if not completed.has(n) or fp == 0:
+		return false
+	if not level_fp.has(n):
+		level_fp[n] = fp
+		if not _fp_save_queued:
+			_fp_save_queued = true
+			_save.call_deferred()
+		return false
+	return int(level_fp[n]) != fp
 
 
 ## Index (0-based) of the first level not yet completed.
@@ -447,8 +512,8 @@ func use_bank_undo() -> bool:
 # ---------------------------------------------------------------- cosmetics
 
 func owns(id: String) -> bool:
-	if Cosmetics.kind_of(id) == "trail":
-		return owned.has(id) or total_stars() >= Cosmetics.stars_for(id)
+	if Cosmetics.by_stars(id):
+		return owned.has(id) or (Cosmetics.stars_for(id) >= 0 and total_stars() >= Cosmetics.stars_for(id))
 	return id == "classic" or owned.has(id)
 
 
@@ -465,6 +530,9 @@ func give(id: String) -> bool:
 
 ## Is the player wearing this right now?
 func wearing(id: String) -> bool:
+	var kind := Cosmetics.kind_of(id)
+	if Looks.is_look(kind):
+		return str(get("look_" + kind)) == id
 	return paint == id or topper == id or ride == id or wake == id
 
 
@@ -491,9 +559,28 @@ func set_option(key: String, value: Variant) -> void:
 	settings_changed.emit()
 
 
+func _fp_out() -> Dictionary:
+	_fp_save_queued = false
+	var out := {}
+	for k in level_fp:
+		out[str(k)] = level_fp[k]
+	return out
+
+
 ## Saves straight away (for flags set outside the usual changes, like a tip being shown).
 func save_now() -> void:
 	_save()
+
+
+## Hints each level starts with: one, plus one per opened chest that holds a hint (levels 10 and 20).
+const MAX_HINT_SLOTS := 3
+
+
+func hint_slots() -> int:
+	var n := 1
+	for c in chests:
+		n += int(SideRoads.CHESTS.get(int(c), {}).get("hints", 0))
+	return mini(n, MAX_HINT_SLOTS)
 
 
 func free_hints() -> bool:
@@ -537,6 +624,35 @@ func side_power_up(id: String, bonus: Dictionary) -> String:
 ## A side road (SideRoads definition) opens once the level it branches off is beaten.
 func side_open(d: Dictionary) -> bool:
 	return is_complete(int(d.get("after", 0)))
+
+
+## A side road that needs a key ("locked" in side.json) and hasn't had one used on it (one already
+## beaten stays open).
+func side_locked(d: Dictionary) -> bool:
+	var id := str(d.get("id", ""))
+	return bool(d.get("locked", false)) and not sides_unlocked.has(id) and not side_done.has(id)
+
+
+## The key on level `n` was picked up on a win. False if that level's key was already found.
+func find_key(n: int) -> bool:
+	if keys_found.has(n):
+		return false
+	keys_found[n] = true
+	keys += 1
+	_save()
+	changed.emit()
+	return true
+
+
+## Uses a key on side road `id`. False with none in hand.
+func use_key(id: String) -> bool:
+	if keys <= 0 or sides_unlocked.has(id):
+		return false
+	keys -= 1
+	sides_unlocked[id] = true
+	_save()
+	changed.emit()
+	return true
 
 
 ## A speedrun course finished in `secs`. True if that's a new best.
@@ -594,10 +710,11 @@ func open_chest(n: int) -> Dictionary:
 	if hat != "" and not owned.has(hat):
 		owned[hat] = true
 		new_hat = hat
+	var before := hint_slots()
 	chests[n] = true
 	_save()
 	changed.emit()
-	return {"gas": fits, "coins": coins, "hat": new_hat, "cashed": cans - fits}
+	return {"gas": fits, "coins": coins, "hat": new_hat, "cashed": cans - fits, "hints": hint_slots() - before}
 
 
 ## The patch notes for version `v` have been opened (the title badge stops glowing).
@@ -622,6 +739,9 @@ func wear(id: String) -> void:
 		ride = "" if ride == id else id
 	elif kind == "trail" and owns(id):
 		wake = id
+	elif Looks.is_look(kind) and owns(id):
+		set("look_" + kind, id)
+		Looks.apply(self)
 	_save()
 	changed.emit()
 

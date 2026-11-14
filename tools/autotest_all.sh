@@ -66,9 +66,24 @@ if [ $first -eq 1 ]; then
   wait
   tok=$(cat $out/touch-*.txt | grep -c 'AUTOTEST touch .* ok:')
   echo "symbol card by touch and mouse: $tok/6 levels ok"
-  # Three hints (none counted with the option on), the tip, a video ad skipped straight away, unlimited hints.
+  # The level's hints (none counted with the option on; asking twice without a move costs one), the tip, a
+  # video ad skipped straight away, unlimited hints.
   $G --headless --path . --quit-after 100000 -- --level=12 --autohintad > $out/hintad.txt 2>&1
   grep -h "AUTOTEST hintad\|SCRIPT ERROR" $out/hintad.txt | head -3
+  # Dragging a route into the crusher: a quick pass keeps it, holding there and letting go scraps it.
+  $G --headless --path . --quit-after 100000 -- --level=12 --autocancel > $out/cancel.txt 2>&1
+  grep -h "AUTOTEST cancel\|SCRIPT ERROR" $out/cancel.txt | head -3
+  # Replay ghost path: a try, Retry, and the next try shows it with arrowheads at its turns.
+  $G --headless --path . --quit-after 100000 -- --level=30 --autoghost --save=gas:5 > $out/ghost.txt 2>&1
+  grep -h "AUTOTEST ghost\|SCRIPT ERROR" $out/ghost.txt | head -3
+  # Keys: each level with one, won the way round that picks it up.
+  for L in $(python3 -c "import json;print(' '.join(str(i+1) for i,l in enumerate(json.load(open('levels/levels.json'))['levels']) if l.get('gift',{}).get('item')=='key'))"); do
+    $G --headless --path . --quit-after 100000 -- --level=$L --autogift --save=gas:5 > $out/key-$L.txt 2>&1 &
+  done
+  wait
+  kok=$(cat $out/key-*.txt | grep -c 'AUTOTEST gift L[0-9]* ok: key')
+  echo "keys: $kok/$(ls $out/key-*.txt | wc -l | tr -d ' ') picked up on a win"
+  grep -h "AUTOTEST gift .*FAILED\|SCRIPT ERROR" $out/key-*.txt | head -3
   grep -h "AUTOTEST touch .* FAILED\|SCRIPT ERROR" $out/touch-*.txt | head -5
 fi
 rm -rf $out

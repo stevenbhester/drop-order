@@ -37,6 +37,25 @@ func _ready() -> void:
 	_van.ride = item if kind == "ride" else ""
 	add_child(_van)
 	_van.set_top("yellow")
+	# A new look: what it changes, big, instead of the van.
+	if Looks.is_look(kind):
+		_van.visible = false
+		if kind == "building":
+			var bp := Looks.building_preview(item, 560.0)
+			bp.position = _c + Vector2(0, 20)
+			add_child(bp)
+		else:
+			var pv := Node2D.new()
+			pv.position = _c + Vector2(0, 30)
+			var t0 := Time.get_ticks_msec() / 1000.0
+			pv.draw.connect(func(): Looks.draw_preview(pv, item, Vector2.ZERO, 640.0, Time.get_ticks_msec() / 1000.0 - t0))
+			pv.process_mode = Node.PROCESS_MODE_ALWAYS
+			add_child(pv)
+			var redraw := Timer.new()
+			redraw.wait_time = 1.0 / 30.0
+			redraw.autostart = true
+			redraw.timeout.connect(pv.queue_redraw)
+			pv.add_child(redraw)
 	# A new trail: a stretch of road torn up its way, instead of the van.
 	if kind == "trail":
 		_van.visible = false
@@ -149,7 +168,7 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Banner.
 	var kind := Cosmetics.kind_of(item)
-	var head: String = {"ride": "NEW RIDE!", "paint": "NEW PAINT JOB!", "topper": "NEW TOPPER!", "trail": "NEW TRAIL!"}.get(kind, "NEW!")
+	var head: String = Cosmetics.BANNERS.get(kind, "NEW!")
 	var k := clampf(_t / 0.35, 0.0, 1.0)
 	var by := v.y * 0.13
 	var band := PackedVector2Array([Vector2(-20, by - 70 + 30), Vector2(v.x * k + 20, by - 70 - 30), Vector2(v.x * k + 20, by + 70 - 30), Vector2(-20, by + 70 + 30)])
@@ -171,7 +190,7 @@ func _draw() -> void:
 	draw_string_outline(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, 16, Color(0.1, 0.07, 0.16))
 	draw_string(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, tint.lightened(0.35))
 	var from: String = Cosmetics.ITEMS.get(item, {}).get("from", "")
-	var sub := ("from " + from) if from != "" else ("unlocked with %d stars" % Cosmetics.stars_for(item) if kind == "trail" else "found on the road")
+	var sub := ("from " + from) if from != "" else ("unlocked with %d stars" % Cosmetics.stars_for(item) if Cosmetics.by_stars(item) and Cosmetics.stars_for(item) > 0 else ("won from %s" % Boss.NAME if Cosmetics.stars_for(item) < 0 else "found on the road"))
 	sub += "  ·  yours to keep"
 	var sw := f.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 38).x
 	draw_string(f, Vector2((v.x - sw) / 2.0, ny + 66), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color(1, 1, 1, 0.7))

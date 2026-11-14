@@ -4,6 +4,8 @@ extends SceneTree
 ##   godot --headless --path . --script res://tools/validate_levels.gd
 ## Add `-- --ablate` to also re-solve each level with its one-way arrows / bridges / gates /
 ## hubs turned into plain road, to confirm those mechanics actually matter there.
+## Keys: every locked side road must have had enough keys placed on the levels up to its stop (counting the
+## keys every earlier locked side road needs), so a key is always waiting before a lock shows up.
 ## Exits with code 1 if any level is broken or unsolvable.
 
 func _init() -> void:
@@ -41,6 +43,11 @@ func _init() -> void:
 			else:
 				var kind := "on the route" if Sim.is_won(L, Sim.run(L, gr), gr) and gr.back() != L.gift else "extra mile"
 				feats.append("gift %s, %s" % [L.gift_item, kind])
+				# Hints follow the plain (shortest) route, so a present on it would be handed out by the hints.
+				if r["count"] > 0 and (r["shortest"] as Array).has(L.gift):
+					bad = true
+					ok = false
+					L.errors.append("the present (%s) is on the plain winning route (the hints would walk you to it)" % L.gift_item)
 		var tag := "D%02d" % (L.number - Daily.NUMBER_BASE) if L.number > Daily.NUMBER_BASE else "L%02d" % L.number
 		if L.number >= Speedrun.NUMBER_BASE and L.number < Daily.NUMBER_BASE:
 			tag = "R%02d" % (L.number - Speedrun.NUMBER_BASE)
@@ -61,5 +68,20 @@ func _init() -> void:
 				L.set(field, {})
 				print("       without %s: %s" % [field, Solver.describe(L, Solver.solve(L))])
 				L.set(field, saved)
+	# Keys before locks: by each locked side road's stop, at least as many keys placed as locks so far.
+	var key_levels := []
+	for L in Levels.load_all():
+		if L.gift_item == "key":
+			key_levels.append(L.number)
+	var locks := SideRoads.defs().filter(func(d): return bool(d.get("locked", false)))
+	locks.sort_custom(func(a, b): return int(a.get("after", 0)) < int(b.get("after", 0)))
+	for k in locks.size():
+		var at := int(locks[k].get("after", 0))
+		var keys := key_levels.filter(func(n): return n <= at).size()
+		var line := "lock %s (after %d): %d key(s) placed by then, %d lock(s) by then" % [locks[k].get("id", ""), at, keys, k + 1]
+		if keys < k + 1:
+			ok = false
+			line += "  ! NOT ENOUGH KEYS"
+		print(line)
 	print("%d levels (with dailies, side roads and speedruns), %s" % [levels.size(), "all solvable" if ok else "PROBLEMS FOUND"])
 	quit(0 if ok else 1)

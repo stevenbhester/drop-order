@@ -3,7 +3,8 @@ extends CanvasLayer
 ## After a win, once the van has driven up the map to the stop just unlocked: a sheet from the bottom with the
 ## next level and one big Drive! button, so a player in a rhythm taps straight through. If a side road
 ## branches off the stop just beaten, a Detour button sits under it, saying what the twist is and what it
-## wins. Tapping above the sheet (or "Stay on the map") just leaves the map showing.
+## wins (a locked one uses a key, or says it needs one). Tapping above the sheet (or "Stay on the map")
+## just leaves the map showing.
 
 signal go_pressed
 signal detour_pressed
@@ -89,20 +90,48 @@ func _ready() -> void:
 	col.add_child(go)
 
 	if not detour.is_empty():
+		var locked := Progress.side_locked(detour)
+		var dname := str(detour.get("title", "Side road"))
+		var boss := Boss.is_boss(detour)
 		var dt := JuicyButton.new()
-		dt.icon_name = "turn"
-		dt.label = "Detour available: %s" % str(detour.get("title", "Side road"))
+		dt.icon_name = "key" if locked else "turn"
 		dt.font_px = 40
 		dt.bg = Color("ffd166")
 		dt.fg = Palette.TEXT
 		dt.custom_minimum_size = Vector2(0, 116)
-		dt.pressed.connect(_finish.bind("detour"))
-		col.add_child(dt)
 		var twist := str(SideRoads.TWISTS.get(str(detour.get("twist", "")), "A twist"))
 		var reward := str(detour.get("reward", ""))
 		var line := twist + (" · win the %s" % Cosmetics.name_of(reward) if reward != "" else "") + " · free to play"
+		if boss:
+			dt.bg = Color("ff8a8a")
+			line = "%s is waiting · beat him for %s · free to play" % [Boss.NAME, Cosmetics.name_of(reward)]
+		if locked and Progress.keys > 0:
+			# Locked, but there's a key in hand: the button uses it.
+			dt.label = ("Unlock boss fight: %s" if boss else "Unlock detour: %s") % dname
+			dt.badge = str(Progress.keys)
+			dt.badge_icon = "key"
+			dt.badge_color = Icons.GOLD_DARK
+			line = "Uses 1 of your keys · " + line
+			dt.pressed.connect(func():
+				if Progress.use_key(str(detour.get("id", ""))):
+					Sfx.play("thunk", 1.4, -4.0)
+					Sfx.play("sparkle", 1.0, -4.0)
+				_finish("detour"))
+		elif locked:
+			# Locked with no key: it says where keys come from, and stays put.
+			dt.label = ("Boss fight locked: %s" if boss else "Detour locked: %s") % dname
+			dt.dim = true
+			line = "Needs a key. Keys lie on the road in some levels: pick one up on the way to a win."
+			dt.pressed.connect(func():
+				Sfx.play("bonk", 1.1, -6.0)
+				dt.pop())
+		else:
+			dt.label = ("Boss fight: %s" if boss else "Detour available: %s") % dname
+			dt.pressed.connect(_finish.bind("detour"))
+		col.add_child(dt)
 		var sub := _label(line, 32, Palette.TEXT_SOFT)
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		col.add_child(sub)
 
 	var stay := Button.new()

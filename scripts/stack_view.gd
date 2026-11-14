@@ -555,11 +555,16 @@ func _draw() -> void:
 		var a := back * start - across_dir * tube / 2.0
 		var b := back * far + across_dir * tube / 2.0
 		var r := Rect2(a, b - a).abs()
-		DrawUtil.rrect(self, r.grow(lw), line, tube * 0.28 + lw)
-		DrawUtil.rrect(self, r, fill, tube * 0.28)
+		# The queue's container (a Looks cosmetic): the plain chute, a conveyor belt or a neon tube.
+		var skinned := Looks.queue != "q_chute"
+		if skinned:
+			Looks.skin_tube(self, r, tube, lw, back, _roll)
+		else:
+			DrawUtil.rrect(self, r.grow(lw), line, tube * 0.28 + lw)
+			DrawUtil.rrect(self, r, fill, tube * 0.28)
 		# Rivets along both sides, one pair per place.
 		var rv := 1
-		while _gap0() + (rv - 1) * _step() <= far - ph * 0.2:
+		while not skinned and _gap0() + (rv - 1) * _step() <= far - ph * 0.2:
 			var c := back * (_gap0() + (rv - 1) * _step())
 			rv += 1
 			for sx in [-1.0, 1.0]:

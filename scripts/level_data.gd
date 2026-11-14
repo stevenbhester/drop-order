@@ -35,8 +35,9 @@ var adjacent_houses := {}        # road Vector2i -> Array[int] of house indices
 var adjacent_shops := {}         # road Vector2i -> Array[int] of shop indices
 var house_roads: Array = []      # per house: Array[Vector2i] of touching road tiles
 var shop_roads: Array = []       # per shop: Array[Vector2i] of touching road tiles
+var fp := 0                      # fingerprint(): the puzzle's identity, to spot redesigns
 var gift := Vector2i(-1, -1)     # a road tile with a cosmetic on it (optional; not part of the rules)
-var gift_item := ""              # Cosmetics id
+var gift_item := ""              # Cosmetics id, or "key" (a key that opens a locked side road)
 var preview := false             # a sneak-peek level (harder than the release would have yet)
 var challenge := false           # a spike: much harder than its neighbours (an intro, a badge, a big win)
 var spice := 0                   # dailies: how hard today's is, 1 (mild) to 3 (spicy); 0 = not said
@@ -46,9 +47,26 @@ var errors: Array = []
 const MAX_LOAD := 12
 
 
+## The level's puzzle, as a number: changes when its map, load or rules change (not its name, hint, present
+## or key). Progress keeps the one each level was beaten on, so the map can show when a level you've beaten
+## has been redesigned since.
+static func fingerprint(d: Dictionary) -> int:
+	var c: Dictionary = d.duplicate(true)
+	for k in ["title", "hint", "gift", "challenge", "preview"]:
+		c.erase(k)
+	# Spacing inside map rows doesn't count (reformatting the file mustn't look like a redesign).
+	if c.get("map") is Array:
+		var rows := []
+		for row in c["map"]:
+			rows.append(" ".join(str(row).split(" ", false)))
+		c["map"] = rows
+	return hash(JSON.stringify(c, "", true))
+
+
 static func from_dict(d: Dictionary, num: int) -> LevelData:
 	var L := LevelData.new()
 	L.number = num
+	L.fp = fingerprint(d)
 	L.title = str(d.get("title", ""))
 	L.hint = str(d.get("hint", ""))
 	L.no_revisit = bool(d.get("no_revisit", true))
@@ -88,7 +106,7 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L._index_neighbours()
 	L._validate()
 	if L.gift_item != "":
-		if not Cosmetics.ITEMS.has(L.gift_item):
+		if L.gift_item != "key" and not Cosmetics.ITEMS.has(L.gift_item):
 			L.errors.append("gift: unknown item '%s'" % L.gift_item)
 		elif not L.is_road(L.gift) or L.gift == L.start:
 			L.errors.append("gift must be on a road tile other than S")

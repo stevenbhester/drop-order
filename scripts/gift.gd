@@ -1,7 +1,7 @@
 class_name Gift
 extends Node2D
 ## A cosmetic lying on the road: a little ribboned present that bobs and twinkles. Drive over it to pick it up
-## (it's yours once you finish the level).
+## (it's yours once you finish the level). With item "key": a gold key instead, that opens a locked side road.
 
 var item := ""
 var tile := 100.0
@@ -28,6 +28,15 @@ func _draw() -> void:
 	# Glow.
 	draw_circle(Vector2(0, bob), s * (0.95 + 0.08 * sin(_t * 4.0)), Color(1, 0.95, 0.6, 0.28))
 	var c := Vector2(0, bob)
+	if item == "key":
+		draw_set_transform(c, -0.6 + sin(_t * 2.0) * 0.15, Vector2.ONE)
+		Icons.draw(self, "key", Vector2.ZERO, s * 1.5, Icons.GOLD)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		for k in 3:
+			var a := _t * 1.3 + k * TAU / 3.0
+			var tw := 0.5 + 0.5 * sin(_t * 6.0 + k * 2.0)
+			Icons.star(self, c + Vector2(cos(a), sin(a) * 0.6) * s * 0.9, s * 0.13 * tw, Color(1, 1, 1, tw))
+		return
 	var tilt := sin(_t * 2.0) * 0.12
 	draw_set_transform(c, tilt, Vector2.ONE)
 	DrawUtil.rrect(self, Rect2(Vector2(-0.5, -0.38) * s, Vector2(1.0, 0.86) * s), col.darkened(0.15), s * 0.16)

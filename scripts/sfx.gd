@@ -20,9 +20,12 @@ func play(sound: String, pitch := 1.0, db := 0.0) -> void:
 	if not _streams.has(sound):
 		# Sounds without a synth fallback (the studio card's) are loaded the first time they're played.
 		var p := "res://audio/%s.wav" % sound
-		if not ResourceLoader.exists(p):
+		if ResourceLoader.exists(p):
+			_streams[sound] = load(p)
+		elif sound in SfxSynth.LAZY:
+			_streams[sound] = SfxSynth.make(sound)
+		else:
 			return
-		_streams[sound] = load(p)
 	var a: AudioStreamPlayer = _players[_next]
 	_next = (_next + 1) % _players.size()
 	a.stream = _streams[sound]

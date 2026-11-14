@@ -9,14 +9,15 @@ extends RefCounted
 ##     level of its own ending at an exit (E) on the edge toward the next; the camera pans on; progress is
 ##     saved part by part; finishing the last part wins. Hints and undos are allowed on mega routes.
 ## - Treasure chests at milestone levels (CHESTS): once that level's beaten, a spur leads to a chest to open
-##   for gas, Dollaroos and sometimes a hat or a ride (the "hat" key holds any cosmetic).
+##   for gas, Dollaroos and sometimes a hat or a ride (the "hat" key holds any cosmetic). The first two also
+##   add a hint to every level ("hints": Progress.hint_slots()).
 
 const PATH := "res://levels/side.json"
 ## Level numbers side levels play as (never real level numbers, so they never touch level progress).
 const NUMBER_BASE := 800
 const CHESTS := {
-	10: {"gas": 2, "coins": 250},
-	20: {"gas": 3, "coins": 400, "hat": "party_hat"},
+	10: {"gas": 2, "coins": 250, "hints": 1},
+	20: {"gas": 3, "coins": 400, "hat": "party_hat", "hints": 1},
 	30: {"gas": 3, "coins": 600, "hat": "race_car"},
 	40: {"gas": 4, "coins": 800, "hat": "hard_hat"},
 	50: {"gas": 4, "coins": 1000, "hat": "bassinet"},
@@ -27,7 +28,7 @@ const CHESTS := {
 	100: {"gas": 5, "coins": 2500, "hat": "crown"},
 }
 ## What each twist is called on its sign and in the game's top bar.
-const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route"}
+const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route", "boss": "Boss fight"}
 ## A spare gas can (one that wouldn't fit in a full tank) is paid out in Dollaroos instead.
 const CAN_VALUE := 100
 
@@ -112,6 +113,8 @@ static func all_levels() -> Array:
 static func where(item: String) -> String:
 	for d in defs():
 		if d.get("reward", "") == item:
+			if Boss.is_boss(d):
+				return "Beat the boss: %s" % d.get("title", "")
 			return ("Mega route: %s" if is_mega(d) else "Side road: %s") % d.get("title", "")
 	for n in CHESTS:
 		if CHESTS[n].get("hat", "") == item:

@@ -8,6 +8,8 @@ var locker := false
 var order := 1
 var filled := 0
 var size := 180.0
+## Building theme (a Looks cosmetic) for just this house (previews); "" follows what's worn.
+var theme := ""
 var base_pos := Vector2.ZERO
 var check_t := 0.0:
 	set(v):
@@ -130,6 +132,18 @@ func _draw() -> void:
 	DrawUtil.rrect(self, Rect2(-w * 0.62, -s * 0.05, w * 1.24, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
 	# Each colour is a different kind of place (its packages' class): same footprint, same light walls and
 	# coloured roof, so it's still the colour you read.
+	var look := theme if theme != "" else Looks.building
+	if look == "bld_gingerbread" and not locker:
+		_gingerbread(s, w, h, roof, done)
+	elif look == "bld_castle" and not locker:
+		_castle(s, w, h, roof, ink, done)
+	else:
+		_building(s, w, h, wall, roof, ink, glass, done)
+	_after(s, w, h, roof, done)
+
+
+## The usual buildings: each colour a different kind of place.
+func _building(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color, done: bool) -> void:
 	match "locker" if locker else Palette.kind_of(color):
 		"locker":
 			_locker(s, w, h, done, glass)
@@ -145,6 +159,59 @@ func _draw() -> void:
 			_diner(s, w, h, wall, roof, ink, glass)
 		_:
 			_home(s, w, h, wall, roof, ink, glass)
+
+
+## Gingerbread: a biscuit house with its colour in the icing on the roof, a candy door and gumdrops.
+func _gingerbread(s: float, w: float, h: float, roof: Color, done: bool) -> void:
+	var dough := Color("c98a4b") if not done else Color("c9b9a8")
+	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), dough, s * 0.06)
+	DrawUtil.rrect(self, Rect2(-w / 2, -s * 0.04, w, s * 0.04), dough.darkened(0.2), s * 0.02)
+	var eave := s * 0.08
+	var top := Vector2(0, -h - s * 0.3)
+	_soft_poly(PackedVector2Array([Vector2(-w / 2 - eave, -h + s * 0.03), top, Vector2(w / 2 + eave, -h + s * 0.03)]), roof, s * 0.03)
+	# Icing dripping off the eaves.
+	for k in 7:
+		var x := -w / 2 - eave + (w + eave * 2.0) * (k + 0.5) / 7.0
+		draw_circle(Vector2(x, -h + s * 0.04), s * 0.035, Color.WHITE)
+		if k % 2 == 0:
+			draw_circle(Vector2(x, -h + s * 0.08), s * 0.022, Color.WHITE)
+	for k in 3:
+		draw_circle(top.lerp(Vector2(0, -h), 0.2 + k * 0.25) + Vector2((k - 1) * s * 0.05, 0), s * 0.03, [Color("ff5d8f"), Color("7ad7ff"), Color("ffe66d")][k])
+	DrawUtil.rrect(self, Rect2(-s * 0.07, -s * 0.21, s * 0.14, s * 0.21), roof.darkened(0.15), s * 0.07)
+	for k in 3:
+		draw_line(Vector2(-s * 0.07, -s * 0.17 + k * s * 0.06), Vector2(s * 0.07, -s * 0.2 + k * s * 0.06), Color(1, 1, 1, 0.8), s * 0.018)
+	for sx in [-1.0, 1.0]:
+		var wr := Rect2(Vector2(float(sx) * (w / 2 - s * 0.12) - s * 0.055, -h + s * 0.08), Vector2(s * 0.11, s * 0.11))
+		DrawUtil.rrect(self, wr.grow(s * 0.015), Color.WHITE, s * 0.03)
+		DrawUtil.rrect(self, wr, Color("fff1b8") if not done else Color("e9e9e9"), s * 0.025)
+
+
+## Castles: a little stone keep with battlements, two turrets roofed in its colour, and a pennant.
+func _castle(s: float, w: float, h: float, roof: Color, ink: Color, done: bool) -> void:
+	var stone := Color("bdb9c9") if not done else Color("d6d4dc")
+	var hh := h * 1.05
+	for sx in [-1.0, 1.0]:
+		var tx: float = sx * (w / 2 - s * 0.02)
+		DrawUtil.rrect(self, Rect2(tx - s * 0.08, -hh - s * 0.1, s * 0.16, hh + s * 0.1), stone.darkened(0.08), s * 0.03)
+		_soft_poly(PackedVector2Array([Vector2(tx - s * 0.11, -hh - s * 0.08), Vector2(tx, -hh - s * 0.32), Vector2(tx + s * 0.11, -hh - s * 0.08)]), roof, s * 0.02)
+	DrawUtil.rrect(self, Rect2(-w / 2 + s * 0.06, -hh, w - s * 0.12, hh), stone, s * 0.03)
+	for k in 4:
+		var x := -w / 2 + s * 0.08 + k * (w - s * 0.16) / 4.0
+		draw_rect(Rect2(x, -hh - s * 0.06, (w - s * 0.16) / 8.0, s * 0.06), stone)
+	# The pennant on the right turret, flapping.
+	var fx := w / 2 - s * 0.02
+	var t := Time.get_ticks_msec() / 1000.0
+	draw_line(Vector2(fx, -hh - s * 0.32), Vector2(fx, -hh - s * 0.46), Color("4a4458"), s * 0.015)
+	draw_colored_polygon(PackedVector2Array([Vector2(fx, -hh - s * 0.46), Vector2(fx + s * 0.13, -hh - s * 0.42 + sin(t * 4.0) * s * 0.015), Vector2(fx, -hh - s * 0.38)]), roof)
+	for k in 3:
+		draw_line(Vector2(-w / 2 + s * 0.1, -hh * (0.3 + 0.25 * k)), Vector2(w / 2 - s * 0.1, -hh * (0.3 + 0.25 * k)), Color(stone.darkened(0.12), 0.6), s * 0.01)
+	# An arched door.
+	DrawUtil.rrect(self, Rect2(-s * 0.08, -s * 0.22, s * 0.16, s * 0.22), ink, s * 0.08)
+	draw_rect(Rect2(-s * 0.08, -s * 0.1, s * 0.16, s * 0.1), ink)
+
+
+## On top of any building: the colorblind sign, the count, the ticks.
+func _after(s: float, w: float, h: float, roof: Color, done: bool) -> void:
 	# Colorblind mode: the package class's mark on a round sign on the building itself (never out over the
 	# road), so the place can be matched to its packages by shape.
 	if DrawUtil.bold_marks and Palette.kind_of(color) != "" and not locker:

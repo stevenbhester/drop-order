@@ -11,7 +11,7 @@ extends Control
 signal closed
 
 ## oneway, bridge, gate, hub, pickup, warehouse, house, houses, house_done, pickup_done, exit, pitstop,
-## gift, wreck.
+## gift, key, wreck.
 var kind := ""
 var col := Color.WHITE
 var col_name := ""
@@ -60,6 +60,7 @@ func line() -> String:
 		"exit": return "The road on! Deliver everything to open the gate, then finish here."
 		"pitstop": return "Finish here: park back at the pit stop."
 		"gift": return "A present! Drive over it to keep it."
+		"key": return "A key! Pick it up and win: it opens a locked detour."
 		"ice": return "Ice! No turning on it: slide straight across."
 		"locker": return "Locker: takes whatever package is on top." if count <= 1 else "Locker: takes the next %d packages, whatever they are." % count
 		"works": return "Roadworks: opens after %d more deliver%s." % [count, "y" if count == 1 else "ies"] if count > 0 else "Roadworks: open now!"
@@ -268,11 +269,11 @@ func _picture(p: Rect2) -> void:
 			DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.3, -s * 0.2), Vector2(s * 0.6, s * 0.4)), Color(Palette.ROAD, 0.9), s * 0.06)
 			Icons.finish_flag(self, c + Vector2(s * 0.22, -s * 0.18), s * 0.32, _t)
 			_van(c + Vector2(lerpf(-s * 0.5, 0.0, minf(loop * 1.6, 1.0)), 0), s * 0.3, 0.0)
-		"gift":
+		"gift", "key":
 			var u := clampf(loop / 0.6, 0.0, 1.0)
 			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.42, 0), s * 0.3)
 			if u < 0.55:
-				Icons.draw(self, "gift", c + Vector2(s * 0.1, 0), s * 0.3, Color("ff3d9a"))
+				Icons.draw(self, kind, c + Vector2(s * 0.1, 0), s * 0.3, Color("ff3d9a") if kind == "gift" else Icons.GOLD)
 			else:
 				Icons.star(self, c + Vector2(s * 0.1, -s * 0.2), s * 0.1 * (1.0 + (u - 0.55)), Palette.STAR_GOLD, _t)
 			_van(c + Vector2(lerpf(-s * 0.4, s * 0.4, u), 0), s * 0.28, 0.0)

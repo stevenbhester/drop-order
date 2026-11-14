@@ -1,0 +1,44 @@
+
+L1   First Drop               1 sol        6 nodes  len  7  cover 100%  score   3.0                                     EASY
+L2   Top Goes First           1 sol        4 nodes  len  5  cover 100%  score   2.3                                     EASY
+L3   Burning Rubber           1 sol       10 nodes  len 10  cover  90%  score   3.9                                     EASY
+L4   One Pass                 1 sol       10 nodes  len 10  cover  90%  score   3.9                                     EASY
+L5   Rush Hour                2 sol       43 nodes  len 14  cover  53%  score   6.3                                     EASY
+L6   Side Streets             2 sol       21 nodes  len 14  cover  63%  score   5.2                                     EASY
+L7   Double Order             1 sol       24 nodes  len 12  cover  63%  score   5.8  multi                              EASY
+L8   Bulk Buyer               2 sol       57 nodes  len 19  cover  70%  score   7.5  multi                              EASY
+L9   One Way                  1 sol       22 nodes  len 16  cover  84%  score   5.9  one-way                            EASY
+L10  Against Traffic          1 sol       67 nodes  len 18  cover  69%  score   7.6  one-way                            EASY
+L11  Downtown                 1 sol       74 nodes  len 24  cover  82%  score   8.6  one-way, multi                     EASY
+L12  Long Haul                1 sol       21 nodes  len 20  cover  95%  score   5.6                                     EASY
+L13  Overpass                 2 sol       25 nodes  len 14  cover  68%  score   6.0  bridge                             EASY
+L14  Flyover                  2 sol       95 nodes  len 22  cover  63%  score   8.4  bridge                             EASY
+L15  Spaghetti Junction       1 sol       32 nodes  len 24  cover  74%  score   7.4  one-way, bridge                    EASY
+L16  Suburbs                  2 sol       62 nodes  len 25  cover  75%  score   8.0  multi                              EASY
+L17  Rainbow Row              1 sol       75 nodes  len 25  cover  78%  score   8.2  one-way                            EASY
+L18  Crosstown                1 sol       43 nodes  len 29  cover  84%  score   8.2  bridge, multi                      EASY
+L19  Gridlock                 1 sol       29 nodes  len 24  cover  52%  score   7.3  one-way, bridge                    EASY
+L20  Last Mile                1 sol       67 nodes  len 29  cover  80%  score   9.3  one-way, bridge, multi             EASY
+L21  Return to Sender         1 sol       16 nodes  len 10  cover  76%  score   5.1  pickup                             EASY
+L22  Pick Up, Drop Off        1 sol       96 nodes  len 20  cover  83%  score   8.3  pickup                             EASY
+L23  Corner Shops             1 sol       78 nodes  len 27  cover  90%  score   8.9  one-way, pickup                    EASY
+L24  High Street              1 sol      100 nodes  len 24  cover  82%  score   9.1  one-way, pickup                    EASY
+L25  Checkpoint               1 sol       13 nodes  len 10  cover  76%  score   4.8  gate                               EASY
+L26  Toll Road                1 sol       82 nodes  len 23  cover  71%  score   8.7  one-way, gate                      EASY
+L27  Key Delivery             1 sol       74 nodes  len 20  cover  83%  score   8.4  gate, pickup                       EASY
+L28  Border Control           1 sol       91 nodes  len 27  cover  71%  score   9.6  one-way, gate, multi               EASY
+L29  Clocking Off             1 sol       22 nodes  len 17  cover 100%  score   6.0  return                             EASY
+L30  Round Trip               1 sol       80 nodes  len 27  cover  86%  score   8.4  return                             EASY
+L31  Overtime                 1 sol      100 nodes  len 21  cover  68%  score   9.4  gate, pickup, return               EASY
+L32  Night Shift              1 sol      277 nodes  len 35  cover  72%  score  11.2  one-way, return                    EASY
+L33  Turntable                1 sol       11 nodes  len 10  cover  83%  score   4.6  hub                                EASY
+L34  Mix-Up                   1 sol      116 nodes  len 20  cover  66%  score   8.6  hub                                EASY
+L35  Shuffle                  1 sol       86 nodes  len 18  cover  62%  score   8.5  hub, pickup                        EASY
+L36  Sorting Office           1 sol      283 nodes  len 27  cover  77%  score  10.8  gate, hub                          EASY
+L37  Rush Order               1 sol      143 nodes  len 29  cover  80%  score  10.4  gate, pickup, return               EASY
+L38  Mixed Bag                1 sol      126 nodes  len 20  cover  55%  score   9.7  bridge, hub, pickup                EASY
+L39  Black Friday             1 sol      156 nodes  len 22  cover  61%  score  10.6  one-way, gate, pickup, multi       EASY
+L40  Christmas Eve            1 sol      199 nodes  len 25  cover  64%  score  11.1  gate, hub, pickup, return          EASY
+
+40 EASY, 0 with a decorative mechanic, between levels 1 and 40
+easy streak: levels 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40

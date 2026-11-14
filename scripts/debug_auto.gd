@@ -19,6 +19,8 @@ extends Node
 ##   -- --autoscroll drag the truck sideways (real injected touches); report how far it scrolled (use with
 ##                   --load-demo=N for a load bigger than fits)
 ##   -- --autochain=N win N levels in a row through the real Next button (gas, momentum, finish screen)
+##   -- --autoghost  with the Replay ghost path option on: drive part of the route (through a turn), press
+##                   Retry; the next try must show that route as a ghost, with an arrowhead at each turn
 ## With --daily, --autodrag plays today's daily puzzle and checks the record, streak and share text.
 ## Add --linger=N to stay open N more seconds at the end (for recording).
 ## Prints one "AUTOTEST" line with the outcome.
@@ -31,9 +33,25 @@ static var _ran := false
 static var _mega_seen := -1
 static var _chain_left := -1
 static var _chain_log: Array = []
+## autoghost: the route the first try drove (the restarted level must show it as a ghost).
+static var _ghost_expect: Array = []
 
 
 static func maybe_run(game: Game) -> void:
+	if not _ghost_expect.is_empty():
+		var want: Array = _ghost_expect
+		_ghost_expect = []
+		game.get_tree().create_timer(1.8).timeout.connect(func():
+			var rg: ReplayGhost = game.replay_ghost
+			var ok: bool = rg != null and rg.pts == want and not rg._turns.is_empty()
+			print("AUTOTEST ghost L%d %s: ghost=%s pts=%d/%d turns=%d" % [game.level.number, "ok" if ok else "FAILED", rg != null,
+				rg.pts.size() if rg else 0, want.size(), rg._turns.size() if rg else 0])
+			var linger := 0.0
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--linger="):
+					linger = a.trim_prefix("--linger=").to_float()
+			game.get_tree().create_timer(linger).timeout.connect(game.get_tree().quit))
+		return
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--autochain="):
 			if _chain_left < 0:
@@ -48,7 +66,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autofeedback"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autocancel", "autofeedback", "autoghost"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -154,25 +172,99 @@ func _ready() -> void:
 				sorted[int(n * 0.99)] if times.size() > 0 else 0.0, sorted[n - 1] if times.size() > 0 else 0.0, nodes_max])
 			get_tree().quit()
 			return
+		"autoghost":
+			Progress.ghost_path = true
+			# Up to just past the second turn (or most of the route), so there's something to point at.
+			var cut := sol.size() - 1
+			var turns := 0
+			for i in range(1, sol.size() - 1):
+				if sol[i] - sol[i - 1] != sol[i + 1] - sol[i]:
+					turns += 1
+					if turns == 2:
+						cut = i + 1
+						break
+			g.drive_tiles(sol.slice(0, mini(cut + 1, sol.size() - 1)))
+			while g.state == Game.State.DRIVING:
+				await get_tree().process_frame
+			await get_tree().create_timer(0.3).timeout
+			_ghost_expect = g.route.duplicate()
+			g._retry()
+			return
+		"autocancel":
+			# Drag a route, then on into the crusher at the bottom: a quick pass through it doesn't cancel;
+			# held till the ring closes and let go there, the route's scrapped and nothing's driven.
+			var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
+			var to_win := get_viewport().get_final_transform()
+			var notes := []
+			for hold in [0.1, 0.6]:
+				var pts := []
+				for k in mini(4, sol.size()):
+					pts.append(xf * g.board.center(sol[k]))
+				_mouse(pts[0], true)
+				for p in pts:
+					await get_tree().process_frame
+					var m := InputEventMouseMotion.new()
+					m.position = p
+					m.button_mask = MOUSE_BUTTON_MASK_LEFT
+					Input.parse_input_event(m)
+				var drawn: int = g.seg.size()
+				var zone: Vector2 = to_win * g._cz_center()
+				for k in 4:
+					var m := InputEventMouseMotion.new()
+					m.position = (pts.back() as Vector2).lerp(zone, (k + 1) / 4.0)
+					m.button_mask = MOUSE_BUTTON_MASK_LEFT
+					Input.parse_input_event(m)
+					await get_tree().process_frame
+				await get_tree().create_timer(hold).timeout
+				var armed: bool = g._cz_t >= Game.CANCEL_HOLD
+				_mouse(zone, false)
+				await get_tree().create_timer(0.3).timeout
+				notes.append("hold %.1fs: drawn=%d armed=%s state=%s route=%d" % [hold, drawn, armed, Game.State.keys()[g.state], g.route.size()])
+				if g.state != Game.State.IDLE:
+					await g.segment_finished
+				if hold < 0.5:
+					# The quick pass drove the route: undo it for the second try.
+					g.undo()
+					for f in 300:
+						if g.state == Game.State.IDLE:
+							break
+						await get_tree().process_frame
+			var ok: bool = notes[0].contains("armed=false") and not notes[0].contains("route=1 ") and notes[1].contains("armed=true") and notes[1].ends_with("route=1")
+			print("AUTOTEST cancel L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " | ".join(notes)])
+			get_tree().quit()
+			return
 		"autohintad":
-			# With the Unlimited hints option on, hints don't count down. Off: three, and the third leaves a
-			# tip by the Hint button (it shows for real players; Progress.auto is lifted for it here); the
-			# fourth plays a pretend ad, skipped straight away, and hints are free for the rest of the level.
+			# With the Unlimited hints option on, hints don't count down. Off: the level's hints
+			# (Progress.hint_slots(): one, plus the chests at 10 and 20), and asking again with no move in
+			# between just replays the hint for free. The last one leaves a tip by the Hint button (it shows
+			# for real players; Progress.auto is lifted for it here); after that, Hint plays a pretend ad,
+			# skipped straight away, and hints are free for the rest of the level.
 			var notes := []
 			Progress.unlimited_hints = true
+			var slots: int = Progress.hint_slots()
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.2).timeout
-			notes.append("option_keeps=%s" % (g.hints_left == Game.HINTS_PER_LEVEL))
+			notes.append("option_keeps=%s" % (g.hints_left == slots))
 			Progress.unlimited_hints = false
+			g._clear_hint()
 			Progress.auto = false
 			Progress.hint_tips = 0
 			Progress.hint_ad_watched = false
-			for k in Game.HINTS_PER_LEVEL:
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.2).timeout
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.2).timeout
+			var spam_free: bool = g.hints_left == slots - 1 and not g.hint_run.is_empty()
+			notes.append("slots=%d spam_free=%s" % [slots, spam_free])
+			# A move (drawing a route then letting it go back) keeps the hint; only driving clears it.
+			for k in slots - 1:
+				g._clear_hint()
 				g._on_hint_pressed()
 				await get_tree().create_timer(0.2).timeout
 			notes.append("left=%d" % g.hints_left)
 			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("Unlimited hints")
 			notes.append("tip=%s" % tipped)
+			g._clear_hint()
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.5).timeout
 			var ad: PromoAd = g.modal as PromoAd
@@ -183,11 +275,12 @@ func _ready() -> void:
 				await get_tree().create_timer(0.5).timeout
 			notes.append("unlimited=%s watched=%s" % [g.hints_unlimited, Progress.hint_ad_watched])
 			var before: int = g.hints_left
+			g._clear_hint()
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.2).timeout
 			notes.append("after: left=%d modal=%s hint_shown=%s" % [g.hints_left, g._busy_modal(), not g.hint_run.is_empty()])
 			var ok: bool = g.hints_unlimited and before == 0 and g.hints_left == 0 and not g._busy_modal() and tipped and playing \
-				and Progress.hint_ad_watched and notes[0] == "option_keeps=true"
+				and Progress.hint_ad_watched and notes[0] == "option_keeps=true" and spam_free
 			Progress.auto = true
 			print("AUTOTEST hintad L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
 			get_tree().quit()
@@ -266,6 +359,15 @@ func _ready() -> void:
 					var id := str(g.side.get("id", ""))
 					ok = Progress.mega_part(id) == 1 and g.route.back() == g.level.exit
 					note = "part 1 done on the exit, saved as part %d" % Progress.mega_part(id)
+				"boss":
+					# Hints and undos allowed; the map's hard (1,000+ search nodes); winning pays the prize.
+					var hard: int = Solver.solve(g.level)["nodes"]
+					var reward := str(g.side.get("reward", ""))
+					g.drive_tiles(sol)
+					await g.segment_finished
+					await get_tree().create_timer(1.0).timeout
+					ok = not g._strict_side() and hard >= 1000 and g.state == Game.State.WON and Progress.owns(reward)
+					note = "hints/undos allowed=%s, nodes=%d, won=%s, prize %s owned=%s" % [not g._strict_side(), hard, g.state == Game.State.WON, reward, Progress.owns(reward)]
 				"fog":
 					await get_tree().create_timer(float(g.side.get("peek", 6)) + 0.4).timeout
 					var shown := 0
@@ -331,7 +433,7 @@ func _ready() -> void:
 			g.drive_tiles(walk)
 			await g.segment_finished
 		"autohint":
-			# Following hints to the win (the three-hint budget and its ad are autohintad's to test).
+			# Following hints to the win (the hint budget and its ad are autohintad's to test).
 			g.hints_unlimited = true
 			var presses := 0
 			while g.state != Game.State.WON and presses < 80:
@@ -431,9 +533,16 @@ func _ready() -> void:
 				print("AUTOTEST gift L%d: no present on this level" % g.level.number)
 			else:
 				var owned_before := Progress.owns(g.level.gift_item)
+				var keys_before := Progress.keys
 				for p in _split_uturns(gr):
 					await _drag(p)
 				await get_tree().create_timer(2.6).timeout
+				if g.level.gift_item == "key":
+					var got: bool = Progress.keys == keys_before + 1 and Progress.keys_found.has(g.level.number) and g.finish != null and g.finish.found_key
+					print("AUTOTEST gift L%d %s: key picked_up=%s keys=%d->%d finish_says_found=%s" % [g.level.number, "ok" if got else "FAILED",
+						g.gift_taken, keys_before, Progress.keys, g.finish != null and g.finish.found_key])
+					get_tree().quit()
+					return
 				print("AUTOTEST gift L%d: item=%s owned_before=%s picked_up=%s owned_after=%s worn=%s finish_says_new=%s" % [
 					g.level.number, g.level.gift_item, owned_before, g.gift_taken, Progress.owns(g.level.gift_item),
 					Progress.paint == g.level.gift_item or Progress.topper == g.level.gift_item, g.finish != null and g.finish.new_item == g.level.gift_item])

@@ -31,6 +31,25 @@ const ITEMS := {
 	"meteors": {"kind": "trail", "name": "Meteor Strikes", "from": "", "stars": 140},
 	"lava": {"kind": "trail", "name": "Lava Flow", "from": "", "stars": 180},
 	"zombies": {"kind": "trail", "name": "Zombie Horde", "from": "", "stars": 220},
+	"money": {"kind": "trail", "name": "Money to Burn", "from": "", "stars": -1},
+	# Looks (Looks): the game's own styling. The first of each kind is free; the rest unlock late, with stars.
+	"pkg_box": {"kind": "package", "name": "Cardboard Box", "from": "", "stars": 0},
+	"pkg_hatbox": {"kind": "package", "name": "Hatboxes", "from": "", "stars": 135},
+	"pkg_crate": {"kind": "package", "name": "Wooden Crates", "from": "", "stars": 195},
+	"pkg_capsule": {"kind": "package", "name": "Capsules", "from": "", "stars": 270},
+	"bld_classic": {"kind": "building", "name": "Main Street", "from": "", "stars": 0},
+	"bld_gingerbread": {"kind": "building", "name": "Gingerbread Town", "from": "", "stars": 155},
+	"bld_castle": {"kind": "building", "name": "Castle Keeps", "from": "", "stars": 255},
+	"q_chute": {"kind": "queue", "name": "The Chute", "from": "", "stars": 0},
+	"q_conveyor": {"kind": "queue", "name": "Conveyor Belt", "from": "", "stars": 120},
+	"q_neon": {"kind": "queue", "name": "Neon Tube", "from": "", "stars": 215},
+	"road_asphalt": {"kind": "road", "name": "Asphalt", "from": "", "stars": 0},
+	"road_cobbles": {"kind": "road", "name": "Cobblestones", "from": "", "stars": 110},
+	"road_neon": {"kind": "road", "name": "Night Drive", "from": "", "stars": 235},
+	"ui_classic": {"kind": "controls", "name": "Classic Buttons", "from": "", "stars": 0},
+	"ui_midnight": {"kind": "controls", "name": "Midnight Buttons", "from": "", "stars": 75},
+	"ui_bubblegum": {"kind": "controls", "name": "Bubblegum Buttons", "from": "", "stars": 165},
+	"ui_mint": {"kind": "controls", "name": "Mint Buttons", "from": "", "stars": 245},
 	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
 	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
 	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
@@ -47,7 +66,23 @@ const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_va
 	"race_car", "bassinet", "caterpillar", "minivan", "pillow_tower",
 	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
 	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl",
-	"wreck", "river", "mountains", "hearts", "meteors", "lava", "zombies"]
+	"wreck", "river", "mountains", "hearts", "meteors", "lava", "zombies", "money",
+	"road_asphalt", "road_cobbles", "road_neon",
+	"pkg_box", "pkg_hatbox", "pkg_crate", "pkg_capsule", "bld_classic", "bld_gingerbread", "bld_castle",
+	"q_chute", "q_conveyor", "q_neon", "ui_classic", "ui_midnight", "ui_bubblegum", "ui_mint"]
+## The garage's tabs, by what the cosmetics change. A tab stays locked (greyed) until something in it other
+## than its free defaults is yours, so the late, buried kinds don't crowd a new player.
+const TABS := [
+	{"name": "Van & Road", "kinds": ["ride", "paint", "topper", "trail", "road"]},
+	{"name": "Packages & Buildings", "kinds": ["package", "building"]},
+	{"name": "Queue & Controls", "kinds": ["queue", "controls"]},
+]
+const KIND_TITLES := {"ride": "Rides", "paint": "Paint jobs", "topper": "Toppers",
+	"trail": "Trails  ·  what the road turns into behind you", "road": "Roads  ·  the street surface",
+	"package": "Package shapes", "building": "Buildings  ·  every colour, rebuilt",
+	"queue": "Package queue  ·  the container your load waits in", "controls": "Controls  ·  button colours"}
+const BANNERS := {"ride": "NEW RIDE!", "paint": "NEW PAINT JOB!", "topper": "NEW TOPPER!", "trail": "NEW TRAIL!",
+	"road": "NEW ROAD!", "package": "NEW PACKAGES!", "building": "NEW BUILDINGS!", "queue": "NEW QUEUE!", "controls": "NEW CONTROLS!"}
 ## Rides that move (they're redrawn every frame in the garage).
 const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat",
 	"bassinet", "caterpillar", "pillow_tower"]
@@ -61,7 +96,13 @@ static func kind_of(id: String) -> String:
 	return ITEMS.get(id, {}).get("kind", "")
 
 
-## Trails (what the road turns into behind the van) unlock with stars: how many this one needs.
+## Kinds that unlock with stars (trails and the looks) rather than being found.
+static func by_stars(id: String) -> bool:
+	return kind_of(id) == "trail" or Looks.is_look(kind_of(id))
+
+
+## Trails (what the road turns into behind the van) unlock with stars: how many this one needs (-1: not
+## with stars; it's won, from a boss).
 static func stars_for(id: String) -> int:
 	return int(ITEMS.get(id, {}).get("stars", 0))
 
@@ -76,6 +117,19 @@ static func tint(id: String) -> Color:
 		"meteors": return Color("ff8a2a")
 		"lava": return Color("ff6a1a")
 		"zombies": return Color("8fbf6a")
+		"money": return Color("3fae5b")
+		"pkg_hatbox": return Color("ff8fb1")
+		"pkg_crate": return Color("c98a4b")
+		"pkg_capsule": return Color("7ad7ff")
+		"bld_gingerbread": return Color("c98a4b")
+		"bld_castle": return Color("bdb9c9")
+		"q_conveyor": return Color("ffc53d")
+		"q_neon": return Color("00e5ff")
+		"road_cobbles": return Color("a39a8c")
+		"road_neon": return Color("ff4fd8")
+		"ui_midnight": return Color("2b2d42")
+		"ui_bubblegum": return Color("ff8fc8")
+		"ui_mint": return Color("5fd3a8")
 		"drizzlet": return Color(0.5, 0.78, 0.98)
 		"bonkle": return Color(0.98, 0.66, 0.46)
 		"sprout": return Color(0.5, 0.9, 0.74)

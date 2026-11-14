@@ -10,6 +10,9 @@ var _van: Van
 var _t := 0.0
 var _grid: GridContainer
 var _top := 0.0
+var _tabs: HBoxContainer
+var _col: VBoxContainer
+var _tab := 0
 var _fx: Fx
 
 
@@ -38,29 +41,34 @@ func _ready() -> void:
 	_van.position = Vector2(v.x / 2.0, 470 + _top)
 	add_child(_van)
 
+	# Tabs, by what the cosmetics change. Locked ones (nothing in them found yet) are greyed out.
+	_tabs = HBoxContainer.new()
+	_tabs.position = Vector2(40, 750 + _top)
+	_tabs.size = Vector2(v.x - 80, 100)
+	_tabs.add_theme_constant_override("separation", 14)
+	add_child(_tabs)
+	for i in Cosmetics.TABS.size():
+		var tb := JuicyButton.new()
+		tb.label = str(Cosmetics.TABS[i]["name"])
+		tb.font_px = 30
+		tb.custom_minimum_size = Vector2(0, 92)
+		tb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tb.pressed.connect(_pick_tab.bind(i))
+		_tabs.add_child(tb)
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(40, 760 + _top)
-	scroll.size = Vector2(v.x - 80, v.y - 760 - _top - 40)
+	scroll.position = Vector2(40, 870 + _top)
+	scroll.size = Vector2(v.x - 80, v.y - 870 - _top - 40)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 20)
-	scroll.add_child(col)
-	for kind in ["ride", "paint", "topper", "trail"]:
-		var head := Label.new()
-		head.text = {"ride": "Rides", "paint": "Paint jobs", "topper": "Toppers", "trail": "Trails  ·  what the road turns into behind you"}[kind]
-		head.add_theme_font_size_override("font_size", 48)
-		head.add_theme_color_override("font_color", Palette.TEXT_SOFT)
-		col.add_child(head)
-		var grid := GridContainer.new()
-		grid.columns = 3
-		grid.add_theme_constant_override("h_separation", 22)
-		grid.add_theme_constant_override("v_separation", 22)
-		col.add_child(grid)
-		for id in Cosmetics.ORDER:
-			if Cosmetics.kind_of(id) == kind:
-				grid.add_child(_tile(id))
+	_col = VBoxContainer.new()
+	_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_col.add_theme_constant_override("separation", 20)
+	scroll.add_child(_col)
+	_show_tab(0)
+	for a in OS.get_cmdline_user_args():
+		# Debug: --tab=N opens the garage on tab N (if it's open).
+		if a.begins_with("--tab=") and tab_open(a.trim_prefix("--tab=").to_int()):
+			_show_tab.call_deferred(a.trim_prefix("--tab=").to_int())
 	_fx = Fx.new()
 	add_child(_fx)
 	Progress.changed.connect(queue_redraw)
@@ -70,9 +78,68 @@ func _ready() -> void:
 			_van.celebrate())
 
 
+## Is tab `i` open: always the first; the others once something in them beyond the free defaults is yours.
+static func tab_open(i: int) -> bool:
+	if i == 0:
+		return true
+	for id in Cosmetics.ORDER:
+		if Cosmetics.kind_of(id) in Cosmetics.TABS[i]["kinds"] and Cosmetics.stars_for(id) != 0 and Progress.owns(id):
+			return true
+	return false
+
+
+## The stars the first thing in tab `i` unlocks at.
+static func tab_unlock_stars(i: int) -> int:
+	var best := 9999
+	for id in Cosmetics.ORDER:
+		if Cosmetics.kind_of(id) in Cosmetics.TABS[i]["kinds"] and Cosmetics.stars_for(id) > 0:
+			best = mini(best, Cosmetics.stars_for(id))
+	return best
+
+
+func _pick_tab(i: int) -> void:
+	if not tab_open(i):
+		Sfx.play("bonk", 1.2, -8.0)
+		var b: JuicyButton = _tabs.get_child(i)
+		b.pop()
+		_fx.say(b.get_global_rect().get_center() + Vector2(0, 90), "Unlocks at %d ★" % tab_unlock_stars(i), Palette.TEXT, 34)
+		return
+	Sfx.play("click")
+	_show_tab(i)
+
+
+func _show_tab(i: int) -> void:
+	_tab = i
+	for k in _tabs.get_child_count():
+		var b: JuicyButton = _tabs.get_child(k)
+		var open := tab_open(k)
+		b.icon_name = "" if open else "lock"
+		b.dim = not open
+		if k == i:
+			b.recolor(Palette.GOOD, Color.WHITE)
+		else:
+			b.recolor(Color(0, 0, 0, 0), Color(0, 0, 0, 0))
+	for c in _col.get_children():
+		c.queue_free()
+	for kind in Cosmetics.TABS[i]["kinds"]:
+		var head := Label.new()
+		head.text = str(Cosmetics.KIND_TITLES.get(kind, kind))
+		head.add_theme_font_size_override("font_size", 44)
+		head.add_theme_color_override("font_color", Palette.TEXT_SOFT)
+		_col.add_child(head)
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 22)
+		grid.add_theme_constant_override("v_separation", 22)
+		_col.add_child(grid)
+		for id in Cosmetics.ORDER:
+			if Cosmetics.kind_of(id) == kind:
+				grid.add_child(_tile(id))
+
+
 ## Where each cosmetic can be found, from the levels' gifts.
 func _where(id: String) -> String:
-	if Cosmetics.kind_of(id) == "trail":
+	if Cosmetics.by_stars(id) and Cosmetics.stars_for(id) >= 0:
 		return "Unlocks at %d ★ (you have %d)" % [Cosmetics.stars_for(id), Progress.total_stars()]
 	for L in levels:
 		if L.gift_item == id:
@@ -151,6 +218,11 @@ class ItemTile:
 	func _ready() -> void:
 		super._ready()
 		add_to_group("garage_tiles")
+		# Buildings show two little houses built that way.
+		if Cosmetics.kind_of(id) == "building" and Progress.owns(id):
+			var bp := Looks.building_preview(id, 200.0)
+			bp.position = Vector2(153, 100)
+			add_child(bp)
 		# A trail shows a little stretch of road torn up its way.
 		if Cosmetics.kind_of(id) == "trail" and Progress.owns(id):
 			_trail = TrailPreview.new()
@@ -165,7 +237,7 @@ class ItemTile:
 
 	func _process(delta: float) -> void:
 		_t += delta
-		if id in Cosmetics.ANIMATED:
+		if id in Cosmetics.ANIMATED or Looks.is_look(Cosmetics.kind_of(id)):
 			queue_redraw()
 
 	func _draw() -> void:
@@ -175,7 +247,12 @@ class ItemTile:
 		var mid := Vector2(size.x / 2.0, 100)
 		if worn:
 			DrawUtil.rrect(self, Rect2(Vector2(10, 6), size - Vector2(20, 26)), Color(Palette.GOOD, 0.18), 26)
-		if owned and Cosmetics.kind_of(id) == "ride":
+		if owned and Looks.is_look(Cosmetics.kind_of(id)):
+			if Cosmetics.kind_of(id) != "building":
+				Looks.draw_preview(self, id, mid, 230.0, _t)
+		elif owned and Cosmetics.kind_of(id) == "trail":
+			pass
+		elif owned and Cosmetics.kind_of(id) == "ride":
 			draw_set_transform(mid, -0.25, Vector2.ONE)
 			Cosmetics.draw_ride(self, id, 190.0 * 0.74 * 0.9, 190.0 * 0.46 * 0.9, Palette.pkg("blue"), _t, Progress.paint, -1.0, Vector2.UP.rotated(0.25))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

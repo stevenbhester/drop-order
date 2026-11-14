@@ -211,6 +211,7 @@
     },
     {
       "title": "Spaghetti Junction",
+      "gift": {"at": [5, 1], "item": "key"},
       "no_revisit": true,
       "map": [
         "# # # # # #",
@@ -493,6 +494,7 @@
     },
     {
       "title": "Turntable",
+      "gift": {"at": [1, 3], "item": "key"},
       "hint": "Sorting hubs swap your top two packages as you drive over them.",
       "no_revisit": true,
       "map": [
@@ -651,6 +653,7 @@
     },
     {
       "title": "Snowplough",
+      "gift": {"at": [4, 6], "item": "key"},
       "no_revisit": true,
       "map": [
         ". . r . . .",

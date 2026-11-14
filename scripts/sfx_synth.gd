@@ -1,12 +1,13 @@
 class_name SfxSynth
 extends RefCounted
-## Synthesised placeholder sounds. tools/gen_sfx.gd writes these to res://audio/*.wav;
+## Synthesised placeholder sounds. (LAZY ones are made the first time they're played, not at start-up.) tools/gen_sfx.gd writes these to res://audio/*.wav;
 ## replace any wav there with a real asset (same name) and the game picks it up.
 
 const RATE := 44100
 const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click", "rewind", "pickup", "swap", "gate",
 		"coin", "star", "kaching", "jingle", "empty", "hint", "sparkle", "punch", "slam", "whoomp",
 		"crunch", "crash", "screech", "beep"]
+const LAZY := ["laugh"]
 
 
 static func make(sound: String) -> AudioStreamWAV:
@@ -39,6 +40,7 @@ static func make(sound: String) -> AudioStreamWAV:
 		"crash": b = _crash()
 		"screech": b = _screech()
 		"beep": b = _beep()
+		"laugh": b = _laugh()
 		_: b = PackedFloat32Array([0.0])
 	return _wav(b)
 
@@ -264,6 +266,35 @@ static func _screech() -> PackedFloat32Array:
 
 
 ## A car horn: two buzzy tones a third apart, short.
+## A big villain's laugh: HAW HAW HAW HAW, each lower than the last. Built from harmonics shaped round an
+## "aw" vowel (resonances near 700 and 1100 Hz), with a breathy H at the start of each.
+static func _laugh() -> PackedFloat32Array:
+	var syl := 0.17
+	var gap := 0.06
+	var n := 4
+	var b := _buf(n * (syl + gap) + 0.1)
+	var ph := 0.0
+	for k in n:
+		var f0 := 190.0 - k * 16.0
+		var start := int(k * (syl + gap) * RATE)
+		var amps := []
+		for h in range(1, 13):
+			var fh := f0 * h
+			amps.append(exp(-pow((fh - 700.0) / 260.0, 2.0)) + 0.7 * exp(-pow((fh - 1100.0) / 300.0, 2.0)) + 0.15 / h)
+		for i in int(syl * RATE):
+			var t := float(i) / RATE
+			var f := f0 * (1.0 + 0.06 * (1.0 - t / syl))
+			ph += TAU * f / RATE
+			var v := 0.0
+			for h in amps.size():
+				v += amps[h] * sin(ph * (h + 1))
+			var env := minf(1.0, t * 40.0) * pow(maxf(0.0, 1.0 - t / syl), 0.6)
+			var breath := randf_range(-1.0, 1.0) * maxf(0.0, 1.0 - t * 30.0) * 0.5
+			if start + i < b.size():
+				b[start + i] = (v * 0.11 + breath * 0.2) * env
+	return b
+
+
 static func _beep() -> PackedFloat32Array:
 	var b := _buf(0.16)
 	for i in b.size():

@@ -131,6 +131,11 @@ static func parcel(ci: CanvasItem, c: Vector2, size: Vector2, col: Color, shadow
 	var r := Rect2(c - size * 0.5, size)
 	var m := minf(size.x, size.y)
 	var rad := m * 0.2
+	var shape := Looks.pkg
+	if shape == "pkg_hatbox" or shape == "pkg_capsule":
+		rad = m * 0.5
+	elif shape == "pkg_crate":
+		rad = m * 0.06
 	if shadow:
 		rrect(ci, Rect2(r.position + Vector2(0, m * 0.09), r.size), Color(0, 0, 0, 0.18), rad)
 	rrect(ci, r, col.darkened(0.12), rad)
@@ -138,6 +143,25 @@ static func parcel(ci: CanvasItem, c: Vector2, size: Vector2, col: Color, shadow
 	var kind := Palette.kind_of(col)
 	var face := Rect2(r.position, Vector2(size.x, size.y - m * 0.1))
 	var fc := face.get_center()
+	# Package shapes (a Looks cosmetic): the same colour and mark, a different container.
+	match shape:
+		"pkg_hatbox":
+			# A round hatbox: a lid band round the top and a cord.
+			rrect(ci, Rect2(face.position, Vector2(face.size.x, face.size.y * 0.3)), Color(col.lightened(0.18), col.a), rad)
+			ci.draw_arc(fc + Vector2(0, -face.size.y * 0.42), m * 0.16, PI * 1.1, PI * 1.9, 10, Color(col.darkened(0.4), col.a), maxf(1.0, m * 0.04), true)
+		"pkg_crate":
+			# A wooden crate stained its colour: planks, a frame and a cross brace.
+			for k in range(1, 3):
+				var y := face.position.y + face.size.y * k / 3.0
+				ci.draw_line(Vector2(face.position.x, y), Vector2(face.end.x, y), Color(col.darkened(0.3), col.a * 0.6), maxf(1.0, m * 0.03))
+			ci.draw_rect(face.grow(-m * 0.03), Color(col.darkened(0.35), col.a * 0.8), false, maxf(1.0, m * 0.06))
+			ci.draw_line(face.position + Vector2(m * 0.06, m * 0.06), face.end - Vector2(m * 0.06, m * 0.06), Color(col.darkened(0.25), col.a * 0.55), maxf(1.0, m * 0.07))
+		"pkg_capsule":
+			# A capsule: two halves, the far one paler, a seam between.
+			var half := Rect2(Vector2(fc.x, face.position.y), Vector2(face.size.x / 2.0, face.size.y))
+			rrect(ci, half, Color(col.lightened(0.4), col.a), rad)
+			ci.draw_rect(Rect2(half.position, Vector2(half.size.x * 0.5, half.size.y)), Color(col.lightened(0.4), col.a))
+			ci.draw_line(Vector2(fc.x, face.position.y), Vector2(fc.x, face.end.y), Color(col.darkened(0.3), col.a), maxf(1.0, m * 0.04))
 	# The class mark is just flavour, not a rule: a small, faint stamp in a deeper shade of the box's own
 	# colour (the gift's ribbon a paler one), so the colour is still what you read. Colorblind mode makes it
 	# bold and white (dark on the yellow), big enough to tell the boxes apart by mark alone.

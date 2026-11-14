@@ -60,16 +60,17 @@ func restyle() -> void:
 	queue_redraw()
 
 
+## Unset colours follow the palette, or the worn control scheme (a Looks cosmetic).
 func _bg() -> Color:
-	return bg if bg.a > 0.0 else Palette.SURFACE
+	return bg if bg.a > 0.0 else (Looks.button_bg() if Looks.button_bg().a > 0.0 else Palette.SURFACE)
 
 
 func _fg() -> Color:
-	return fg if fg.a > 0.0 else Palette.TEXT
+	return fg if fg.a > 0.0 else (Looks.button_fg() if Looks.button_fg().a > 0.0 else Palette.TEXT)
 
 
 func _dim_bg() -> Color:
-	return dim_bg if dim_bg.a > 0.0 else Palette.SURFACE_DIM
+	return dim_bg if dim_bg.a > 0.0 else (Looks.button_dim() if Looks.button_dim().a > 0.0 else Palette.SURFACE_DIM)
 
 
 func recolor(new_bg: Color, new_fg: Color) -> void:

@@ -52,11 +52,16 @@ const CHEERS := ["Nice!", "Sweet!", "Great!", "Wow!", "Unreal!"]
 const AD_PINK := Color("ff3d9a")
 const COUNT_BLUE := Color("4d8dff")
 ## Hints each level starts with; after that, watching a pretend ad makes them unlimited for the level.
-const HINTS_PER_LEVEL := 3
+## Hints a level starts with: Progress.hint_slots() (one, and one more from each of the chests at levels
+## 10 and 20, up to three).
 const NOWHERE := Vector2i(-99, -99)
 
 var level: LevelData
 var index := 0
+## The last unfinished attempt's route ({"key", "route"}), kept across a restart for the Replay ghost path
+## option (ReplayGhost).
+static var last_attempt := {}
+var replay_ghost: ReplayGhost
 var total := 0
 var solve_info := {}
 var state := State.IDLE
@@ -84,8 +89,9 @@ var retry_paid := false
 var history: Array = []          # per driven segment: { "len", "state", "rot" } before it
 var undo_left := UNDOS_PER_ATTEMPT   # free undos left this attempt (spares are in Progress.undo_bank)
 var hint_used := false
-## Hints left this level (HINTS_PER_LEVEL to start). Out: a pretend ad, then they're unlimited for the level.
-var hints_left := HINTS_PER_LEVEL
+## Hints left this level (Progress.hint_slots() to start). Out: a pretend ad, then they're unlimited for the
+## level. A hint stays up, pulsing, until the next move; asking again before then replays it for free.
+var hints_left := Progress.hint_slots()
 var hints_unlimited := false
 var undo_used := false
 var modal: Node                  # the shop or the ad, on top: the game ignores input meanwhile
@@ -150,6 +156,13 @@ var fx: Fx
 var hint_ghost: GhostFinger
 var hint_run: Array = []         # tiles the current hint points along (empty: no hint showing)
 var _ui_root: Control
+## The cancel zone: while a route's being drawn, a little crusher at the bottom of the screen. Drag into it and
+## hold (CANCEL_HOLD) till the ring closes, then let go: the route's scrapped, nothing driven.
+var _cz: Control
+var _cz_in := false
+var _cz_t := 0.0
+var _cz_crush := -1.0
+const CANCEL_HOLD := 0.35
 var _base_hint := ""
 ## D-pad steering (Progress.drive_mode "dpad"): arrows plot the route a tile at a time, a ghost van shows
 ## where it ends, and the DRIVE button sends the real van down it.
@@ -214,9 +227,10 @@ func _twist() -> String:
 	return str(side.get("twist", ""))
 
 
-## A side road with a twist, or a speedrun: no hints, no undos. (Mega routes allow both.)
+## A side road with a twist, or a speedrun: no hints, no undos. (Mega routes and boss fights allow both:
+## a boss map is hard enough already.)
 func _strict_side() -> bool:
-	return not side.is_empty() and (_twist() != "mega" or _speedrun())
+	return not side.is_empty() and ((_twist() != "mega" and _twist() != "boss") or _speedrun())
 
 
 func _speedrun() -> bool:
@@ -269,7 +283,15 @@ func _start_side() -> void:
 			timing = true
 		_side_status()
 		return
-	if part == 0 and ChallengeIntro.should_show_side(side):
+	if part == 0 and Boss.is_boss(side) and not Progress.auto:
+		# The villain laughs you in, every time.
+		var bi := BossIntro.new()
+		bi.side = side
+		bi.level = level
+		modal = bi
+		_overlay(bi)
+		bi.done.connect(func(): modal = null)
+	elif part == 0 and ChallengeIntro.should_show_side(side):
 		var ci := ChallengeIntro.new()
 		ci.level = level
 		ci.side = side
@@ -400,7 +422,7 @@ func _symbol_at(t: Vector2i) -> Dictionary:
 	if level.return_depot and t == level.start and route.size() > 1:
 		return {"kind": "pitstop", "at": at}
 	if board.gift and not gift_taken and t == level.gift:
-		return {"kind": "gift", "at": at}
+		return {"kind": "key" if level.gift_item == "key" else "gift", "at": at}
 	if level.no_revisit and route.size() > 1 and t != route.back() and route.has(t):
 		return {"kind": "wreck", "at": at}
 	return {}
@@ -537,7 +559,93 @@ func _intro() -> void:
 
 ## While the van waits, houses that want the package now on top give a little hop every couple of
 ## seconds, and the top package in the load nods along: a gentle "this one goes here".
+## Where the crusher sits: bottom middle, over the controls (they're no use mid-drag), well off the board.
+func _cz_center() -> Vector2:
+	var vp := get_viewport_rect().size
+	if Progress.landscape:
+		return Vector2(vp.x - 150.0 - UiTheme.side_insets(get_viewport()).y, vp.y - 150.0 - _bottom_inset)
+	return Vector2(vp.x / 2.0, vp.y - _bottom_inset - 160.0)
+
+
+## Is the finger (viewport position) in the cancel zone? It's harder to leave than to enter, so it doesn't
+## flicker at the edge.
+func _cz_track(at: Vector2) -> void:
+	var d := at.distance_to(_cz_center())
+	var was := _cz_in
+	_cz_in = d < (150.0 if _cz_in else 95.0)
+	if _cz_in and not was:
+		Sfx.play("tick", 0.7, -4.0)
+		Sfx.haptic(8)
+
+
+func _cancel_zone_tick(delta: float) -> void:
+	var drawing := state == State.DRAWING and not dpad_mode
+	if _cz_crush >= 0.0:
+		_cz_crush += delta
+		if _cz_crush > 0.45:
+			_cz_crush = -1.0
+	_cz.visible = drawing or _cz_crush >= 0.0
+	if not _cz.visible:
+		_cz_in = false
+		_cz_t = 0.0
+		return
+	var before := _cz_t
+	if _cz_in and drawing:
+		_cz_t = minf(_cz_t + delta, CANCEL_HOLD + 1.0)
+	else:
+		_cz_t = maxf(_cz_t - delta * 3.0, 0.0)
+	if before < CANCEL_HOLD and _cz_t >= CANCEL_HOLD:
+		Sfx.play("gate", 0.8, -4.0)
+		Sfx.haptic(16)
+	_cz.position = Vector2.ZERO
+	_cz.size = get_viewport_rect().size
+	_cz.queue_redraw()
+
+
+## A car crusher: two hazard-striped plates either side of a little car. Small when idle; finger in, it grows,
+## a ring sweeps round and the plates close in; full, it says RELEASE TO CANCEL. Then they slam.
+func _draw_cancel_zone() -> void:
+	var c := _cz_center()
+	var u := clampf(_cz_t / CANCEL_HOLD, 0.0, 1.0)
+	var grow := clampf(_cz_t / 0.12, 0.0, 1.0) if _cz_in else u
+	if _cz_crush >= 0.0:
+		grow = 1.0 - clampf(_cz_crush / 0.45, 0.0, 1.0)
+		u = 1.0
+	var r := lerpf(44.0, 120.0, 1.0 - pow(1.0 - grow, 3.0))
+	var full := u >= 1.0
+	_cz.draw_circle(c + Vector2(0, 6), r, Color(0, 0, 0, 0.22))
+	_cz.draw_circle(c, r, Color("2b2f38") if not full else Color("d7192a"))
+	_cz.draw_circle(c, r * 0.86, Color("3a3f4d") if not full else Color("ff3d4f"))
+	if u > 0.0 and _cz_crush < 0.0:
+		_cz.draw_arc(c, r * 0.93, -PI / 2.0, -PI / 2.0 + TAU * u, 48, Color("ffd166"), r * 0.1, true)
+	# The car being crushed.
+	var s := r / 120.0
+	var squeeze := (1.0 - 0.55 * u) if _cz_crush < 0.0 else 0.35
+	var cw := 90.0 * s * squeeze
+	var ch := 54.0 * s
+	DrawUtil.rrect(_cz, Rect2(c - Vector2(cw, ch) / 2.0, Vector2(cw, ch)), Color("e9edf5"), 12.0 * s)
+	DrawUtil.rrect(_cz, Rect2(c + Vector2(cw * 0.12, -ch * 0.36), Vector2(cw * 0.3, ch * 0.72)), Palette.VAN_GLASS, 6.0 * s)
+	# The plates, closing in.
+	for sd: float in [-1.0, 1.0]:
+		var px: float = c.x + sd * (cw / 2.0 + 10.0 * s)
+		var plate := Rect2(Vector2(px if sd > 0 else px - 16.0 * s, c.y - 46.0 * s), Vector2(16.0 * s, 92.0 * s))
+		DrawUtil.rrect(_cz, plate, Color("ffd166"), 4.0 * s)
+		for k in 4:
+			var y := plate.position.y + 8.0 * s + k * 22.0 * s
+			_cz.draw_line(Vector2(plate.position.x, y), Vector2(plate.end.x, y + 10.0 * s), Color("1d1f26"), 5.0 * s)
+	if not _cz_in and _cz_crush < 0.0:
+		return
+	var f := UiTheme.font()
+	var txt := "RELEASE TO CANCEL" if full else "HOLD TO CANCEL"
+	var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x
+	var ty := c.y - r - 30.0
+	DrawUtil.rrect(_cz, Rect2(c.x - tw / 2.0 - 22.0, ty - 46.0, tw + 44.0, 64.0), Color(1, 1, 1, 0.95), 32)
+	_cz.draw_string(f, Vector2(c.x - tw / 2.0, ty), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Color("d7192a") if full else Palette.TEXT)
+
+
 func _process(delta: float) -> void:
+	if _cz:
+		_cancel_zone_tick(delta)
 	if stars_ctl and (Progress.momentum > 0 or _twist() == "mega") and state != State.WON:
 		stars_ctl.queue_redraw()
 	_side_tick(delta)
@@ -612,6 +720,12 @@ func _build_world() -> void:
 	board = Board.new()
 	add_child(board)
 	board.setup(level, tile)
+	# Replay ghost path (an option): the last try at this level, faint, under the route.
+	if Progress.ghost_path and str(last_attempt.get("key", "")) == _attempt_key() and last_attempt.get("route", []).size() >= 2:
+		replay_ghost = ReplayGhost.new()
+		replay_ghost.setup(board, last_attempt["route"])
+		board.add_child(replay_ghost)
+		board.move_child(replay_ghost, board.path_line.get_index())
 
 	if level.number == 1 and not dpad_mode and not solve_info.get("shortest", []).is_empty():
 		ghost = GhostFinger.new()
@@ -811,6 +925,11 @@ func _build_ui() -> void:
 	root.theme = UiTheme.theme()
 	ui.add_child(root)
 	_ui_root = root
+	_cz = Control.new()
+	_cz.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cz.draw.connect(_draw_cancel_zone)
+	_cz.visible = false
+	root.add_child(_cz)
 	peek = PeekBubble.new()
 	peek.unit = 58.0
 	peek.visible = false
@@ -1231,6 +1350,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.pressed:
 			_press(lp)
 		else:
+			if state == State.DRAWING:
+				_cz_track(event.position)
 			_release()
 	elif event is InputEventMouseMotion and not _sym_press.is_empty():
 		if event.position.distance_to(_sym_press["pos"]) > 24.0:
@@ -1238,6 +1359,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and state == State.DRAWING and not dpad_mode:
 		# Self-tests inject their own drags: ignore the real cursor wandering over the window meanwhile.
 		if Progress.auto and not (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
+			return
+		_cz_track(event.position)
+		if _cz_in:
 			return
 		_drag(board.make_input_local(event).position)
 
@@ -1275,7 +1399,7 @@ func _press(lp: Vector2) -> void:
 func _begin_plan() -> void:
 	state = State.DRAWING
 	timing = true
-	_clear_hint()
+	_dim_hint(true)
 	seg = [route.back()]
 	seg_states = [Sim.copy_state(sim_state)]
 	_unblock()
@@ -1327,6 +1451,7 @@ func _place_peek() -> void:
 ## Drops the segment being planned: back to waiting at the van.
 func _cancel_plan() -> void:
 	state = State.IDLE
+	_dim_hint(false)
 	seg = []
 	seg_states = []
 	_unblock()
@@ -1502,6 +1627,19 @@ func _retract() -> void:
 func _release() -> void:
 	if state != State.DRAWING:
 		return
+	if _cz_in and _cz_t >= CANCEL_HOLD:
+		# Let go on the crusher: the route's scrapped.
+		_cz_crush = 0.0
+		_cz_in = false
+		_cz_t = 0.0
+		_cancel_plan()
+		Sfx.play("crunch", 0.9, 0.0)
+		Sfx.play("slam", 1.2, -6.0)
+		Sfx.haptic(25)
+		_say("Route scrapped. Start again from the van.")
+		return
+	_cz_in = false
+	_cz_t = 0.0
 	var into := blocked_at
 	_remove_ghost()
 	if seg.size() < 2:
@@ -1687,6 +1825,7 @@ func _move_ghost() -> void:
 
 func _drive() -> void:
 	state = State.DRIVING
+	_clear_hint()
 	# The truck goes back to what's really aboard; the packages then leave it as they're delivered.
 	stack_view.show_stack(sim_state["stack"])
 	peek.clear()
@@ -1808,10 +1947,11 @@ func _take_gift() -> void:
 	gift_seg = history.size() - 1
 	var at := board.gift.position
 	board.gift.taken = true
-	var col := Cosmetics.tint(level.gift_item)
+	var is_key := level.gift_item == "key"
+	var col := Icons.GOLD if is_key else Cosmetics.tint(level.gift_item)
 	fx.burst(at, col, 18, board.tile * 3.0, board.tile * 0.12)
 	fx.ring(at, Palette.STAR_GOLD, board.tile * 0.7)
-	fx.say(at + Vector2(0, -board.tile * 0.4), "Ooh, shiny!", col.darkened(0.2), int(board.tile * 0.3))
+	fx.say(at + Vector2(0, -board.tile * 0.4), "A key!" if is_key else "Ooh, shiny!", col.darkened(0.2), int(board.tile * 0.3))
 	Sfx.play("sparkle")
 	Sfx.play("kaching", 1.3, -8.0)
 	Sfx.haptic(20)
@@ -2242,7 +2382,7 @@ func _on_hint_pressed() -> void:
 		_say("No hints on side roads!")
 		return
 	# With the D-pad, a hint takes two taps (the first just asks), so a stray thumb can't spend a star.
-	if dpad_mode and state != State.FAILED and not hint_used and Time.get_ticks_msec() / 1000.0 > _hint_armed:
+	if dpad_mode and state != State.FAILED and not hint_used and hint_run.is_empty() and Time.get_ticks_msec() / 1000.0 > _hint_armed:
 		_hint_armed = Time.get_ticks_msec() / 1000.0 + 2.5
 		Sfx.play("tick", 1.2, -4)
 		Sfx.haptic(12, 0.5)
@@ -2257,6 +2397,13 @@ func _on_hint_pressed() -> void:
 	_hint_armed = 0.0
 	hint_button.label = "Hint"
 	Sfx.play("click")
+	# Already showing one (no move since): just play it again. Free.
+	if not hint_run.is_empty() and state != State.FAILED:
+		if dpad_mode and state == State.DRAWING:
+			_cancel_plan()
+		_show_hint_run(hint_run)
+		_say("Try this way.")
+		return
 	# A dead end (stuck, or no win left from here): the hint says so and points at Retry (or Undo). It
 	# never restarts anything itself, and costs no star; after a restart, a hint shows the first step.
 	if state == State.FAILED:
@@ -2287,6 +2434,12 @@ func _on_hint_pressed() -> void:
 		if path[i] - path[i - 1] != path[1] - path[0]:
 			break
 		run.append(path[i])
+	_show_hint_run(run)
+	_say("Try this way.")
+
+
+## Shows (or replays from the start) the hint along `run`: the pulsing arrow and a finger tracing it.
+func _show_hint_run(run: Array) -> void:
 	_clear_hint()
 	hint_run = run
 	board.show_hint(run)
@@ -2299,7 +2452,15 @@ func _on_hint_pressed() -> void:
 		ghost.visible = false
 	Sfx.play("hint")
 	Sfx.haptic(10)
-	_say("Try this way.")
+
+
+## While a route's being drawn, the hint stays but steps back (the finger's the player's now).
+func _dim_hint(dim: bool) -> void:
+	if hint_ghost and is_instance_valid(hint_ghost):
+		hint_ghost.visible = not dim
+	board.hint_line.self_modulate.a = 0.55 if dim else 1.0
+	board.hint_head.self_modulate.a = 0.55 if dim else 1.0
+	board.hint_stop.self_modulate.a = 0.55 if dim else 1.0
 
 
 func _dead_end_hint() -> void:
@@ -2320,6 +2481,9 @@ func _point_at_way_out() -> void:
 func _clear_hint() -> void:
 	hint_run = []
 	board.show_hint([])
+	board.hint_line.self_modulate.a = 1.0
+	board.hint_head.self_modulate.a = 1.0
+	board.hint_stop.self_modulate.a = 1.0
 	if hint_ghost and is_instance_valid(hint_ghost):
 		hint_ghost.queue_free()
 	hint_ghost = null
@@ -2381,7 +2545,15 @@ func _retry() -> void:
 		Progress.momentum = 0
 	if daily_day >= 0:
 		Progress.daily_attempt(daily_day)
+	# What this try did, for the Replay ghost path option (a try that never drove keeps the one before).
+	if state != State.WON and route.size() >= 2:
+		last_attempt = {"key": _attempt_key(), "route": route.duplicate()}
 	retry_requested.emit(index)
+
+
+## Which level this is, for last_attempt: the level, and the side road, part or daily it belongs to.
+func _attempt_key() -> String:
+	return "%d|%s|%d|%d" % [level.number, str(side.get("id", "")), part, daily_day]
 
 
 ## Back to the level list. Walking away from an unfinished level breaks the run of wins.
@@ -2390,6 +2562,7 @@ func _leave() -> void:
 		return
 	if state != State.WON and (route.size() > 1 or hint_used or undo_used):
 		Progress.momentum = 0
+	last_attempt = {}
 	if daily_day >= 0:
 		daily_menu_requested.emit()
 	else:
@@ -2402,6 +2575,7 @@ func _win() -> void:
 	state = State.WON
 	timing = false
 	_clear_hint()
+	last_attempt = {}
 	var earned := 3 - int(hint_used) - int(undo_used)
 	coin_chip.frozen = true
 	var pay := 0
@@ -2433,7 +2607,7 @@ func _win() -> void:
 	else:
 		gas_back = not Progress.is_complete(level.number)
 		stars_before = Progress.total_stars()
-		pay = Progress.mark_complete(level.number, earned)
+		pay = Progress.mark_complete(level.number, earned, level.fp)
 		# First time through a challenge level: a bonus, and the finish goes big.
 		crushed = level.challenge and gas_back
 		if crushed:
@@ -2444,15 +2618,18 @@ func _win() -> void:
 	if gas_back:
 		Progress.refund_gas()
 	var new_item := ""
-	if gift_taken and Progress.give(level.gift_item):
+	var found_key := false
+	if gift_taken and level.gift_item == "key":
+		found_key = Progress.find_key(level.number)
+	elif gift_taken and Progress.give(level.gift_item):
 		new_item = level.gift_item
 	if side_prize != "" and Progress.give(side_prize):
 		new_item = side_prize
-	# Enough stars now for a new trail?
+	# Enough stars now for a new trail (or look)?
 	if new_item == "" and stars_before >= 0:
 		for id in Cosmetics.ORDER:
 			var need := Cosmetics.stars_for(id)
-			if Cosmetics.kind_of(id) == "trail" and need > stars_before and need <= Progress.total_stars():
+			if Cosmetics.by_stars(id) and need > 0 and need > stars_before and need <= Progress.total_stars():
 				new_item = id
 				break
 	var missed := board.gift != null and not gift_taken
@@ -2473,8 +2650,13 @@ func _win() -> void:
 	dpad.visible = false
 	drive_button.visible = false
 	mode_button.visible = false
+	# A boss beaten: he runs for it and drops the prize (BossOutro), and the finish waits for that too.
+	var wait := maxf(0.35, RideWins.time(Progress.ride) + 0.1)
+	if Boss.is_boss(side) and not Progress.auto:
+		_overlay(BossOutro.new())
+		wait = maxf(wait, BossOutro.TIME)
 	var tw := create_tween()
-	tw.tween_interval(0.35 if Progress.auto else maxf(0.35, RideWins.time(Progress.ride) + 0.1))
+	tw.tween_interval(0.35 if Progress.auto else wait)
 	if crushed:
 		# A big reaction on the board first: every house cheers, confetti everywhere, the screen jolts.
 		Sfx.play("kaching", 1.0, -2.0)
@@ -2489,10 +2671,10 @@ func _win() -> void:
 			shake.tween_property(board, "position", bp + Vector2(randf_range(-1, 1), randf_range(-1, 1)) * 14.0, 0.04)
 		shake.tween_property(board, "position", bp, 0.05)
 		tw.tween_interval(0.5)
-	tw.tween_callback(_show_finish.bind(earned, pay, gas_back, new_item, missed, crushed))
+	tw.tween_callback(_show_finish.bind(earned, pay, gas_back, new_item, missed, crushed, found_key))
 
 
-func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, missed: bool, crushed := false) -> void:
+func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, missed: bool, crushed := false, found_key := false) -> void:
 	finish = FinishScreen.new()
 	finish.crushed = crushed
 	finish.level = level
@@ -2503,6 +2685,8 @@ func _show_finish(earned: int, pay: int, gas_back: bool, new_item: String, misse
 	finish.momentum = Progress.momentum
 	finish.new_item = new_item
 	finish.missed_item = missed
+	finish.found_key = found_key
+	finish.missed_key = missed and level.gift_item == "key"
 	finish.daily = daily_day >= 0
 	finish.last_level = index + 1 >= total or not side.is_empty()
 	finish.side_title = str(side.get("title", ""))

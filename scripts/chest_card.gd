@@ -10,7 +10,7 @@ const OPEN_AT := 0.85
 const WOOD := Color("b8733a")
 const BAND := Color("ffcf4d")
 
-## What the chest gave: {gas, coins, hat}.
+## What the chest gave: {gas, coins, hat, cashed, hints}.
 var got := {}
 var level_number := 0
 
@@ -140,10 +140,13 @@ func _draw() -> void:
 			items.append("gas")
 		for i in 5:
 			items.append("coin")
+		if int(got.get("hints", 0)) > 0:
+			items.insert(items.size() / 2, "bulb")
 		for i in items.size():
 			var a := -PI / 2.0 + (i - (items.size() - 1) / 2.0) * 0.32
 			var at := _c + Vector2(0, -60) + Vector2(cos(a), sin(a)) * 320.0 * k
-			Icons.draw(self, items[i], at, 74.0, GasChip.FUEL if items[i] == "gas" else Palette.STAR_GOLD)
+			var col: Color = GasChip.FUEL if items[i] == "gas" else (Color("fff3a0") if items[i] == "bulb" else Palette.STAR_GOLD)
+			Icons.draw(self, items[i], at, 74.0 if items[i] != "bulb" else 92.0, col)
 		var y := _c.y + 250.0
 		_text("LEVEL %d CHEST" % level_number, Vector2(v.x / 2.0, _c.y - 470.0), 46, Color.WHITE)
 		if coins > 0:
@@ -156,5 +159,8 @@ func _draw() -> void:
 		if cashed > 0:
 			_text("(tank's full: %d gas can%s cashed in)" % [cashed, "" if cashed == 1 else "s"], Vector2(v.x / 2.0, y - 18.0), int(32 * k), Color(1, 1, 1, 0.75), 6)
 			y += 50.0
+		if int(got.get("hints", 0)) > 0:
+			_text("+1 hint every level!", Vector2(v.x / 2.0, y), int(58 * k), Color("fff3a0"), 12)
+			y += 80.0
 		if str(got.get("hat", "")) != "":
 			_text("and a ride!" if Cosmetics.kind_of(str(got["hat"])) == "ride" else "and a hat!", Vector2(v.x / 2.0, y), int(58 * k), Color("ffb3d9"), 12)

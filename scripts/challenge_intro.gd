@@ -50,7 +50,7 @@ static func should_show(L: LevelData) -> bool:
 
 static func should_show_side(d: Dictionary) -> bool:
 	var id := str(d.get("id", ""))
-	return not Progress.side_done.has(id) and not _seen.has(id) and not Progress.auto
+	return not Progress.side_done.has(id) and not _seen.has(id) and not Progress.auto and not Boss.is_boss(d)
 
 
 func _ready() -> void:

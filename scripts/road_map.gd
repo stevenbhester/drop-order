@@ -754,6 +754,9 @@ func _draw_stop(i: int) -> void:
 	var L: LevelData = levels[i]
 	var stars := Progress.stars_for(L.number)
 	var done := Progress.is_complete(L.number)
+	# Redesigned since it was beaten: the stars go hollow (what's left of them, pulsing) until it's beaten
+	# again, and the pin says so.
+	var stale := Progress.is_stale(L.number, L.fp)
 	var is_next := i == next
 	var night := L.preview
 	var c := _o(stops[i])
@@ -769,7 +772,10 @@ func _draw_stop(i: int) -> void:
 	var r := PIN_R * scale
 	var bg := Color.WHITE
 	var fg := Color(Palette.TEXT, 0.55)
-	if stars >= 3:
+	if stale:
+		bg = Color("dfe8f7")
+		fg = Color("4a7bd6")
+	elif stars >= 3:
 		bg = PERFECT
 		fg = PERFECT_INK
 	elif done:
@@ -804,12 +810,21 @@ func _draw_stop(i: int) -> void:
 		DrawUtil.rrect(self, plate, Color(1, 1, 1, 0.92), 21)
 		for k in 3:
 			var sc := plate.get_center() + Vector2((k - 1) * 40.0, 0)
-			Icons.star(self, sc, 15.0, Palette.STAR_GOLD if k < stars else Color(Palette.TEXT, 0.14))
-	# A present still waiting on this level's road.
-	if L.gift_item != "" and not Progress.owns(L.gift_item):
+			if stale and k < stars:
+				Icons.star_stale(self, sc, 15.0, _t + k * 0.2)
+			else:
+				Icons.star(self, sc, 15.0, Palette.STAR_GOLD if k < stars else Color(Palette.TEXT, 0.14))
+		if stale:
+			_plate("UPDATED", c + Vector2(0, r + 68.0), Color("4a7bd6"), Color.WHITE, 18)
+	# A present (or a key) still waiting on this level's road.
+	var waiting := not Progress.keys_found.has(L.number) if L.gift_item == "key" else (L.gift_item != "" and not Progress.owns(L.gift_item))
+	if waiting:
 		var g := c + Vector2(r * 0.78, -r * 0.78)
 		draw_circle(g, 27.0, Color.WHITE)
-		Icons.draw(self, "gift", g + Vector2(0, 3), 36.0, Color("ff3d9a"))
+		if L.gift_item == "key":
+			Icons.draw(self, "key", g + Vector2(0, 2), 40.0, Icons.GOLD_DARK)
+		else:
+			Icons.draw(self, "gift", g + Vector2(0, 3), 36.0, Color("ff3d9a"))
 	if L.challenge:
 		# ...and a flame badge on the pin's shoulder (it flickers until it's beaten).
 		var b := c + Vector2(-r * 0.8, -r * 0.8)
@@ -876,7 +891,18 @@ func _tap_spur(k: int) -> void:
 	var sp: Dictionary = spurs[k]
 	var n: int = sp["n"]
 	if sp["kind"] == "side":
-		if Progress.side_open(sp["def"]):
+		if Progress.side_open(sp["def"]) and Progress.side_locked(sp["def"]):
+			if Progress.use_key(sp["id"]):
+				# The padlock springs open, then on into the side road.
+				sp["unlock"] = _t
+				Sfx.play("thunk", 1.4, -4.0)
+				Sfx.play("sparkle", 1.0, -4.0)
+				Sfx.haptic(25)
+				var id: String = sp["id"]
+				get_tree().create_timer(0.9).timeout.connect(func(): side_pressed.emit(id))
+				return
+			sp["need_key"] = _t
+		elif Progress.side_open(sp["def"]):
 			Sfx.play("click")
 			side_pressed.emit(sp["id"])
 			return
@@ -931,16 +957,23 @@ func _draw_side_sign(sp: Dictionary) -> void:
 	var c := _o(sp["b"]) + _shake_of(sp)
 	var open := Progress.side_open(d)
 	var won := Progress.side_done.has(sp["id"])
+	var locked := Progress.side_locked(d)
+	var opening := _t - float(sp.get("unlock", -9.0))
 	var r := 60.0
-	if open and not won:
+	if open and not won and not locked:
 		for k0 in [0.0, 0.5]:
 			var k := fmod(_t / 1.6 + k0, 1.0)
 			draw_arc(c, r * (1.1 + 0.5 * k), 0, TAU, 40, Color(SIDE_COL, 0.6 * (1.0 - k)), 6.0, true)
 	draw_circle(c + Vector2(0, 9), r + 8.0, Color(0, 0, 0, 0.18))
 	draw_circle(c, r + 8.0, Color.WHITE)
-	draw_circle(c, r, SIDE_COL if open else Color("c9c4d4"))
+	var boss := Boss.is_boss(d)
+	draw_circle(c, r, (Color("2b1f3d") if boss else SIDE_COL) if open and not locked else Color("c9c4d4"))
 	var mega := SideRoads.is_mega(d)
-	if open and mega:
+	if open and boss:
+		# The Baron himself, waiting on his pad (laughing now and then).
+		var mood := "laugh" if fmod(_t, 5.0) < 1.2 else "smug"
+		Boss.draw(self, c + Vector2(0, r * 0.82), r * 1.65, _t, mood)
+	elif open and mega:
 		_draw_parts_grid(d, c)
 	elif open:
 		draw_set_transform(c + Vector2(0, 2), -0.35, Vector2.ONE)
@@ -948,6 +981,18 @@ func _draw_side_sign(sp: Dictionary) -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		_padlock(c, 26.0)
+	if open and locked:
+		# A gold padlock over it until a key's used; the key count (or what to look for) under it.
+		draw_circle(c, r, Color(1, 1, 1, 0.45))
+		var bounce := absf(sin(_t * 3.0)) * 6.0 if Progress.keys > 0 else 0.0
+		_padlock(c + Vector2(0, -bounce), 34.0, Icons.GOLD)
+	elif opening >= 0.0 and opening < 0.9:
+		# Just unlocked: the shackle flies up and the lock drops away.
+		var u := opening / 0.9
+		_padlock(c + Vector2(0, 120.0 * u * u), 34.0 * (1.0 - 0.3 * u), Color(Icons.GOLD, 1.0 - u), 30.0 * minf(u * 4.0, 1.0))
+		for k in 8:
+			var a := TAU * k / 8.0
+			Icons.star(self, c + Vector2(cos(a), sin(a)) * (r + 60.0 * u), 12.0 * (1.0 - u), Color(1, 0.95, 0.6, 1.0 - u))
 	if won:
 		var tc := c + Vector2(r * 0.72, -r * 0.72)
 		draw_circle(tc, 22.0, Color.WHITE)
@@ -955,8 +1000,14 @@ func _draw_side_sign(sp: Dictionary) -> void:
 		draw_polyline(PackedVector2Array([tc + Vector2(-8, 0), tc + Vector2(-2, 6), tc + Vector2(9, -6)]), Color.WHITE, 4.0, true)
 	var label := str(d.get("title", "")).to_upper() if open else "BEAT %d" % int(sp["n"])
 	_plate(label, c + Vector2(0, r + 30.0), Color("2b2233") if open else Color(0, 0, 0, 0.35), Color.WHITE, 22)
+	if open and locked:
+		var asked := _t - float(sp.get("need_key", -9.0)) < 2.5
+		var line := ("TAP TO USE A KEY (%d)" % Progress.keys) if Progress.keys > 0 else ("FIND A KEY ON AN EARLIER LEVEL" if asked else "NEEDS A KEY")
+		_plate(line, c + Vector2(0, r + 74.0), Icons.GOLD if Progress.keys > 0 or asked else Color(0, 0, 0, 0.45), HAZARD_INK if Progress.keys > 0 or asked else Color.WHITE, 20)
 	if mega:
 		_plate("MEGA ROUTE", c + Vector2(0, -r - 22.0), Color("38d9a9"), HAZARD_INK, 20)
+	elif boss:
+		_plate("BOSS", c + Vector2(0, -r - 22.0), Color("e03131"), Color.WHITE, 22)
 	else:
 		_plate("DETOUR", c + Vector2(0, -r - 22.0), HAZARD, HAZARD_INK, 20)
 
@@ -1019,10 +1070,16 @@ func _draw_parts_grid(d: Dictionary, c: Vector2) -> void:
 			draw_polyline(PackedVector2Array([r.get_center() + Vector2(-7, 0), r.get_center() + Vector2(-2, 5), r.get_center() + Vector2(8, -6)]), Color.WHITE, 3.5, true)
 
 
-func _padlock(c: Vector2, s: float) -> void:
-	draw_arc(c + Vector2(0, -s * 0.3), s * 0.5, PI, TAU, 16, Color("4a4458"), s * 0.22, true)
-	DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.75, -s * 0.3), Vector2(s * 1.5, s * 1.2)), Color("4a4458"), s * 0.25)
-	draw_circle(c + Vector2(0, s * 0.25), s * 0.18, Color("c9c4d4"))
+## A padlock; `lift` raises the shackle (it's springing open).
+func _padlock(c: Vector2, s: float, col := Color("4a4458"), lift := 0.0) -> void:
+	if col.a <= 0.0:
+		return
+	var hole := Color("c9c4d4") if col == Color("4a4458") else col.darkened(0.45)
+	draw_arc(c + Vector2(0, -s * 0.3 - lift), s * 0.5, PI, TAU, 16, col.darkened(0.15) if col != Color("4a4458") else col, s * 0.22, true)
+	if lift > 0.0:
+		draw_line(c + Vector2(-s * 0.5, -s * 0.3 - lift), c + Vector2(-s * 0.5, -s * 0.3), col.darkened(0.15), s * 0.22)
+	DrawUtil.rrect(self, Rect2(c + Vector2(-s * 0.75, -s * 0.3), Vector2(s * 1.5, s * 1.2)), col, s * 0.25)
+	draw_circle(c + Vector2(0, s * 0.25), s * 0.18, hole)
 
 
 # ---------------------------------------------------------------- scenery

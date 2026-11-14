@@ -26,6 +26,9 @@ var secs := 0.0
 var momentum := 0
 var new_item := ""
 var missed_item := false
+## A key was picked up this time (it opens a locked side road), or left on the road.
+var found_key := false
+var missed_key := false
 var daily := false
 var last_level := false
 ## A side road's title (the label says SIDE ROAD instead of the level number).
@@ -190,6 +193,9 @@ func _process(delta: float) -> void:
 		if new_item != "":
 			Sfx.play("kaching", 1.2, -3.0)
 			_fx.burst(_center + Vector2(0, 520), Cosmetics.tint(new_item), 24, 800.0, 22.0)
+		elif found_key:
+			Sfx.play("sparkle", 0.9, -2.0)
+			_fx.burst(_center + Vector2(0, 520), Icons.GOLD, 24, 800.0, 22.0)
 	# A new find gets its own big moment, over the top.
 	if new_item != "" and not _unlock_shown and _t >= PAY_AT + 0.7:
 		_unlock_shown = true
@@ -323,6 +329,10 @@ func _draw() -> void:
 		if new_item != "":
 			var kind: String = {"paint": "PAINT", "topper": "TOPPER", "ride": "RIDE"}.get(Cosmetics.kind_of(new_item), "ITEM")
 			_centered("NEW %s!  %s" % [kind, Cosmetics.name_of(new_item)], Vector2(v.x / 2.0, y + 66.0), int(46 * k), Cosmetics.tint(new_item).lightened(0.3))
+		elif found_key:
+			_centered("KEY FOUND! (%d in hand) It opens a locked detour." % Progress.keys, Vector2(v.x / 2.0, y + 66.0), int(40 * k), Color("ffe08a"))
+		elif missed_key:
+			_centered("A key was lying on the road...", Vector2(v.x / 2.0, y + 66.0), int(36 * k), Color(1, 1, 1, 0.65))
 		elif missed_item:
 			_centered("Something shiny was on the road...", Vector2(v.x / 2.0, y + 66.0), int(36 * k), Color(1, 1, 1, 0.65))
 		if bonus_line != "":

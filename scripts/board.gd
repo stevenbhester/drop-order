@@ -23,6 +23,10 @@ var crash_mark: CrashMark
 var trail_line: Line2D
 var hint_line: Line2D
 var hint_head: Polygon2D
+## Where the hint ends: a ring pulsing on that tile, so it reads "stop here", not "head this way".
+var hint_stop: Node2D
+var _hint_dir := Vector2.RIGHT
+var _hint_t := 0.0
 var _hint_tw: Tween
 
 
@@ -92,6 +96,10 @@ func setup(level: LevelData, tile_size: float) -> void:
 	hint_head.polygon = PackedVector2Array([Vector2(0.42, 0) * tile, Vector2(0.08, -0.24) * tile, Vector2(0.08, 0.24) * tile])
 	hint_head.visible = false
 	add_child(hint_head)
+	hint_stop = Node2D.new()
+	hint_stop.visible = false
+	hint_stop.draw.connect(_draw_hint_stop)
+	add_child(hint_stop)
 	for h in L.houses:
 		var n := House.new()
 		n.locker = h.color == "any"
@@ -112,7 +120,8 @@ func setup(level: LevelData, tile_size: float) -> void:
 		n.position = n.base_pos
 		add_child(n)
 		shop_nodes.append(n)
-	if L.gift_item != "" and not Progress.owns(L.gift_item):
+	var key_here := L.gift_item == "key" and not Progress.keys_found.has(L.number)
+	if L.gift_item != "" and (key_here or (L.gift_item != "key" and not Progress.owns(L.gift_item))):
 		gift = Gift.new()
 		gift.item = L.gift_item
 		gift.tile = tile
@@ -189,11 +198,19 @@ func show_hint(points: Array) -> void:
 		_hint_tw.kill()
 	hint_line.points = _pts(points)
 	hint_head.visible = points.size() >= 2
+	hint_stop.visible = points.size() >= 2
 	if points.size() < 2:
 		return
 	var last := center(points[points.size() - 1])
-	hint_head.position = last
-	hint_head.rotation = (last - center(points[points.size() - 2])).angle()
+	_hint_dir = (last - center(points[points.size() - 2])).normalized()
+	# The arrow's tip lands on the last tile's middle (not past it), and the line stops short of it.
+	hint_head.position = last - _hint_dir * tile * 0.38
+	hint_head.rotation = _hint_dir.angle()
+	var pts := _pts(points)
+	pts[pts.size() - 1] = last - _hint_dir * tile * 0.3
+	hint_line.points = pts
+	hint_stop.position = last
+	_hint_t = 0.0
 	hint_line.modulate.a = 1.0
 	hint_head.modulate.a = 1.0
 	_hint_tw = create_tween().set_loops()
@@ -204,6 +221,17 @@ func show_hint(points: Array) -> void:
 func _hint_alpha(a: float) -> void:
 	hint_line.modulate.a = a
 	hint_head.modulate.a = a
+	_hint_t += 0.016
+	hint_stop.queue_redraw()
+
+
+## The end of the hint: a ring pulsing on the tile where the arrow stops (stop here, not "head this way").
+func _draw_hint_stop() -> void:
+	var col := Palette.HINT
+	var t := Time.get_ticks_msec() / 1000.0
+	var k := fmod(t * 1.1, 1.0)
+	hint_stop.draw_arc(Vector2.ZERO, tile * (0.2 + 0.24 * k), 0, TAU, 32, Color(col, 0.75 * (1.0 - k)), tile * 0.045, true)
+	hint_stop.draw_arc(Vector2.ZERO, tile * 0.24, 0, TAU, 32, Color(col, 0.95), tile * 0.04, true)
 
 
 ## Faint line over everything already driven (so used roads are visible).
@@ -251,8 +279,10 @@ func _draw() -> void:
 	# Roads: rounded squares + bridges to right/down neighbours, with a darker curb pass first.
 	var m := tile * 0.12
 	var rw := tile - m * 2.0
+	# The road surface (a Looks cosmetic): asphalt, cobbles or neon.
+	var rc: Array = Looks.road_colors()
 	for pass_i in 2:
-		var col := Palette.ROAD_EDGE if pass_i == 0 else Palette.ROAD
+		var col: Color = rc[0] if pass_i == 0 else rc[1]
 		var off := Vector2(0, tile * 0.045) if pass_i == 0 else Vector2.ZERO
 		for y in L.height:
 			for x in L.width:
@@ -278,9 +308,12 @@ func _draw() -> void:
 			var p := Vector2i(x, y)
 			if not L.is_road(p):
 				continue
+			Looks.road_detail(self, center(p), tile, p.x * 31 + p.y * 7)
+			if rc[2].a <= 0.0:
+				continue
 			for d in [Vector2i(1, 0), Vector2i(0, 1)]:
 				if L.is_road(p + d) and not _busy(p) and not _busy(p + d):
-					draw_dashed_line(center(p), center(p + d), Palette.ROAD_MARK, tile * 0.035, tile * 0.11, true, true)
+					draw_dashed_line(center(p), center(p + d), rc[2], tile * 0.035, tile * 0.11, true, true)
 
 	for p in L.ice:
 		_ice(p, m, rw)

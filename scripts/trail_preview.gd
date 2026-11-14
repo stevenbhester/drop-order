@@ -5,6 +5,8 @@ extends Node2D
 
 var style := "wreck"
 var tile := 64.0
+## How hot the run it shows is (the trail's bursts, tail and effects grow with momentum).
+var momentum := 5
 ## Tiles along the strip (a gentle L, so the trail turns a corner).
 const PATH := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(2, 1), Vector2i(3, 1)]
 
@@ -15,6 +17,7 @@ func _ready() -> void:
 	_wreck = Wreckage.new()
 	_wreck.tile = tile
 	_wreck.style = style
+	_wreck.momentum = momentum
 	_wreck.loud = false
 	_wreck.position = -Vector2(2.0, 1.0) * tile
 	add_child(_wreck)

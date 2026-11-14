@@ -99,7 +99,12 @@ sticker and opens that offer instead.
 - Some levels have a **present** on the road. Drive over it and it's yours when you finish. The obvious
   route never touches it: it needs the other winning route, or driving on past your last delivery in the
   same drag ("the extra mile"). Undoing the drive that grabbed it puts it back.
-- Map stops with a present still waiting show a little gift icon.
+- Map stops with a present still waiting show a little gift icon (a gold key for a key, below).
+- **Keys:** some levels have a gold key on the road instead of a present (`"gift": {"at": [x, y], "item":
+  "key"}`), picked up the same way (on a win). Each opens one **locked detour** for good: tap its padlocked
+  sign on the map ("TAP TO USE A KEY"), or **Unlock detour** on the Next sheet. Keys today: levels 15, 33
+  and 43; locked: The Big Map (27), Fog Bank (33) and the boss, Hostile Takeover (45).
+  `tools/validate_levels.gd` checks every lock has had a key placed at or before its stop.
 - Finding one pops up a big **NEW RIDE / PAINT JOB / TOPPER!** card over the finish screen, with
   **Wear it now** or **Keep my look**. Nothing is worn unless you pick it.
 - Title → **Garage** to wear what you've found: 10 rides (**Kuma's Monster Truck** from level 6's
@@ -111,11 +116,26 @@ sticker and opens that offer instead.
   Bonkle Ears, Sprout & Orbit, Rivet, Puffball), plus Racing Stripes, a Door Bowl soup bowl and the
   chest hats (Party Hat, Hard Hat, Gold Crown). Paint jobs work on every ride (Classic Cream leaves
   a ride in its own colours).
-- **Trails** (the Garage's fourth section): what the road turns into behind the van. The torn-up road,
+- **Garage tabs**, by what things change: **Van & Road** (rides, paints, toppers, trails, roads),
+  **Packages & Buildings** (package shapes, building themes) and **Queue & Controls** (the package
+  queue's container, button colours). A tab is greyed and padlocked until something in it is yours, so
+  the late kinds stay out of a new player's way. The **looks** (`scripts/looks.gd`) unlock late, with
+  stars: roads **Cobblestones** (110 ★) and **Night Drive** (235); package shapes **Hatboxes** (135),
+  **Wooden Crates** (195), **Capsules** (270); buildings **Gingerbread Town** (155), **Castle Keeps** (255);
+  queues **Conveyor Belt** (120), **Neon Tube** (215); buttons **Midnight** (75), **Bubblegum** (165),
+  **Mint** (245). `-- --look=<id>` wears one for a run, `-- --tab=N` opens the garage on a tab.
+- **Trails** (in Van & Road): what the road turns into behind the van. The torn-up road,
   or, unlocked with stars, **River Run** (30 ★), **Mountain Range** (60), **Heart Trail** (100), **Meteor
   Strikes** (140, they streak in and hit), **Lava Flow** (180) and **Zombie Horde** (220). Each still reads
   as "you can't drive here again"; the hottest runs' flames burn on the torn road and on lava. Crossing a
-  star mark pops a NEW TRAIL card. Drawn by `Wreckage` (`style`); `TrailPreview` shows a stretch in the
+  star mark pops a NEW TRAIL card. **Money to Burn** (burning stacks of cash) is the first boss's prize.
+  Trails have depth (each is cut into the road: a rim, a shadowed inner wall, a lit lip, heaved-up chunks
+  of asphalt round it; peaks, zombies, hearts and cash stand up with shadows), a burst as each tile turns
+  (droplets, splashes, rocks, sparks, confetti), and stay alive for a stretch behind the van: lava bubbles
+  and spits embers, the river flows the way you drove, dust blows off the peaks, craters smoke, zombies
+  sway and reach, hearts beat. **Momentum** drives all of it: the bursts get bigger, the live stretch
+  longer (5 tiles, up to 14), the effects quicker and busier, and hot runs add flames, white water, a
+  third zombie, taller peaks. Drawn by `Wreckage` (`style`); `TrailPreview` shows a stretch in the
   garage. `-- --wake=<id>` to try one, `-- --unlock=<id>` for its card.
 - **Drop-offs vs pickups:** every house that wants packages stands on a round bullseye in its colour
   (grey for lockers); pickups keep their square lot with a dashed outline.
@@ -129,7 +149,13 @@ sticker and opens that offer instead.
 - **Next**, after a win on the main road: the map, the van driving up from the stop just beaten to the
   one just unlocked (a tap hurries it), then a sheet with the next level and a big **Drive!** (with the
   gas it costs), and **Detour available** under it when a side road branches off the stop just beaten
-  (its twist and its prize). `-- --next=N` shows it arriving at level N.
+  (its twist and its prize; **Unlock detour** if it's locked and you have a key; **Boss fight** for a
+  boss). `-- --next=N` shows it arriving at level N.
+- **Redesigned levels:** each level's puzzle is fingerprinted (`LevelData.fingerprint`: map, load and
+  rules; not the name, hint, present, or spacing), and the save keeps the one each level was beaten on. A
+  level redesigned since then shows a pale blue pin, hollow pulsing stars and an UPDATED tag until it's
+  beaten again (its stars start over). Levels beaten before this existed take the version they're first
+  seen with. `--save=...,stale:N` fakes it for levels 1–N.
 
 ### Side roads and treasure chests
 Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `levels/side.json`):
@@ -152,9 +178,18 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
 - **Power-ups:** every side road (mega routes too) hands one out once a day when you win it: spare gas
   tanks (up to 3, shown as little cans by the gauge, used only when the tank's empty), or free hints or
   free undos for 10–15 minutes ("FREE" on the button; they cost no star).
+- **Boss fights** (a red BOSS plate, Baron Von Bottomline himself on the pad, laughing now and then):
+  side roads with `"twist": "boss"`, dense and very hard, hints and undos allowed. Going in, the Baron,
+  CEO of Hoardly Inc. ("We deliver. To shareholders."), rises on a gold lift over a night skyline,
+  laughs at you (HAW HAW HAW, synthesized) with a line of corporate trash talk, then BOSS FIGHT!
+  (`scripts/boss_intro.gd`). Beat it and he panics, drops his money bag (it bursts into the prize) and
+  runs for it, hat flying (`scripts/boss_outro.gd`). Art and lines: `scripts/boss.gd`. The first,
+  **Hostile Takeover** (after 45, locked, wins **Money to Burn**), is a placeholder map (level 99
+  mirrored and recoloured) until the level redesign makes real ones. `-- --side=hostile_takeover`.
 - **Treasure chests** every ten levels (10–100): once that level's beaten, tap the chest to open
-  it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), and at 20, 40, 70 and
-  100 a hat (Party Hat, Hard Hat, Traffic Cone, Gold Crown).
+  it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), at 10 and 20 **+1 hint
+  every level** (one hint per level to start, up to three), and at 20, 40, 70 and 100 a hat (Party Hat,
+  Hard Hat, Traffic Cone, Gold Crown).
 
 ### Momentum and the finish
 - Every win in a row this session (hints and undos are fine) adds **momentum**. A retry, or walking away
@@ -262,13 +297,23 @@ as a little flame inside the Daily button.
   at a test server. Under it, a **Privacy policy** link (https://www.stevenhester.com/last-mile/privacy/,
   in the `stevenhester-com` repo) and the version and build number.
 - **Options** (the gear: bottom left in a level, top corner of the title and map): steering (draw or
-  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, **unlimited hints** (no ads), colorblind mode, **night mode**, **play sideways** (landscape: the board in the
+  D-pad), which hand the D-pad is for, where the package chute goes, the route preview, **Replay ghost
+  path** (off unless switched on: after a Retry, the last try's route shows faintly on the board, wobbling
+  like a ghost; it writes itself out from the van, little arrowheads bloom at each turn it made, in order,
+  and a faint ✕ marks where it ended; `scripts/replay_ghost.gd`), **unlimited hints** (no ads), colorblind mode, **night mode**, **play sideways** (landscape: the board in the
   middle, the controls beside it; menus and pop-ups sit in a portrait column), sound volume, and haptic
   strength from none to max. Everything is saved and applies straight away.
 - **Undo** (bottom right) rewinds your last segment, including its deliveries. **Once per attempt.**
-- **Hint** shows the next stretch to drive (and costs a star). At a dead end it says so instead
-  ("no way to win from here: Retry") and costs nothing; it never restarts anything itself. Each level
-  comes with **3 hints** (the count is on the button). Out of them, Hint plays a pretend ad instead: one of
+- **Scrap a route:** while drawing, drag down onto the little crusher at the bottom of the screen. It
+  grows into a big circle; hold there while a ring runs round it (0.35 s) and it says **RELEASE TO
+  CANCEL**; let go there and the planned route is scrapped (nothing is driven). A quick pass over it does
+  nothing. `--autocancel` tests it.
+- **Hint** shows the next stretch to drive (and costs a star): an arrow to a pulsing ring on the tile to
+  stop on. At a dead end it says so instead
+  ("no way to win from here: Retry") and costs nothing; it never restarts anything itself. A hint stays
+  up, pulsing, until you drive; tapping Hint again before then replays it for free. It always shows the
+  plain winning route, never the way round by the present. Each level comes with **1 hint**, plus one more
+  from each of the chests at levels 10 and 20 (up to **3**; the count is on the button). Out of them, Hint plays a pretend ad instead: one of
   three short spots for Last Mile itself, drawn live in code with the game's own van, houses and sounds
   (`scripts/promo_ad.gd`; the ideas of the three trailers): **fun** (every package has someone waiting),
   **bait** (the clickbait trailer, beat for beat: 99% FAIL THIS LEVEL!; the NOOB starts well, thinks at a
@@ -324,6 +369,11 @@ as a little flame inside the Daily button.
 | `scripts/shop.gd`, `gate.gd`, `hub.gd`, `depot_glow.gd` | Part 2 pieces: parcel shops, colour gates, sorting hubs, depot |
 | `scripts/van.gd`, `stack_view.gd`, `package_box.gd` | Van, its load (the package chute, next package in its mouth), packages |
 | `scripts/peek_bubble.gd` | The route preview chip (an option): the next three packages at the end of the route |
+| `scripts/replay_ghost.gd` | Replay ghost path (an option): the last try's route, faint and wobbling, with arrowheads at its turns |
+| `scripts/boss.gd`, `boss_intro.gd`, `boss_outro.gd` | The boss detours' villain (art, lines), his laughing entrance and his getaway |
+| `scripts/looks.gd` | The "looks" cosmetics: package shapes, building themes, the queue's container, road surfaces, button colours |
+| `tools/check_scripts.gd` | Shows scripts' parse errors quietly (`-- res://scripts/x.gd ...`) |
+| `tools/preview/trails.tscn`, `boss_outro.tscn` | Design previews: every trail at no momentum and hot; the boss running off |
 | `scripts/game.gd` | Input, segments, driving, undo, juice, win/stuck, in-level UI |
 | `scripts/main.gd`, `title_screen.gd`, `level_select.gd`, `road_map.gd` | Screen switching, title (with its little delivery loop), the road-trip level map |
 | `scripts/progress.gd` | The save: completed levels, stars, gas tanks and their refill clock, spare undos, Dollaroos |
