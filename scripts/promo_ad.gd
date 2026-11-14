@@ -9,11 +9,13 @@ extends CanvasLayer
 ##          fork to think, and turns back into its own torn-up road ("AWW MAN!", FAIL, a sad trombone,
 ##          IQ 2). The PRO rewinds it and solves the lot in fire and coins ("PSHAW. TOO EASY.", IQ 999)...
 ##          then the next level loads, and it's the huge one: "WHAAATTT?!". CAN YOU DO IT?
-##   trash  Trash talk, after the GTA VI trailer (tools/ads/gta_director.gd): breaking news (publishers
-##          dodging GTA VI), a record scratch, "NO GAME DARES???", "LAST MILE DOESN'T GIVE A &@$*&!!!!"
+##   trash  Trash talk, after the trash-talk trailer (tools/ads/gta_director.gd): breaking news (publishers
+##          dodging the year's biggest sequel), a record scratch, "NO GAME DARES???", "LAST MILE DOESN'T GIVE A &@$*&!!!!"
 ##          slammed on the beat, a fancam of a burning run (the map filmed through the trailer's shader:
 ##          follow cam, zoom punches, tilts, RGB split, flashes, black-and-white and inverted hits, blur,
-##          speed ramps, the fire getting hotter), then a message for Rockstar. Its music is PromoMusic's,
+##          speed ramps, the fire getting hotter), then a message for its studio. The names never appear:
+##          they're redacted with black bars, and the studio's is "ROCK" plus four stars, which makes it
+##          more obvious, not less (see _rich). Its music is PromoMusic's,
 ##          synthesized on a worker thread while the news plays (the trailer's song can't ship in the app).
 ## The clickbait has the trailer's reaction cam: an emoji face (NOOB, then PRO) reacting in the corner.
 ## Skip is there from the first frame; skipping, closing or finishing all emit `finished`.
@@ -711,6 +713,81 @@ func _text(text: String, at: Vector2, px: int, col: Color, max_w := 0.0, outline
 	_hud.draw_string(f, at + Vector2(-w / 2.0, px * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, col)
 
 
+## Text where runs of █ are redaction bars (a black bar, a little ragged) and ★ is a star: how the trash talk
+## names names without naming them. Left-aligned from `at` (the baseline); shrinks to fit `max_w`.
+func _rich(text: String, at: Vector2, px: int, col: Color, max_w := 0.0, bar := Color("111111"), outline := Color(0, 0, 0, 0), bar_edge := Color(0, 0, 0, 0)) -> void:
+	if px < 8 or col.a <= 0.0:
+		return
+	if max_w > 0.0:
+		while px > 20 and _rich_w(text, px) > max_w:
+			px -= 2
+	var f := UiTheme.font()
+	var x := at.x
+	var i := 0
+	while i < text.length():
+		var ch := text[i]
+		var j := i
+		while j < text.length() and ((ch == "█") == (text[j] == "█")) and ((ch == "★") == (text[j] == "★")):
+			j += 1
+		var run := text.substr(i, j - i)
+		if ch == "█":
+			var bw := run.length() * px * 0.62
+			var r := Rect2(x - px * 0.04, at.y - px * 0.78, bw, px * 0.92)
+			var edge := bar_edge if bar_edge.a > 0.0 else outline
+			if edge.a > 0.0:
+				_hud.draw_rect(r.grow(maxf(px / 14.0, 3.0)), Color(edge, edge.a * col.a))
+			_hud.draw_rect(r, Color(bar, col.a))
+			x += bw + px * 0.06
+		elif ch == "★":
+			for k in run.length():
+				var c := Vector2(x + px * 0.36, at.y - px * 0.34)
+				if outline.a > 0.0:
+					Icons.star(_hud, c, px * 0.4, Color(outline, col.a))
+				Icons.star(_hud, c, px * 0.32, col)
+				x += px * 0.72
+		else:
+			if outline.a > 0.0:
+				_hud.draw_string_outline(f, Vector2(x, at.y), run, HORIZONTAL_ALIGNMENT_LEFT, -1, px, maxi(px / 5, 6), Color(outline, col.a))
+			_hud.draw_string(f, Vector2(x, at.y), run, HORIZONTAL_ALIGNMENT_LEFT, -1, px, col)
+			x += f.get_string_size(run, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		i = j
+
+
+func _rich_w(text: String, px: int) -> float:
+	var f := UiTheme.font()
+	var w := 0.0
+	var i := 0
+	while i < text.length():
+		var ch := text[i]
+		if ch == "█":
+			var j := i
+			while j < text.length() and text[j] == "█":
+				j += 1
+			w += (j - i) * px * 0.62 + px * 0.06
+			i = j
+		elif ch == "★":
+			w += px * 0.72
+			i += 1
+		else:
+			var j := i
+			while j < text.length() and text[j] != "█" and text[j] != "★":
+				j += 1
+			w += f.get_string_size(text.substr(i, j - i), HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+			i = j
+	return w
+
+
+## _rich, centred on `at` with an outline (the trash talk's big messages).
+func _text_rich(text: String, at: Vector2, px: int, col: Color, max_w := 0.0, outline := INK) -> void:
+	if px < 8:
+		return
+	if max_w > 0.0:
+		while px > 20 and _rich_w(text, px) > max_w:
+			px -= 2
+	# On the dark message screens the bars get a white edge, like redaction tape, so they read.
+	_rich(text, at + Vector2(-_rich_w(text, px) / 2.0, px * 0.35), px, col, 0.0, Color("111111"), outline, Color(1, 1, 1, 0.9))
+
+
 ## A caption that pops in at `from` and fades by `to`.
 func _caption(text: String, from: float, to: float, y: float, px: int, col: Color, outline := INK) -> void:
 	if _t < from or _t >= to:
@@ -952,7 +1029,7 @@ func _draw_cam(at: Vector2, r: float, shake: Vector2) -> void:
 		_slam(_say, say_at + shake, int(lerpf(104.0, 190.0, _cam_zoom)), YELLOW, INK, -0.06, sk, lerpf(540.0, w - 80.0, _cam_zoom))
 
 
-## The trash talk: breaking news, the scratch, the slam, the fancam's words, the message for Rockstar.
+## The trash talk: breaking news, the scratch, the slam, the fancam's words, the message for the studio.
 func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 	if _t < 6.9:
 		var bar := Rect2(0, 150.0 + _top, w, 140.0)
@@ -961,7 +1038,9 @@ func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 		if int(_t * 2.0) % 2 == 0:
 			_hud.draw_circle(Vector2(w - 170.0, bar.get_center().y), 16, Color.WHITE)
 		_text("LIVE", Vector2(w - 95.0, bar.get_center().y), 50, Color.WHITE, 0.0, Color(0, 0, 0, 0))
-		var lines := [["PUBLISHERS", "DODGE GTA VI'S", "RELEASE DATE"], ["BIG GAMES", "DELAYED TO", "AVOID GTA VI"], ["STUDIOS BRACE", "FOR \"A HUGE", "METEOR\""]]
+		# The name's redacted: █ runs draw as black bars (see _rich).
+		var lines := [["PUBLISHERS DODGE", "THE ███ VI", "RELEASE DATE"], ["BIG GAMES DELAYED", "TO AVOID ███ VI", "(YOU KNOW THE ONE)"],
+			["STUDIOS BRACE", "FOR \"A HUGE", "METEOR\""]]
 		for i in 3:
 			var t0 := 0.3 + i * 2.2
 			if _t < t0 or _t >= t0 + 2.2:
@@ -974,17 +1053,18 @@ func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 			_hud.draw_rect(Rect2(card.position.x, card.position.y + 30, 16, card.size.y - 60), NEWS_RED)
 			_hud.draw_string(UiTheme.font(), card.position + Vector2(56, 82), "GAMING NEWS", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, NEWS_RED)
 			for k in 3:
-				_hud.draw_string(UiTheme.font(), card.position + Vector2(56, 190 + k * 108), lines[i][k], HORIZONTAL_ALIGNMENT_LEFT, card.size.x - 100.0, 92, Color("141414"))
+				_rich(lines[i][k], card.position + Vector2(56, 190 + k * 108), 84, Color("141414"), card.size.x - 100.0)
 		var ty := h - 260.0 - _bottom
 		_hud.draw_rect(Rect2(0, ty, w, 100), Color("0a0f1f"))
-		var tick := "PUBLISHERS DUCK FOR COVER   •   RELEASE DATES PUSHED   •   NOBODY WANTS THAT SMOKE   •   "
+		var tick := "PUBLISHERS DUCK FOR COVER   •   RELEASE DATES PUSHED   •   13 YEARS IN THE MAKING   •   NOBODY WANTS THAT SMOKE   •   "
 		var f := UiTheme.font()
 		var tw := f.get_string_size(tick, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x
 		var tx := 230.0 - fmod(_t * 300.0, tw)
 		for r in 3:
 			_hud.draw_string(f, Vector2(tx + r * tw, ty + 66), tick, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Color.WHITE)
 		_hud.draw_rect(Rect2(0, ty, 210, 100), YELLOW)
-		_text("GTA VI", Vector2(105, ty + 50), 50, INK, 190.0, Color(0, 0, 0, 0))
+		var tag_w := _rich_w("███ VI", 50)
+		_rich("███ VI", Vector2(105 - tag_w / 2.0, ty + 68), 50, INK, 0.0, YELLOW.darkened(0.6))
 	elif _t < BEAT_AT:
 		_text("NO GAME", Vector2(w / 2.0, h * 0.42) + shake, int(170 * _pop((_t - 6.95) / 0.25)), Color.WHITE, w - 60.0, Color(0, 0, 0, 0))
 		if _t >= 7.45:
@@ -1006,12 +1086,15 @@ func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 			_text(wd["text"], Vector2.ZERO, 160, Color(Color("35c27a") if green else YELLOW, a), w - 60.0)
 			_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
-		var msg := [["ROCKSTAR.", YELLOW, BEAT_AT + 7.0 * BEAT, 140], ["DELAY GTA VI", Color.WHITE, BEAT_AT + 8.0 * BEAT, 110],
+		var msg := [["ROCK★★★★.", YELLOW, BEAT_AT + 7.0 * BEAT, 140], ["DELAY ███ VI", Color.WHITE, BEAT_AT + 8.0 * BEAT, 110],
 			["OR BE WRECKED", HOT, BEAT_AT + 9.0 * BEAT, 110], ["BY THE BEST GAME ON FOUR WHEELS.", Color.WHITE, BEAT_AT + 10.0 * BEAT, 64]]
 		for i in msg.size():
 			var at: float = msg[i][2]
 			if _t >= at and _t < _end_at:
-				_text(msg[i][0], Vector2(w / 2.0, h * 0.27 + i * 190.0) + shake * 0.4, int(msg[i][3] * _pop((_t - at) / 0.22)), msg[i][1], w - 70.0)
+				_text_rich(msg[i][0], Vector2(w / 2.0, h * 0.27 + i * 190.0) + shake * 0.4, int(msg[i][3] * _pop((_t - at) / 0.22)), msg[i][1], w - 70.0)
+		if _t >= BEAT_AT + 10.5 * BEAT and _t < _end_at:
+			_text("(Names redacted. Our lawyers made us. We don't have lawyers.)", Vector2(w / 2.0, h * 0.27 + 4.0 * 190.0 + 40.0), 34,
+				Color(CREAM, 0.75 * clampf((_t - BEAT_AT - 10.5 * BEAT) / 0.3, 0.0, 1.0)), w - 80.0, Color(0, 0, 0, 0))
 
 
 func _draw_end_card(w: float, h: float) -> void:
