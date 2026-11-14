@@ -1,10 +1,9 @@
 {
-	"build": 18,
+	"build": 19,
 	"name": "The Long Road",
 	"notes": [
-		"iPhone only for now: on an iPad it runs at iPhone size, so nothing gets cut off.",
-		"The Frontiers Celestia ad's Playtest button now opens its page."
+		"The trash-talk ad got a visit from our (imaginary) lawyers. You'll still know exactly who it's about."
 	],
-	"ready_at": 1794622960,
+	"ready_at": 1794623293,
 	"version": "0.7"
 }
