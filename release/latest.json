@@ -1,11 +1,11 @@
 {
-	"build": 22,
+	"build": 23,
 	"name": "The Long Road",
 	"notes": [
-		"Hints: you start each level with one; the chests at 10 and 20 add one each. A hint stays up until you drive, asking again is free, and a pulsing ring shows where to stop.",
-		"Scrap a route: drag it down onto the crusher, hold till the ring closes, let go.",
-		"New option: Replay ghost path. After a retry, your last try shows faintly, with arrows where you turned."
+		"Every level from 5 to 100 is new. The towns are open now: lots of ways to drive, and the packages decide which one wins.",
+		"Each level asks something a little different from the one before it. Some are easy on purpose.",
+		"Levels you'd already beaten show UPDATED on the map, with hollow stars, until you beat the new one."
 	],
-	"ready_at": 1794637524,
+	"ready_at": 1794689103,
 	"version": "0.7"
 }

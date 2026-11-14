@@ -8,17 +8,11 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 23
+const BUILD := 24
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := [
-	"Every level from 5 to 100 is new. The towns are open now: lots of ways to drive, and the packages decide which one wins.",
-	"Each level asks something a little different from the one before it. Some are easy on purpose.",
-	"Levels you'd already beaten show UPDATED on the map, with hollow stars, until you beat the new one.",
-	"Buildings stand out from their pads now: a plain pad, a thin outline, and soft waves showing which way packages go.",
-	"Scrapping a route in the crusher works wherever your finger comes from.",
-]
+const BUILD_NOTES := []
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [
