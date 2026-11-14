@@ -93,6 +93,8 @@ var look_controls := "ui_classic"
 ## `keys_found` which levels have given theirs, `sides_unlocked` which side roads a key has opened.
 var keys := 0
 var keys_found := {}
+## The OG 100 (the old levels, an easter egg): which have been won there (level number -> true).
+var og_done := {}
 ## Each beaten level's fingerprint when it was last beaten (LevelData.fp): a redesign shows on the map.
 var level_fp := {}
 var _fp_save_queued := false
@@ -292,6 +294,8 @@ func _load() -> void:
 		side_done = sd
 	for n in d.get("chests", []):
 		chests[int(n)] = true
+	for n in d.get("og_done", []):
+		og_done[int(n)] = true
 	keys = maxi(0, int(d.get("keys", 0)))
 	for n in d.get("keys_found", []):
 		keys_found[int(n)] = true
@@ -329,7 +333,7 @@ func _save() -> void:
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
 			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
-			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
+			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "og_done": og_done.keys(), "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
 			"mega": mega}))
 
 
@@ -373,6 +377,13 @@ func mark_complete(n: int, earned := 3, fp := 0) -> int:
 	_save()
 	changed.emit()
 	return pay
+
+
+## An OG 100 level won (nothing else changes: no stars, no Dollaroos, no keys).
+func og_win(n: int) -> void:
+	if not og_done.has(n):
+		og_done[n] = true
+		_save()
 
 
 ## Beaten, but on an older version of the level than the one with fingerprint `fp`. Levels beaten before

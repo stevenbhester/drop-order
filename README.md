@@ -39,6 +39,12 @@ side roads, and a speedrun mode.
   so you have to make room before you collect. (These were 41–50 before Part 3; old saves move across.)
 - **Daily puzzle:** one a day from `levels/daily.json` (38, repeating), each with its own spice (one to
   three chillies on the Daily screen: Mild, Medium, Spicy!). Daily #1 was 2026-11-10.
+- **The OG 100** (an easter egg: its button isn't on the title screen at all until every one of the 100
+  levels is beaten): the first hundred levels exactly as they were in 0.7 build 22, before the level engine
+  redrew the road (`levels/og.json`, `scripts/og_screen.gd`). A plain grid of numbers; free to play, and
+  nothing there touches the real road (no gas, stars or keys; a tile just goes green once won). Its old keys
+  are taken off the maps; its presents stay. Nothing validates or tests these levels, on purpose: if a rule
+  change breaks one, that's allowed. `-- --og` opens the list, `-- --og=47` an old level.
 - **Speedrun** (title screen; opens after level 18): three courses of small puzzles against the clock.
   A course is a run of 3–5 zones: clear one, drive into its exit, the camera pans on and the next zone
   loads its own packages; the clock runs from 3-2-1-GO to the last delivery. No hints, no undos; Retry

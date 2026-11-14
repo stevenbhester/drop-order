@@ -13,6 +13,7 @@ signal garage_pressed
 signal options_pressed
 signal notes_pressed
 signal speedrun_pressed
+signal og_pressed
 
 ## The loop's half extents and corner radius (its centre line), and the road's width.
 const LOOP := Vector2(330, 270)
@@ -56,12 +57,22 @@ var _footer: Label
 var _gear: JuicyButton
 var _badge: Control
 var _speed: JuicyButton
+var _og: JuicyButton
 var _badge_press := 0.0
 var _t := 0.0
 
 
 func setup(lvls: Array) -> void:
 	_levels = lvls
+
+
+func _all_beaten() -> bool:
+	if _levels.is_empty():
+		return false
+	for L in _levels:
+		if not Progress.is_complete(L.number):
+			return false
+	return true
 
 
 func _ready() -> void:
@@ -137,6 +148,19 @@ func _ready() -> void:
 			Sfx.play("bonk", 1.1, -6.0)
 			_speed.pop())
 	add_child(_speed)
+
+	# The OG 100 (the levels as they used to be): not even here until every level's beaten.
+	_og = JuicyButton.new()
+	_og.label = "The OG 100"
+	_og.icon_name = "undo"
+	_og.font_px = 40
+	_og.custom_minimum_size = Vector2(600, 110)
+	_og.size = _og.custom_minimum_size
+	_og.visible = _all_beaten()
+	_og.pressed.connect(func():
+		Sfx.play("click")
+		og_pressed.emit())
+	add_child(_og)
 
 	_footer = _label("a Door Bowl game", 34, Palette.TEXT_SOFT)
 
@@ -245,7 +269,9 @@ func _fit() -> void:
 	_row.size = Vector2(300 * 3 + 44, 130)
 	_row.position = Vector2((w - _row.size.x) / 2.0, play_y + 270)
 	_speed.position = Vector2((w - _speed.size.x) / 2.0, play_y + 430)
-	_footer.position = Vector2(0, maxf(size.y - 90.0, play_y + 570))
+	_og.position = Vector2((w - _og.size.x) / 2.0, play_y + 556)
+	_footer.position = Vector2(0, maxf(size.y - 90.0, play_y + (700 if _og.visible else 570)))
+	_footer.visible = _footer.position.y + 50.0 <= size.y      # on short screens the OG button takes its place
 	_footer.size = Vector2(w, 0)
 	_gear.position = Vector2(w - 36 - 112, 40 + UiTheme.insets(get_viewport()).x)
 	_badge.position = Vector2(36, 40 + UiTheme.insets(get_viewport()).x)

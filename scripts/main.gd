@@ -59,7 +59,16 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--speedrun="):
 			speed_id = a.trim_prefix("--speedrun=")
-	if speed_id == "list":
+	var og_arg := ""
+	for a in args:
+		if a == "--og" or a.begins_with("--og="):
+			# Debug: the OG 100's list, or (--og=N) straight into old level N.
+			og_arg = a
+	if og_arg == "--og":
+		show_og()
+	elif og_arg != "":
+		_start_og(og_arg.trim_prefix("--og=").to_int() - 1)
+	elif speed_id == "list":
 		show_speedrun()
 	elif speed_id != "":
 		play_speed(speed_id)
@@ -263,6 +272,7 @@ func show_title() -> void:
 	t.options_pressed.connect(open_options)
 	t.notes_pressed.connect(_on_badge)
 	t.speedrun_pressed.connect(show_speedrun)
+	t.og_pressed.connect(show_og)
 	_swap(t)
 	_offer_update.call_deferred()
 
@@ -299,6 +309,53 @@ func _start(i: int, paid := false) -> void:
 	g.next_requested.connect(show_next)
 	g.retry_requested.connect(func(j): _start(j, g.retry_paid))
 	g.menu_requested.connect(show_select)
+	_swap(g)
+
+
+## The OG 100: the levels as they were before the level engine redrew them (levels/og.json), an easter egg
+## that shows on the title once all of today's levels are beaten. Their keys are taken off the road (keys
+## open real detours); their presents stay, for anyone who missed one.
+var _og_levels: Array = []
+var _og_solved := {}
+
+func og_levels() -> Array:
+	if _og_levels.is_empty():
+		var data = JSON.parse_string(FileAccess.get_file_as_string("res://levels/og.json"))
+		if data is Dictionary:
+			var list: Array = data.get("levels", [])
+			for i in list.size():
+				var d: Dictionary = list[i]
+				if d.get("gift", {}).get("item", "") == "key":
+					d.erase("gift")
+				_og_levels.append(LevelData.from_dict(d, i + 1))
+	return _og_levels
+
+
+func show_og() -> void:
+	_reshow = show_og
+	var s := OgScreen.new()
+	s.setup(og_levels())
+	s.level_chosen.connect(_start_og)
+	s.back_pressed.connect(show_title)
+	_swap(s)
+
+
+func _start_og(i: int) -> void:
+	var list := og_levels()
+	if list.is_empty():
+		show_title()
+		return
+	i = clampi(i, 0, list.size() - 1)
+	if not _og_solved.has(i):
+		_og_solved[i] = Solver.solve(list[i])
+	_reshow = Callable()
+	var g := Game.new()
+	g.og = true
+	g.setup(list[i], i, list.size(), _og_solved[i])
+	g.options_requested.connect(open_options.bind(g))
+	g.level_requested.connect(_start_og)
+	g.retry_requested.connect(func(j): _start_og(j))
+	g.menu_requested.connect(show_og)
 	_swap(g)
 
 

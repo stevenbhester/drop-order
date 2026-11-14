@@ -16,6 +16,8 @@ const BUILD_NOTES := [
 	"Every level from 5 to 100 is new. The towns are open now: lots of ways to drive, and the packages decide which one wins.",
 	"Each level asks something a little different from the one before it. Some are easy on purpose.",
 	"Levels you'd already beaten show UPDATED on the map, with hollow stars, until you beat the new one.",
+	"Buildings stand out from their pads now: a plain pad, a thin outline, and soft waves showing which way packages go.",
+	"Scrapping a route in the crusher works wherever your finger comes from.",
 ]
 
 const NOTES := [

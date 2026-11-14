@@ -30,6 +30,8 @@ https://claude.ai/artifact/KxmfbsdURLeJeAGxMVm9wc
 - Drop-offs stand on a plain pale pad with a thin coloured rim and faint waves drifting in; pickups have
   waves going out to their square outline (so buildings pop off their pads).
 - The cancel zone follows the finger even where it overlaps the Hint and Undo buttons.
+- The OG 100: the pre-engine levels as an easter egg on the title once all 100 are beaten.
+- The green building is a flat-ridged barn with a silo (its old roof ran along the pad's rim).
 
 ## Liked from the brainstorm (small, none depends on the level redesign)
 

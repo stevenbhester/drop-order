@@ -306,7 +306,7 @@ func _sign_at(kind: String, s: float, w: float, h: float) -> Vector2:
 		"mystery":
 			return Vector2(0, -h * 1.2 + s * 0.16)
 		"organic":
-			return Vector2(0, -h - s * 0.08)
+			return Vector2(-s * 0.095, -h - s * 0.05)
 		"hot":
 			return Vector2(-w * 0.2, -s * 0.2)
 	return Vector2(0, -s * 0.31)
@@ -432,14 +432,33 @@ func _tower(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, 
 	DrawUtil.rrect(self, Rect2(-s * 0.065, -s * 0.2, s * 0.13, s * 0.2), ink, s * 0.065)
 
 
-## Organic: a barn with a gambrel roof, a hay-loft window and a big X door.
+## Organic: a barn with a flat-ridged roof, a hay-loft window, a big X door and a silo beside it.
 func _barn(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color) -> void:
-	DrawUtil.rrect(self, Rect2(-w / 2, -h, w, h), wall, s * 0.04)
-	var e := s * 0.06
-	_soft_poly(PackedVector2Array([Vector2(-w / 2 - e, -h + s * 0.03), Vector2(-w / 2 + s * 0.02, -h - s * 0.14), Vector2(0, -h - s * 0.27),
-		Vector2(w / 2 - s * 0.02, -h - s * 0.14), Vector2(w / 2 + e, -h + s * 0.03)]), roof, s * 0.022)
-	DrawUtil.rrect(self, Rect2(-s * 0.05, -h - s * 0.14, s * 0.1, s * 0.09), glass, s * 0.02)
-	var door := Rect2(-s * 0.11, -s * 0.24, s * 0.22, s * 0.24)
+	# A barn with a flat-ridged roof and a tall silo beside it: a skyline with corners and a step in it, so it
+	# doesn't trace the round pad behind (the old arched roof ran right along the rim).
+	var bx0 := -w / 2
+	var bx1 := s * 0.12
+	var bh := h * 0.9
+	var mid := (bx0 + bx1) / 2.0
+	# The silo first (the barn's eave overlaps its foot): a dome on a banded tower.
+	var sx := s * 0.23
+	var sr := s * 0.082
+	var top := -s * 0.55
+	draw_circle(Vector2(sx, top), sr, roof)
+	DrawUtil.rrect(self, Rect2(sx - sr, top, sr * 2.0, -top), wall.darkened(0.07), s * 0.02)
+	for k in 3:
+		var y := top + s * 0.1 + k * s * 0.13
+		draw_line(Vector2(sx - sr, y), Vector2(sx + sr, y), Color(ink, 0.4), s * 0.014)
+	# The barn.
+	DrawUtil.rrect(self, Rect2(bx0, -bh, bx1 - bx0, bh), wall, s * 0.04)
+	var e := s * 0.03
+	_soft_poly(PackedVector2Array([Vector2(bx0 - e, -bh + s * 0.02), Vector2(bx0 + s * 0.035, -bh - s * 0.12),
+		Vector2(bx0 + s * 0.13, -bh - s * 0.2), Vector2(bx1 - s * 0.13, -bh - s * 0.2), Vector2(bx1 - s * 0.035, -bh - s * 0.12),
+		Vector2(bx1 + e, -bh + s * 0.02)]), roof, s * 0.02)
+	draw_line(Vector2(bx0 + s * 0.02, -bh + s * 0.045), Vector2(bx1 - s * 0.02, -bh + s * 0.045), Color(1, 1, 1, 0.75), s * 0.016)
+	# The hayloft, and a braced door.
+	DrawUtil.rrect(self, Rect2(mid - s * 0.045, -bh - s * 0.14, s * 0.09, s * 0.085), glass, s * 0.02)
+	var door := Rect2(mid - s * 0.1, -s * 0.22, s * 0.2, s * 0.22)
 	DrawUtil.rrect(self, door, ink, s * 0.03)
 	var line := Color(wall, 0.7)
 	draw_line(door.position + Vector2(s * 0.025, s * 0.025), door.end - Vector2(s * 0.025, s * 0.01), line, s * 0.018, true)

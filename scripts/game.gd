@@ -61,6 +61,9 @@ var index := 0
 ## The last unfinished attempt's route ({"key", "route"}), kept across a restart for the Replay ghost path
 ## option (ReplayGhost).
 static var last_attempt := {}
+## An OG 100 level (the old levels, played for fun from the title once everything's beaten): free, and
+## nothing about it is saved but "won here". Main sets it before setup().
+var og := false
 var replay_ghost: ReplayGhost
 var total := 0
 var solve_info := {}
@@ -966,6 +969,8 @@ func _build_ui() -> void:
 	bar.add_child(mid)
 	level_label = Label.new()
 	level_label.text = "Level %d" % level.number if daily_day < 0 else "Daily #%d" % Daily.number(daily_day)
+	if og:
+		level_label.text = "OG %d" % level.number
 	if not side.is_empty():
 		level_label.text = str(side.get("title", "Side road"))
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -2529,7 +2534,7 @@ func _on_retry_pressed() -> void:
 
 ## Once a level's been beaten (or today's daily solved), playing it again neither costs gas nor earns any.
 func _replay_free() -> bool:
-	if not side.is_empty():
+	if not side.is_empty() or og:
 		return true
 	if daily_day >= 0:
 		return Progress.daily_record(daily_day).get("done", false)
@@ -2564,7 +2569,7 @@ func _retry() -> void:
 
 ## Which level this is, for last_attempt: the level, and the side road, part or daily it belongs to.
 func _attempt_key() -> String:
-	return "%d|%s|%d|%d" % [level.number, str(side.get("id", "")), part, daily_day]
+	return "%d|%s|%d|%d|%s" % [level.number, str(side.get("id", "")), part, daily_day, "og" if og else ""]
 
 
 ## Back to the level list. Walking away from an unfinished level breaks the run of wins.
@@ -2609,6 +2614,8 @@ func _win() -> void:
 		_bonus_line = Progress.side_power_up(str(side.get("id", "")), side.get("bonus", {}))
 		if _twist() == "mega":
 			Progress.set_mega_part(str(side.get("id", "")), 0)
+	elif og:
+		Progress.og_win(level.number)
 	elif daily_day >= 0:
 		var first: bool = not Progress.daily_record(daily_day).get("done", false)
 		Progress.daily_done(daily_day, earned, play_time, deliveries)
@@ -2743,7 +2750,13 @@ func _fail() -> void:
 
 
 func _next() -> void:
-	if not side.is_empty():
+	if og:
+		# The OG 100: straight on to the next old level (or back to their list after the last).
+		if index + 1 < total:
+			level_requested.emit(index + 1)
+		else:
+			menu_requested.emit()
+	elif not side.is_empty():
 		menu_requested.emit()
 	elif daily_day >= 0:
 		daily_menu_requested.emit()
