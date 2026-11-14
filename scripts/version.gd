@@ -8,13 +8,11 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 17
+const BUILD := 18
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
-const BUILD_NOTES := [
-	"The clickbait ad, remade like the original: the NOOB, the fork, the FAIL, the PRO, and the level that makes him go WHAAATTT?!",
-]
+const BUILD_NOTES := []
 
 const NOTES := [
 	{"version": "0.7", "name": "The Long Road", "notes": [
