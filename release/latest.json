@@ -1,9 +1,10 @@
 {
-	"build": 17,
+	"build": 18,
 	"name": "The Long Road",
 	"notes": [
-		"The clickbait ad, remade like the original: the NOOB, the fork, the FAIL, the PRO, and the level that makes him go WHAAATTT?!"
+		"iPhone only for now: on an iPad it runs at iPhone size, so nothing gets cut off.",
+		"The Frontiers Celestia ad's Playtest button now opens its page."
 	],
-	"ready_at": 1794621915,
+	"ready_at": 1794622960,
 	"version": "0.7"
 }
