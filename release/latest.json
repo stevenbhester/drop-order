@@ -1,9 +1,11 @@
 {
-	"build": 19,
+	"build": 20,
 	"name": "The Long Road",
 	"notes": [
-		"The trash-talk ad got a visit from our (imaginary) lawyers. You'll still know exactly who it's about."
+		"Next drives your van up the map to the new stop, then one big Drive! button (and a Detour button when there's a side road).",
+		"Five new rides in the treasure chests: Sam's Race Car, James' Evil Bassinet, Tara's Hungry Caterpillar, Orin's Green Car and Violet's Tower.",
+		"Every ride celebrates a win its own way (and in the Garage). Return levels show their finish flag from the start."
 	],
-	"ready_at": 1794623293,
+	"ready_at": 1794630517,
 	"version": "0.7"
 }
