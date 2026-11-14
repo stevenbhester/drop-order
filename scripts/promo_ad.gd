@@ -4,15 +4,18 @@ extends CanvasLayer
 ## (like FakeAd's Frontiers Celestia one), each the idea of one of the game's trailers, with the game's own
 ## van, houses and sounds:
 ##   fun    Cozy. "Every package has someone waiting." A finger draws one route; the van delivers them all.
-##   bait   A clickbait parody. "99% FAIL THIS LEVEL!" The wrong way gets a NOPE and an IQ of 63; the
-##          genius way delivers everything and the IQ meter maxes out.
+##   bait   A clickbait parody, after the clickbait trailer (tools/ads/ad_director.gd): "99% FAIL THIS
+##          LEVEL!", what the game is, then the NOOB starts well (three deliveries, "YESSS!"), stops at a
+##          fork to think, and turns back into its own torn-up road ("AWW MAN!", FAIL, a sad trombone,
+##          IQ 2). The PRO rewinds it and solves the lot in fire and coins ("PSHAW. TOO EASY.", IQ 999)...
+##          then the next level loads, and it's the huge one: "WHAAATTT?!". CAN YOU DO IT?
 ##   trash  Trash talk, after the GTA VI trailer (tools/ads/gta_director.gd): breaking news (publishers
 ##          dodging GTA VI), a record scratch, "NO GAME DARES???", "LAST MILE DOESN'T GIVE A &@$*&!!!!"
 ##          slammed on the beat, a fancam of a burning run (the map filmed through the trailer's shader:
 ##          follow cam, zoom punches, tilts, RGB split, flashes, black-and-white and inverted hits, blur,
 ##          speed ramps, the fire getting hotter), then a message for Rockstar. Its music is PromoMusic's,
 ##          synthesized on a worker thread while the news plays (the trailer's song can't ship in the app).
-## The clickbait has the trailer's reaction cam too: an emoji face (NOOB, then PRO) reacting in the corner.
+## The clickbait has the trailer's reaction cam: an emoji face (NOOB, then PRO) reacting in the corner.
 ## Skip is there from the first frame; skipping, closing or finishing all emit `finished`.
 
 signal finished
@@ -66,17 +69,26 @@ void fragment() {
 
 ## The little map every spot drives on (the game's level tokens: # road, S start, letters houses).
 const MAP_FUN := [". r . b .", "# # # # #", "# . y . #", "# # # # #", "S . . . ."]
-const MAP_BAIT := [". b . r .", "# # # # #", "# . . . #", "# # # # #", "S . y . ."]
+const MAP_BAIT := [". r . b .", "# # # # #", "# . # . #", "# y # g #", "S # # # #"]
 ## The way round that delivers everything: up, along the middle, up the right, back along the top.
 const WAY := [Vector2i(0, 4), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3),
 	Vector2i(4, 2), Vector2i(4, 1), Vector2i(3, 1), Vector2i(2, 1), Vector2i(1, 1)]
-## The clickbait's wrong way: straight up the left, to the blue house with yellow on top.
-const WRONG := [Vector2i(0, 4), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 1), Vector2i(1, 1)]
+## The clickbait: the NOOB's good start (yellow, green, blue) to the fork; its mistake, back down into its
+## own torn-up road; the PRO's run, the same but left at the fork for red.
+const NOOB := [Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 4), Vector2i(4, 3),
+	Vector2i(4, 2), Vector2i(4, 1), Vector2i(3, 1), Vector2i(2, 1)]
+const OOPS := [Vector2i(2, 1), Vector2i(2, 2), Vector2i(2, 3), Vector2i(2, 4)]
+const PRO := [Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 4), Vector2i(4, 3),
+	Vector2i(4, 2), Vector2i(4, 1), Vector2i(3, 1), Vector2i(2, 1), Vector2i(1, 1)]
+## The "next level" the PRO gets: the game's Grand Tour (the one the trailer showed).
+const HARD_LEVEL := 95
 
 static var _last := -1
-## The trash talk's music, made once a session (on a worker thread) and kept.
+## The ads' music, made once a session (on a worker thread) and kept.
 static var _music := {}
 static var _music_task := -1
+static var _bait_music := {}
+static var _bait_task := -1
 ## Debug: this kind next (-1: at random).
 static var force := -1
 
@@ -104,6 +116,7 @@ var _houses: Array = []          # {p, color, node}
 var _start := Vector2i.ZERO
 var _van: Van
 var _load: Array = []            # what's on the van, top first
+var _load_n := 3
 var _route: Array = []           # the route being drawn / driven
 var _ink := 0.0                  # how much of it is drawn, 0..1
 var _ink_from := 0.0
@@ -142,6 +155,26 @@ var _face_name := "NOOB"
 var _face_t0 := 0.0
 var _say := ""
 var _say_t0 := 0.0
+var _cam_zoom := 0.0             # 0 in its corner, 1 big in the middle (WHAAATTT)
+var _cam_zoom_t0 := -1.0
+# The clickbait's other bits.
+var _torn: Array = []            # tiles driven over (torn up), in order
+var _stop_at := -1.0             # the van stops (crashes) this far along the route
+var _rewind_t0 := -1.0
+var _rewind_path: Array = []
+var _pro_fire := false
+var _run_t0 := -1.0
+var _next_coin := 0.0
+var _hand := {"on": false, "p": Vector2.ZERO, "press": 0.0, "a": 0.0}
+var _think_t0 := -1.0
+var _alarm := false
+var _stamp_t0 := -1.0
+var _coins: Array = []
+var _floats: Array = []          # {text, p, t0, col, px, life}
+var _veil := 0.0
+var _hard: LevelData
+var _counter_t0 := -1.0
+var _bait_bed: AudioStreamPlayer
 
 
 ## Which spot plays next: any but the last one.
@@ -275,14 +308,19 @@ func _setup_fun() -> void:
 
 
 func _setup_bait() -> void:
-	_end_at = 11.2
-	_build(MAP_BAIT, ["yellow", "red", "blue"])
-	_cue(0.05, "slam", 1.0, -2.0)
-	_cue(0.9, "punch", 1.1, -4.0)
-	_cue(2.2, "tick", 1.2, -6.0)
-	_cue(5.2, "rewind", 1.0, -4.0)
-	_cue(5.9, "tick", 1.3, -6.0)
-	_cue(_end_at, "star", 1.0, -3.0)
+	_end_at = 24.5
+	_build(MAP_BAIT, ["yellow", "green", "blue", "red"])
+	_cue(0.05, "slam", 1.0, 0.0)
+	_cue(_end_at, "whoosh", 0.9, 0.0)
+	_bait_bed = AudioStreamPlayer.new()
+	_bait_bed.volume_db = -3.0
+	add_child(_bait_bed)
+	if _bait_music.is_empty() and _bait_task < 0:
+		var len := _end_at + 4.0
+		_bait_task = WorkerThreadPool.add_task(func():
+			PromoAd._bait_music = {"bed": PromoMusic.bait(len), "trombone": PromoMusic.sad_trombone()})
+	_face = "🙂"
+	_face_t0 = 0.0
 
 
 func _setup_trash() -> void:
@@ -362,6 +400,7 @@ func _build(rows: Array, load: Array) -> void:
 				_stage.add_child(h)
 				_houses.append({"p": p, "color": col, "node": h})
 	_load = load.duplicate()
+	_load_n = load.size()
 	_van = Van.new()
 	_van.size = _tile * 0.8
 	_van.position = _center(_start)
@@ -412,42 +451,7 @@ func _story() -> void:
 				if _once("hop%d" % i, 0.6 + i * 0.7):
 					_houses[i]["node"].hop()
 		"bait":
-			if _once("f0", 0.0):
-				_react("🙂")
-			if _once("f1", 2.2):
-				_react("🤔")
-			if _once("f2", 3.5):
-				_react("😬")
-			if _once("f3", 4.45):
-				_react("😭", "AWW MAN!")
-			if _once("f4", 5.2):
-				_face_name = "PRO"
-				_react("😎", "PSHAW.")
-			if _once("f5", 6.1):
-				_react("😎", "TOO EASY.")
-			if _once("f6", 7.4):
-				_react("😎")
-			if _once("wrong", 2.2):
-				_plan(WRONG, 2.2, 3.3, {4: ["nope", _house_at(Vector2i(1, 0))]})
-			if _once("go1", 3.5):
-				_go(3.6)
-			if _once("back", 5.2):
-				_drive = -1.0
-				_van.position = _center(_start)
-				_van.target_rotation = -PI / 2.0
-				_trail.clear()
-				_route = []
-			if _once("right", 5.9):
-				_plan(WAY, 5.9, 7.2, {3: ["deliver", _house_at(Vector2i(2, 4))], 8: ["deliver", _house_at(Vector2i(3, 0))],
-					10: ["deliver", _house_at(Vector2i(1, 0))]})
-			if _once("go2", 7.4):
-				_go(4.6)
-			if _once("genius", 9.8):
-				_iq_to = 999.0
-				_face_name = ""
-				_react("😱", "WHAAATTT?!")
-				Sfx.play("win")
-				Sfx.haptic(20)
+			_bait_story()
 		"trash":
 			if _t < 6.9:
 				_play(_bed, "bed", 0.0)
@@ -515,16 +519,24 @@ func _process(delta: float) -> void:
 			speed = base * (0.3 if since < 0.12 else lerpf(0.75, 1.35, clampf((since - 0.12) / 0.35, 0.0, 1.0)))
 		_drive = minf(_drive + dt * speed, _route.size() - 1.0)
 		for k in range(int(floor(was)) + 1, int(floor(_drive)) + 1):
+			if kind == "bait" and not _torn.has(_route[k - 1]):
+				_torn.append(_route[k - 1])
 			_reach(k)
+		var crashed := _stop_at >= 0.0 and _drive >= _stop_at
+		if crashed:
+			_drive = _stop_at
+			_stop_at = -1.0
 		var i := mini(int(floor(_drive)), _route.size() - 2)
-		var u := _drive - i
 		var a := _center(_route[i])
 		var b := _center(_route[i + 1])
-		_van.position = a.lerp(b, u)
+		_van.position = a.lerp(b, _drive - i)
 		_van.target_rotation = (b - a).angle()
 		if _trail.is_empty() or _trail.back().distance_to(_van.position) > _tile * 0.3:
 			_trail.append(_van.position)
-		if _drive >= _route.size() - 1.0:
+		if crashed:
+			_drive = -1.0
+			_crash()
+		elif _drive >= _route.size() - 1.0:
 			_drive = -1.0
 	_iq = move_toward(_iq, _iq_to, dt * maxf(90.0, absf(_iq_to - _iq) * 2.5))
 	_flash = maxf(0.0, _flash - dt * (6.0 if kind == "trash" else 2.5))
@@ -536,6 +548,8 @@ func _process(delta: float) -> void:
 	_blur = maxf(0.0, _blur - dt * 1.6)
 	_tilt = lerpf(_tilt, _tilt_to, 0.35)
 	_words = _words.filter(func(wd): return _t - float(wd["t0"]) < 0.8)
+	if kind == "bait":
+		_bait_tick(dt)
 	_flyers = _flyers.filter(func(f): return _t - float(f["t0"]) < 0.42)
 	_marks = _marks.filter(func(m): return _t - float(m["t0"]) < 1.6)
 	if _view and _view.visible:
@@ -755,6 +769,17 @@ func _draw_ground() -> void:
 				g.draw_rect(Rect2(o + Vector2(_tile * 0.5, m), Vector2(_tile, rw)), col)
 			if _road.has(p + Vector2i(0, 1)):
 				g.draw_rect(Rect2(o + Vector2(m, _tile * 0.5), Vector2(rw, _tile)), col)
+	if kind == "bait":
+		var pal := AnimeFire.palette(9)
+		for i in _torn.size():
+			var c := _center(_torn[i])
+			g.draw_circle(c, _tile * 0.34, Color("2e313b"))
+			g.draw_circle(c, _tile * 0.2, Color("1d1f26"))
+			for q in 4:
+				var a := TAU * q / 4.0 + i * 0.7
+				g.draw_line(c, c + Vector2(cos(a), sin(a)) * _tile * 0.42, Color("1d1f26"), _tile * 0.05, true)
+			if _pro_fire and i >= _torn.size() - 12:
+				AnimeFire.draw_flame(g, c + Vector2(0, _tile * 0.1), _tile * 0.34, _tile * 0.6, _t, i * 0.77, pal)
 	if kind == "trash" and not _trail.is_empty():
 		var pal := AnimeFire.palette(_heat_m)
 		for i in _trail.size():
@@ -773,7 +798,7 @@ func _draw_ground() -> void:
 				pts.append(a.lerp(_center(_route[i]), reach - (i - 1)))
 				break
 		if pts.size() >= 2:
-			var col := HOT if kind == "bait" and _route == WRONG else Color.WHITE
+			var col := HOT if kind == "bait" and _route == OOPS else Color.WHITE
 			g.draw_polyline(pts, Color(INK, 0.35), _tile * 0.24, true)
 			g.draw_polyline(pts, col, _tile * 0.17, true)
 			for q in pts:
@@ -830,25 +855,7 @@ func _draw_hud() -> void:
 			if _t < _end_at:
 				_draw_load(Vector2(w / 2.0, board_top - 80.0))
 		"bait":
-			if _t < 2.2:
-				var k := _pop(_t / 0.35)
-				_text("99% FAIL", Vector2(w / 2.0, cap_y - 70.0) + shake * 0.5 + Vector2(0, 6.0 * sin(_t * 20.0)), int(140 * k), HOT, w - 60.0, Color.WHITE)
-				_text("THIS LEVEL!", Vector2(w / 2.0, cap_y + 60.0), int(120 * k), HOT, w - 60.0, Color.WHITE)
-				# A red ring round the map, the way these ads do.
-				var c := _board_origin() + Vector2(2.5, 2.5) * _tile
-				_hud.draw_arc(c, minf(_tile * 2.85, w / 2.0 - 16.0) + 8.0 * sin(_t * 8.0), 0.0, TAU, 64, HOT, 14.0, true)
-			_caption("Most people go this way...", 2.2, 5.2, cap_y, 74, INK, Color.WHITE)
-			if _t >= 4.4 and _t < 5.6:
-				var mid := _board_origin() + Vector2(2.5, 2.5) * _tile
-				_text("NOPE!", mid + shake, int(170 * _pop((_t - 4.4) / 0.3)), HOT, 0.0, Color.WHITE)
-			_caption("Only geniuses see it.", 5.6, 9.7, cap_y, 80, INK, Color.WHITE)
-			_caption("GENIUS!", 9.8, _end_at, cap_y, 140, Color("35c27a"), Color.WHITE)
-			if _t < _end_at:
-				if _t >= 2.2:
-					_draw_load(Vector2(w / 2.0, board_top - 80.0))
-				var iq := Rect2(80.0, _board_origin().y + 5.0 * _tile + 70.0, w - 160.0, 110.0)
-				_draw_iq(iq)
-				_draw_cam(Vector2(w - 160.0, iq.end.y + 160.0), 100.0, shake)
+			_bait_hud(w, h, cap_y, shake)
 		_:
 			_draw_trash_hud(w, h, cap_y, shake)
 	if _flash > 0.0 and not (_view and _view.visible):
@@ -872,7 +879,7 @@ func _draw_hud() -> void:
 
 ## The load, as the game's chute shows it: a tray of packages, the next one out on the right.
 func _draw_load(c: Vector2) -> void:
-	var n := 3
+	var n := maxi(3, _load_n)
 	var box := 96.0
 	var tray := Rect2(c - Vector2(n * (box + 14.0) / 2.0 + 18.0, box / 2.0 + 14.0), Vector2(n * (box + 14.0) + 36.0, box + 28.0))
 	DrawUtil.rrect(_hud, tray, Color(1, 1, 1, 0.55), 30)
@@ -886,19 +893,27 @@ func _draw_load(c: Vector2) -> void:
 	_hud.draw_string(f, Vector2(nx - nw / 2.0, tray.position.y + 6.0), "NEXT", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, INK)
 
 
-## The clickbait's IQ meter.
-func _draw_iq(r: Rect2) -> void:
-	DrawUtil.rrect(_hud, r, INK, r.size.y / 2.0)
+## The clickbait's IQ meter: about 100, plummets to 2 on the crash, rockets past 900 for the genius.
+func _draw_iq(r: Rect2, shake: Vector2) -> void:
+	var v := _iq + (sin(_t * 23.0) * 3.0 if _iq > 20.0 else 0.0)
+	var low := v < 40.0
+	if low:
+		r.position += shake * 0.6
+	var flash := low and int(_t * 9.0) % 2 == 0
+	DrawUtil.rrect(_hud, r.grow(9), Color.WHITE, r.size.y / 2.0 + 9.0)
+	DrawUtil.rrect(_hud, r, HOT.darkened(0.2) if flash else INK, r.size.y / 2.0)
 	var f := UiTheme.font()
-	_hud.draw_string(f, r.position + Vector2(40, r.size.y * 0.68), "IQ", HORIZONTAL_ALIGNMENT_LEFT, -1, 60, YELLOW)
-	var bar := Rect2(r.position + Vector2(150, r.size.y * 0.36), Vector2(r.size.x - 360, r.size.y * 0.28))
-	DrawUtil.rrect(_hud, bar, Color(1, 1, 1, 0.15), bar.size.y / 2.0)
-	var k := clampf(_iq / 160.0, 0.05, 1.0)
-	var col := HOT if _iq < 90.0 else (YELLOW if _iq < 140.0 else Color("35c27a"))
-	DrawUtil.rrect(_hud, Rect2(bar.position, Vector2(bar.size.x * k, bar.size.y)), col, bar.size.y / 2.0)
-	var num := str(int(round(_iq)))
-	var nw := f.get_string_size(num, HORIZONTAL_ALIGNMENT_LEFT, -1, 70).x
-	_hud.draw_string(f, Vector2(r.end.x - 40.0 - nw, r.position.y + r.size.y * 0.7), num, HORIZONTAL_ALIGNMENT_LEFT, -1, 70, Color.WHITE)
+	_hud.draw_string(f, r.position + Vector2(40, 80), "IQ", HORIZONTAL_ALIGNMENT_LEFT, -1, 72, YELLOW)
+	var track := Rect2(r.position + Vector2(160, 34), Vector2(r.size.x - 420.0, 44))
+	DrawUtil.rrect(_hud, track, Color(1, 1, 1, 0.18), 22)
+	var k := clampf(v / 200.0, 0.03, 1.0)
+	var col := HOT.lerp(YELLOW, clampf(k * 2.0, 0.0, 1.0)).lerp(Palette.GOOD, clampf(k * 2.0 - 1.0, 0.0, 1.0))
+	if v > 200.0:
+		col = Color.from_hsv(fmod(_t * 2.0, 1.0), 0.75, 1.0)
+	DrawUtil.rrect(_hud, Rect2(track.position, Vector2(maxf(track.size.x * k, 44.0), track.size.y)), col, 22)
+	var num := str(int(round(v))) + ("+" if v > 950.0 else "")
+	var nw := f.get_string_size(num, HORIZONTAL_ALIGNMENT_LEFT, -1, 84).x
+	_hud.draw_string(f, Vector2(r.end.x - 40.0 - nw, r.position.y + 86), num, HORIZONTAL_ALIGNMENT_LEFT, -1, 84, YELLOW if low else Color.WHITE)
 
 
 ## The clickbait's reaction cam: an emoji face in a ring with a name tag (NOOB, then PRO), and whatever
@@ -910,7 +925,7 @@ func _draw_cam(at: Vector2, r: float, shake: Vector2) -> void:
 	var k := _pop((_t - _face_t0) / 0.25)
 	_hud.draw_circle(at + Vector2(0, 12), r + 16, Color(0, 0, 0, 0.22))
 	_hud.draw_circle(at, r + 16, Color.WHITE)
-	var col := Color("8ea2b6") if _face_name == "NOOB" else (Color("ffd166") if _face_name == "PRO" else HOT)
+	var col := Color("8ea2b6") if _face_name == "NOOB" else YELLOW
 	_hud.draw_circle(at, r, col)
 	var f := UiTheme.font()
 	var px := int(r * 1.62 * (0.72 + 0.28 * k))
@@ -924,9 +939,9 @@ func _draw_cam(at: Vector2, r: float, shake: Vector2) -> void:
 		_hud.draw_string(f, tr.position + Vector2(24, 47), _face_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, INK if _face_name == "PRO" else Color.WHITE)
 	if _say != "":
 		var sk := _pop((_t - _say_t0) / 0.25)
-		_hud.draw_set_transform(Vector2(at.x - r - 300.0, at.y) + shake, -0.06, Vector2.ONE * sk)
-		_text(_say, Vector2.ZERO, 96, YELLOW, 520.0)
-		_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var w := _hud.size.x
+		var say_at := Vector2(at.x - r - 300.0, at.y).lerp(Vector2(w / 2.0, at.y + r + 190.0), _cam_zoom)
+		_slam(_say, say_at + shake, int(lerpf(104.0, 190.0, _cam_zoom)), YELLOW, INK, -0.06, sk, lerpf(540.0, w - 80.0, _cam_zoom))
 
 
 ## The trash talk: breaking news, the scratch, the slam, the fancam's words, the message for Rockstar.
@@ -992,6 +1007,9 @@ func _draw_trash_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
 
 
 func _draw_end_card(w: float, h: float) -> void:
+	if kind == "bait":
+		_bait_end(w, h)
+		return
 	var u := _t - _end_at
 	_hud.draw_rect(Rect2(0, 0, w, h), Color(INK, 0.9 * clampf(u / 0.3, 0.0, 1.0)))
 	var grow := _pop(u / 0.45)
@@ -1004,3 +1022,499 @@ func _draw_end_card(w: float, h: float) -> void:
 			_text("*Dropping November 19, 2026, for everyone else.", Vector2(w / 2.0, h * 0.3 + 250.0), 34, Color(CREAM, 0.7 * a), w - 80.0)
 	if u > 0.9:
 		_text("a Door Bowl game", Vector2(w / 2.0, _cta.position.y + _cta.size.y + 80.0), 36, Color(CREAM, 0.7 * clampf((u - 0.9) / 0.3, 0.0, 1.0)), 0.0, Color(0, 0, 0, 0))
+
+
+# ---------------------------------------------------------------- the clickbait, beat by beat
+
+func _screen(p: Vector2) -> Vector2:
+	return _stage.position + p * _stage.scale
+
+
+func _bait_story() -> void:
+	if _bait_bed and not _bait_bed.playing and _t < _end_at + 3.0 and _bait_ready():
+		_bait_bed.stream = _bait_music["bed"]
+		_bait_bed.play(_t)
+	# 99% FAIL THIS LEVEL!
+	if _once("head", 0.05):
+		_alarm = true
+		_shake = 1.0
+	if _once("head_off", 1.3):
+		_alarm = false
+	# What the game is: hearts over the houses, then the top package.
+	if _once("ring_hop", 4.6):
+		_houses[_house_at(Vector2i(1, 3))]["node"].hop()
+		_marks.append({"at": _center(Vector2i(1, 3)) + Vector2(0, -_tile * 0.6), "t0": _t, "kind": "heart"})
+	# The NOOB starts well: draws round the corner and delivers three in a row.
+	if _once("noob_hand", 6.15):
+		_hand_to(_screen(_center(NOOB[0])), 0.15)
+	if _once("noob_ink", 6.3):
+		_plan(NOOB, 6.3, 7.1, {1: ["deliver", _house_at(Vector2i(1, 3))], 3: ["deliver", _house_at(Vector2i(3, 3))],
+			8: ["deliver", _house_at(Vector2i(3, 0))]})
+		_hand["press"] = 1.0
+	if _once("noob_go", 7.15):
+		_hand["on"] = false
+		_go(5.0)
+	if _once("happy", 7.95):
+		_react("😄")
+		_iq_to = 124.0
+	if _once("yesss", 9.05):
+		_react("🤩", "YESSS!")
+		_iq_to = 152.0
+		Sfx.play("star", 1.0, 0.0)
+		_float("+52 IQ", Palette.GOOD.lightened(0.2))
+	# ...then stops at the fork to think. Left: open road. Down: the road it just tore up.
+	if _once("calm", 10.1):
+		_react("🙂")
+		_hand_to(_screen(_center(Vector2i(2, 1))), 0.25)
+		_hand["press"] = 1.0
+	if _once("think", 10.4):
+		_react("🤔")
+		_think_t0 = _t
+		Sfx.play("hint", 0.7, -4.0)
+	if _t >= 10.4 and _t < 11.8:
+		var k := (_t - 10.4) / 1.4
+		_hand["p"] = _screen(_center(Vector2i(2, 1)) + Vector2(-0.3 * _tile * sin(k * TAU * 1.25), 0.15 * _tile * sin(k * TAU * 1.25 + 1.0)))
+	# It goes down. The path turns red... and it lets go.
+	if _once("oops", 11.8):
+		_think_t0 = -1.0
+		_plan(OOPS, 11.8, 12.05, {})
+		_react("😬")
+		_iq_to = 31.0
+		_shake = 0.7
+		Sfx.play("empty", 1.0, 0.0)
+		_float("-121 IQ", HOT)
+	if _t >= 11.8 and _t < 12.6 and _hand["on"]:
+		_hand["p"] = _screen(_center(Vector2i(2, 1)).lerp(_center(Vector2i(2, 3)), clampf((_t - 11.8) / 0.25, 0.0, 1.0)))
+	if _once("letgo", 12.6):
+		_hand["on"] = false
+		_go(3.4)
+		_stop_at = 2.55
+	# The PRO takes over: rewinds the lot...
+	if _once("pro", 15.3):
+		_alarm = false
+		_stamp_t0 = -1.0
+		_face_name = "PRO"
+		_react("😎", "PSHAW.")
+		_iq_to = 180.0
+		Sfx.play("whoosh", 0.8, 0.0)
+		Sfx.play("rewind", 1.0, -2.0)
+		if _bait_bed:
+			_bait_bed.volume_db = -3.0
+		_rewind_path = _torn.duplicate()
+		_rewind_path.reverse()
+		_rewind_path.push_front(_torn.back() if not _torn.is_empty() else _start)
+		_rewind_t0 = _t
+		_route = []
+	if _once("too_easy", 16.4):
+		_react("😎", "TOO EASY.")
+	# ...and solves it in one go, fast, in fire and coins.
+	if _once("pro_hand", 16.75):
+		_hand_to(_screen(_center(PRO[0])), 0.15)
+	if _once("pro_ink", 16.9):
+		_plan(PRO, 16.9, 18.0, {1: ["deliver", _house_at(Vector2i(1, 3))], 3: ["deliver", _house_at(Vector2i(3, 3))],
+			8: ["deliver", _house_at(Vector2i(3, 0))], 10: ["deliver", _house_at(Vector2i(1, 0))]})
+		_hand["press"] = 1.0
+	if _once("pro_go", 18.1):
+		_hand["on"] = false
+		_pro_fire = true
+		_run_t0 = _t
+		_go(9.0)
+		Sfx.play("whoomp", 1.0, 0.0)
+	if _once("genius", 19.4):
+		_run_t0 = -1.0
+		_iq_to = 999.0
+		Sfx.play("kaching", 1.0, 0.0)
+		Sfx.play("jingle", 1.2, -2.0)
+		_burst(_hud.size * Vector2(0.5, 0.45), 40, 2200.0)
+		_floats.append({"text": "+999,999", "p": _hud.size * Vector2(0.5, 0.38), "t0": _t, "col": YELLOW, "px": 130, "life": 1.3})
+		_shake = 0.8
+	# Next level. It's the big one.
+	if _once("next", 20.95):
+		_veil = 1.0
+		_react("😎", "NEXT!")
+		_counter_t0 = _t
+		_stage.visible = false
+		_coins.clear()
+		Sfx.play("whoosh", 1.1, 0.0)
+		_hard = _load_level(HARD_LEVEL)
+	if _once("whaaat", 22.0):
+		_react("😱")
+		_face_name = ""
+		_alarm = true
+		_shake = 1.0
+		_cam_zoom_t0 = _t
+		Sfx.play("slam", 0.8, 0.0)
+	if _once("whaaat_say", 22.3):
+		_react("😱", "WHAAATTT?!")
+		_shake = 1.0
+	if _once("end", _end_at):
+		_alarm = false
+		_burst(Vector2(_hud.size.x / 2.0, _cta.position.y + _cta.size.y / 2.0), 24, 1700.0)
+
+
+func _bait_ready() -> bool:
+	if _bait_task >= 0 and WorkerThreadPool.is_task_completed(_bait_task):
+		WorkerThreadPool.wait_for_task_completion(_bait_task)
+		_bait_task = -1
+	return _bait_task < 0 and not _bait_music.is_empty()
+
+
+## The NOOB turns into its own torn-up road: crunch, red X, FAIL, a sad trombone, IQ 2.
+func _crash() -> void:
+	_van.shake()
+	_stamp_t0 = _t
+	_alarm = true
+	_iq_to = 2.0
+	_shake = 1.0
+	_route = []
+	_react("😭", "AWW MAN!")
+	Sfx.play("crash", 1.0, -2.0)
+	Sfx.play("punch", 0.8, 0.0)
+	Sfx.haptic(30)
+	if _bait_ready():
+		var tb := AudioStreamPlayer.new()
+		tb.stream = _bait_music["trombone"]
+		tb.volume_db = -2.0
+		add_child(tb)
+		tb.play()
+		if _bait_bed:
+			_bait_bed.volume_db = -15.0
+
+
+func _bait_tick(dt: float) -> void:
+	for c in _coins:
+		c["v"] += Vector2(0, 2600.0) * dt
+		c["p"] += c["v"] * dt
+		c["spin"] += c["w"] * dt
+	_coins = _coins.filter(func(c): return c["p"].y < _hud.size.y + 200.0)
+	_floats = _floats.filter(func(f): return _t - float(f["t0"]) < float(f["life"]))
+	_veil = maxf(0.0, _veil - dt / 0.3)
+	if _cam_zoom_t0 >= 0.0:
+		var k := clampf((_t - _cam_zoom_t0) / 0.3, 0.0, 1.0)
+		_cam_zoom = 1.0 - pow(1.0 - k, 3.0)
+	# The PRO's rewind: back along the torn road to the start, mending it as it goes.
+	if _rewind_t0 >= 0.0:
+		var k := clampf((_t - _rewind_t0) / 0.6, 0.0, 1.0)
+		var f := k * (_rewind_path.size() - 1)
+		var i := mini(int(floor(f)), _rewind_path.size() - 2)
+		if _rewind_path.size() >= 2:
+			_van.position = _center(_rewind_path[i]).lerp(_center(_rewind_path[i + 1]), f - i)
+			_van.target_rotation = (_center(_rewind_path[i]) - _center(_rewind_path[i + 1])).angle()
+		var keep := maxi(0, _torn.size() - int(round(k * _torn.size())))
+		_torn.resize(keep)
+		if k >= 1.0:
+			_rewind_t0 = -1.0
+			_torn.clear()
+			_van.position = _center(_start)
+			_van.target_rotation = -PI / 2.0
+			_load = ["yellow", "green", "blue", "red"]
+			_van.set_top(_load[0])
+			for hs in _houses:
+				hs["node"].undeliver(0)
+	# The PRO's run: the IQ climbs, coins fly off the van.
+	if _run_t0 >= 0.0:
+		_iq_to = lerpf(180.0, 900.0, clampf((_t - _run_t0) / 1.2, 0.0, 1.0))
+		if _t >= _next_coin:
+			_next_coin = _t + 0.14
+			_burst(_screen(_van.position), 4, 900.0)
+
+
+func _burst(at: Vector2, n: int, speed: float) -> void:
+	for i in n:
+		var a := randf_range(-PI * 0.95, -PI * 0.05)
+		_coins.append({"p": at, "v": Vector2(cos(a), sin(a)) * randf_range(0.4, 1.0) * speed, "spin": randf() * TAU,
+			"w": randf_range(-10.0, 10.0), "s": randf_range(46.0, 80.0)})
+	if n >= 4:
+		Sfx.play("coin", randf_range(0.9, 1.2), -6.0)
+
+
+func _float(text: String, col: Color) -> void:
+	_floats.append({"text": text, "p": Vector2(_hud.size.x * 0.55, _iq_rect().position.y - 70.0), "t0": _t, "col": col, "px": 84, "life": 0.9})
+
+
+## The cartoon hand slides in to `at` (screen) over `dur`.
+func _hand_to(at: Vector2, dur: float) -> void:
+	_hand = {"on": true, "p": at, "press": 0.0, "a": 1.0, "from": at + Vector2(170, 250), "t0": _t, "dur": dur}
+
+
+func _iq_rect() -> Rect2:
+	return Rect2(80.0, _board_origin().y + 5.0 * _tile + 70.0, _hud.size.x - 160.0, 110.0)
+
+
+func _load_level(n: int) -> LevelData:
+	var d = JSON.parse_string(FileAccess.get_file_as_string("res://levels/levels.json"))
+	if d is Dictionary and d["levels"].size() >= n:
+		return LevelData.from_dict(d["levels"][n - 1], n)
+	return null
+
+
+func _bait_hud(w: float, h: float, cap_y: float, shake: Vector2) -> void:
+	var on_map := _t < 20.95
+	if on_map:
+		_pill("Every package has\nsomeone waiting.", 1.45, 3.4, cap_y)
+		_pill("Only the top of the\nstack can go out.", 3.6, 6.15, cap_y)
+		_draw_load(Vector2(w / 2.0, _board_origin().y - 80.0))
+		# Hearts over the houses while they're being introduced.
+		if _t >= 1.6 and _t < 3.4:
+			for i in _houses.size():
+				var k := _pop((_t - 1.6 - i * 0.09) / 0.3)
+				if k <= 0.01:
+					continue
+				var c := _screen(_houses[i]["node"].base_pos + Vector2(0, -_tile * 0.95)) + Vector2(0, -6.0 * sin(_t * 6.0 + i))
+				var r := _tile * 0.36 * k
+				_hud.draw_circle(c + Vector2(0, 6), r, Color(0, 0, 0, 0.12))
+				_hud.draw_colored_polygon(PackedVector2Array([c + Vector2(-r * 0.35, r * 0.7), c + Vector2(r * 0.1, r * 1.35), c + Vector2(r * 0.35, r * 0.6)]), Color.WHITE)
+				_hud.draw_circle(c, r, Color.WHITE)
+				_heart(_hud, c + Vector2(0, -r * 0.2), r * 0.5, Palette.pkg(_houses[i]["color"]))
+		if _t >= 3.7 and _t < 6.0:
+			var tray_next := Vector2(w / 2.0 + (maxi(3, _load_n) - 1) * 55.0 + 7.0, _board_origin().y - 80.0)
+			_hud.draw_arc(tray_next, 76.0 + 6.0 * sin(_t * 10.0), 0.0, TAU, 40, YELLOW, 10.0, true)
+		# The thinking face over the fork, and the "this way or that?" arrows.
+		if _think_t0 >= 0.0:
+			var left_on := int((_t - _think_t0) * 5.0) % 2 == 0
+			var wob := 10.0 * sin(_t * 18.0)
+			if left_on:
+				_arrow(_screen(_center(Vector2i(1, 1))) + Vector2(-40 - wob, 0), Vector2(-1, 0), 0.7)
+			else:
+				_arrow(_screen(_center(Vector2i(2, 2))) + Vector2(0, 40 + wob), Vector2(0, 1), 0.7)
+			var px := int(220.0 * _pop((_t - _think_t0) / 0.25))
+			if px >= 8:
+				var at := _screen(_center(Vector2i(2, 1))) + Vector2(0, -280.0 - 10.0 * sin(_t * 6.0))
+				var fw := UiTheme.font().get_string_size("🤔", HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+				_hud.draw_set_transform(at, 0.1 * sin(_t * 4.0), Vector2.ONE)
+				_hud.draw_circle(Vector2(0, 14), px * 0.52, Color(0, 0, 0, 0.18))
+				_hud.draw_string(UiTheme.font(), Vector2(-fw / 2.0, px * 0.36), "🤔", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)
+				_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_draw_stamp(shake)
+		_draw_iq(_iq_rect(), shake)
+		if _hand["on"]:
+			var hk := clampf((_t - float(_hand.get("t0", 0.0))) / maxf(float(_hand.get("dur", 0.2)), 0.01), 0.0, 1.0)
+			var at: Vector2 = _hand["p"]
+			if hk < 1.0 and _hand.has("from"):
+				at = (_hand["from"] as Vector2).lerp(at, 1.0 - pow(1.0 - hk, 3.0))
+			if _route.size() >= 2 and _ink > 0.0 and _ink < 1.0:
+				var reach := _ink * (_route.size() - 1)
+				var ri := int(floor(reach))
+				at = _screen(_center(_route[ri]).lerp(_center(_route[mini(ri + 1, _route.size() - 1)]), reach - ri))
+				_hand["p"] = at
+			_draw_hand(at, float(_hand["press"]), minf(1.0, hk * 2.0 + 0.2))
+	else:
+		_draw_hard(w, h)
+	# The fake level counter, spinning up to an absurd number.
+	if _counter_t0 >= 0.0 and _t < _end_at:
+		var n := int(lerpf(18.0, 9999.0, pow(clampf((_t - _counter_t0) / 0.9, 0.0, 1.0), 0.35)))
+		var label := "LEVEL %s" % Progress.commas(n)
+		var f := UiTheme.font()
+		var lw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 60).x + 70.0
+		var r := Rect2(Vector2(w / 2.0 - lw / 2.0, 150.0 + _top), Vector2(lw, 112))
+		DrawUtil.rrect(_hud, r.grow(8), Color.WHITE, 60)
+		DrawUtil.rrect(_hud, r, HOT, 56)
+		_hud.draw_string(f, Vector2(w / 2.0 - (lw - 70.0) / 2.0, r.position.y + 78.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 60, Color.WHITE)
+	# 99% FAIL THIS LEVEL!
+	if _t >= 0.05 and _t < 1.3:
+		var k := _pop((_t - 0.05) / 0.28)
+		var big := 1.0 + 1.6 * maxf(0.0, 1.0 - (_t - 0.05) / 0.18)
+		_slam("99% FAIL", Vector2(w / 2.0, h * 0.34) + shake, 190, YELLOW, HOT.darkened(0.35), -0.09, k * big, w - 60.0)
+		_slam("THIS LEVEL!", Vector2(w / 2.0, h * 0.34 + 190.0) + shake, 150, Color.WHITE, HOT.darkened(0.35), -0.09, k * big, w - 60.0)
+	# The reaction cam: in its corner, then (WHAAATTT) big in the middle.
+	if _t < _end_at:
+		var home := Vector2(w - 160.0, _iq_rect().end.y + 160.0)
+		var mid := Vector2(w / 2.0, h * 0.45)
+		_draw_cam(home.lerp(mid, _cam_zoom), lerpf(100.0, 230.0, _cam_zoom), shake)
+	for fl in _floats:
+		var u := (_t - float(fl["t0"])) / float(fl["life"])
+		_slam(fl["text"], (fl["p"] as Vector2) + Vector2(0, -90.0 * u), int(fl["px"]), fl["col"], INK, -0.06, _pop(u / 0.15), w - 60.0, 1.0 - smoothstep(0.7, 1.0, u))
+	_draw_coins()
+	# Flashing red frame, for the dramatic bits; a white flash between levels.
+	if _alarm and int(_t * 8.0) % 2 == 0:
+		var e := 22.0
+		for rr in [Rect2(0, 0, w, e), Rect2(0, h - e, w, e), Rect2(0, 0, e, h), Rect2(w - e, 0, e, h)]:
+			_hud.draw_rect(rr, Color(HOT, 0.9))
+	if _veil > 0.0:
+		_hud.draw_rect(Rect2(0, 0, w, h), Color(1, 1, 1, _veil))
+
+
+## A white rounded caption pill, popping in and fading out.
+func _pill(text: String, from: float, to: float, y: float) -> void:
+	if _t < from or _t >= to:
+		return
+	var f := UiTheme.font()
+	var lines := text.split("\n")
+	var px := 56
+	var lw := 0.0
+	for l in lines:
+		lw = maxf(lw, f.get_string_size(l, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x)
+	var hgt := lines.size() * px * 1.18 + 50.0
+	var k := _pop((_t - from) / 0.3)
+	var a := 1.0 - smoothstep(to - 0.25, to, _t)
+	_hud.draw_set_transform(Vector2(_hud.size.x / 2.0, y), 0.0, Vector2.ONE * k)
+	DrawUtil.rrect(_hud, Rect2(-lw / 2.0 - 40.0, -hgt / 2.0 + 10.0, lw + 80.0, hgt), Color(0, 0, 0, 0.18 * a), 40)
+	DrawUtil.rrect(_hud, Rect2(-lw / 2.0 - 40.0, -hgt / 2.0, lw + 80.0, hgt), Color(1, 1, 1, a), 40)
+	for i in lines.size():
+		var tw := f.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		_hud.draw_string(f, Vector2(-tw / 2.0, -hgt / 2.0 + 25.0 + px * 0.95 + i * px * 1.18), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color(INK, a))
+	_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Big outlined, tilted, scaled text (the clickbait's shouting).
+func _slam(text: String, at: Vector2, px: int, fill: Color, outline: Color, rot: float, k: float, maxw := 1000.0, alpha := 1.0) -> void:
+	if k <= 0.01 or alpha <= 0.0:
+		return
+	var f := UiTheme.font()
+	var tw := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	var fit := minf(1.0, maxw / maxf(tw, 1.0))
+	_hud.draw_set_transform(at, rot, Vector2.ONE * k * fit)
+	var p := Vector2(-tw / 2.0, px * 0.35)
+	var ow := maxi(px / 6, 8)
+	_hud.draw_string_outline(f, p + Vector2(0, 10), text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, ow, Color(0, 0, 0, 0.3 * alpha))
+	_hud.draw_string_outline(f, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, ow, Color(outline, alpha))
+	_hud.draw_string(f, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color(fill, alpha))
+	_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The crash: a big red X over the map, then a FAIL stamp.
+func _draw_stamp(shake: Vector2) -> void:
+	if _stamp_t0 < 0.0:
+		return
+	var bc := _screen(Vector2(2.5, 2.5) * _tile) + shake
+	var s := _tile * 1.9
+	for i in 2:
+		var k := clampf((_t - _stamp_t0 - i * 0.12) / 0.12, 0.0, 1.0)
+		if k <= 0.0:
+			continue
+		var a := bc + Vector2(-s if i == 0 else s, -s)
+		var b := a.lerp(bc + Vector2(s if i == 0 else -s, s), k)
+		_hud.draw_line(a, b, Color.WHITE, 110.0, true)
+		_hud.draw_circle(a, 55.0, Color.WHITE)
+		_hud.draw_circle(b, 55.0, Color.WHITE)
+		_hud.draw_line(a, b, HOT, 78.0, true)
+		_hud.draw_circle(a, 39.0, HOT)
+		_hud.draw_circle(b, 39.0, HOT)
+	var ks := clampf((_t - _stamp_t0 - 0.3) / 0.14, 0.0, 1.0)
+	if ks > 0.0:
+		_hud.draw_set_transform(bc + Vector2(0, s + 60.0), -0.14, Vector2.ONE * lerpf(2.4, 1.0, ks))
+		var r := Rect2(-260, -95, 520, 190)
+		DrawUtil.rrect(_hud, r.grow(14), Color(1, 1, 1, ks), 40)
+		DrawUtil.rrect(_hud, r, Color(HOT, ks), 32)
+		var fw := UiTheme.font().get_string_size("FAIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 160).x
+		_hud.draw_string(UiTheme.font(), Vector2(-fw / 2.0, 56), "FAIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 160, Color(1, 1, 1, ks))
+		_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## A chunky yellow arrow, tip at `tip`, pointing along `dir`.
+func _arrow(tip: Vector2, dir: Vector2, s: float) -> void:
+	var side := Vector2(-dir.y, dir.x)
+	var L := 190.0 * s
+	var pts := PackedVector2Array([tip, tip - dir * L * 0.5 + side * L * 0.42, tip - dir * L * 0.5 + side * L * 0.17,
+		tip - dir * L + side * L * 0.17, tip - dir * L - side * L * 0.17, tip - dir * L * 0.5 - side * L * 0.17,
+		tip - dir * L * 0.5 - side * L * 0.42])
+	var outline := PackedVector2Array()
+	var mid := tip - dir * L * 0.55
+	for p in pts:
+		outline.append(mid + (p - mid) * 1.16)
+	_hud.draw_colored_polygon(outline, INK)
+	_hud.draw_colored_polygon(pts, YELLOW)
+
+
+## A cartoon pointing hand in a white glove, fingertip at `tip`.
+func _draw_hand(tip: Vector2, press: float, a: float) -> void:
+	var sc := 0.85 * (1.0 - 0.08 * press)
+	_hud.draw_set_transform(tip + Vector2(10, 16), -0.42, Vector2.ONE * sc)
+	_hand_shape(Color(0, 0, 0, 0.18 * a), 0.0)
+	_hud.draw_set_transform(tip, -0.42, Vector2.ONE * sc)
+	_hand_shape(Color(INK, a), 9.0)
+	_hand_shape(Color(1, 1, 1, a), 0.0)
+	_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if press > 0.0:
+		_hud.draw_arc(tip, 40.0 + 8.0 * sin(_t * 14.0), 0, TAU, 32, Color(1, 1, 1, 0.8 * a), 8.0, true)
+
+
+func _hand_shape(col: Color, grow: float) -> void:
+	DrawUtil.rrect(_hud, Rect2(-30, -6, 60, 170).grow(grow), col, 30 + grow)
+	DrawUtil.rrect(_hud, Rect2(-62, 104, 178, 160).grow(grow), col, 62 + grow)
+	for k in 3:
+		_hud.draw_circle(Vector2(52 + k * 26, 118 + k * 10), 30 + grow, col)
+	var th := PackedVector2Array()
+	for q in 16:
+		var ang := TAU * q / 16.0
+		th.append(Vector2(-60, 170) + Vector2(cos(ang) * (40 + grow), sin(ang) * (26 + grow)).rotated(-0.9))
+	_hud.draw_colored_polygon(th, col)
+	DrawUtil.rrect(_hud, Rect2(-46, 250, 150, 70).grow(grow), col, 26 + grow)
+
+
+func _draw_coins() -> void:
+	for c in _coins:
+		_hud.draw_set_transform(c["p"], c["spin"] * 0.2, Vector2(absf(cos(c["spin"])) * 0.7 + 0.3, 1.0))
+		Icons.draw(_hud, "coin", Vector2.ZERO, c["s"], Color.WHITE)
+		_hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## The next level: the game's huge Grand Tour, drawn small and busy, its load lined up above it.
+func _draw_hard(w: float, h: float) -> void:
+	if _hard == null:
+		return
+	var L := _hard
+	var t := minf((w - 80.0) / L.width, (h * 0.5) / L.height)
+	var o := Vector2((w - L.width * t) / 2.0, h * 0.32)
+	DrawUtil.rrect(_hud, Rect2(o - Vector2(t, t) * 0.14, Vector2(L.width, L.height) * t + Vector2(t, t) * 0.28), Palette.GRASS, t * 0.3)
+	var m := t * 0.12
+	for y in L.height:
+		for x in L.width:
+			var p := Vector2i(x, y)
+			var r := Rect2(o + Vector2(p) * t, Vector2(t, t))
+			if L.is_road(p):
+				DrawUtil.rrect(_hud, r.grow(-m), Palette.ROAD, t * 0.2)
+				if L.is_road(p + Vector2i(1, 0)):
+					_hud.draw_rect(Rect2(r.position + Vector2(t * 0.5, m), Vector2(t, t - 2.0 * m)), Palette.ROAD)
+				if L.is_road(p + Vector2i(0, 1)):
+					_hud.draw_rect(Rect2(r.position + Vector2(m, t * 0.5), Vector2(t - 2.0 * m, t)), Palette.ROAD)
+	for hs in L.houses:
+		var c := o + (Vector2(hs["pos"]) + Vector2(0.5, 0.5)) * t
+		var col := Palette.pkg(hs["color"])
+		DrawUtil.rrect(_hud, Rect2(c - Vector2(t, t) * 0.45, Vector2(t, t) * 0.9), Palette.YARD, t * 0.18)
+		DrawUtil.rrect(_hud, Rect2(c + Vector2(-t * 0.3, -t * 0.05), Vector2(t * 0.6, t * 0.42)), Color("fffaf2"), t * 0.06)
+		_hud.draw_colored_polygon(PackedVector2Array([c + Vector2(-t * 0.42, -t * 0.02), c + Vector2(0, -t * 0.4), c + Vector2(t * 0.42, -t * 0.02)]), col)
+		DrawUtil.rrect(_hud, Rect2(c + Vector2(-t * 0.08, t * 0.14), Vector2(t * 0.16, t * 0.23)), col.darkened(0.3), t * 0.04)
+		if int(hs["order"]) > 1:
+			DrawUtil.count_badge(_hud, c + Vector2(t * 0.25, -t * 0.32), t * 0.8, int(hs["order"]), col)
+	for sh in L.shops:
+		var c := o + (Vector2(sh["pos"]) + Vector2(0.5, 0.5)) * t
+		DrawUtil.rrect(_hud, Rect2(c - Vector2(t, t) * 0.36, Vector2(t, t) * 0.72), Color("3a3f4d"), t * 0.1)
+		DrawUtil.package(_hud, c, t * 0.4, Palette.pkg(sh["color"]))
+	for p in L.oneway:
+		var c := o + (Vector2(p) + Vector2(0.5, 0.5)) * t
+		var d := Vector2(L.oneway[p])
+		var sd := Vector2(-d.y, d.x)
+		_hud.draw_polyline(PackedVector2Array([c - d * t * 0.12 + sd * t * 0.16, c + d * t * 0.08, c - d * t * 0.12 - sd * t * 0.16]), Color.WHITE, t * 0.07, true)
+	# Its load, a long line of packages.
+	var n := L.stack.size()
+	var bs := minf(70.0, (w - 120.0) / maxf(n, 1))
+	for i in n:
+		DrawUtil.package(_hud, Vector2(w / 2.0 + (i - (n - 1) / 2.0) * (bs + 6.0), o.y - t * 0.6), bs, Palette.pkg(L.stack[n - 1 - i]))
+
+
+## The clickbait's end card: CAN YOU DO IT?, rays, coins, and the button with arrows pointing at it.
+func _bait_end(w: float, h: float) -> void:
+	var t := _t - _end_at
+	var k := clampf(t / 0.35, 0.0, 1.0)
+	_hud.draw_circle(Vector2(w / 2.0, h / 2.0), h * 1.2 * (1.0 - pow(1.0 - k, 3.0)), Color("2a1650"))
+	if k < 1.0:
+		return
+	var spin := t * 1.2
+	for i in 16:
+		var a0 := spin + TAU * i / 16.0
+		var a1 := a0 + TAU / 32.0
+		var c := Vector2(w / 2.0, h * 0.45)
+		_hud.draw_colored_polygon(PackedVector2Array([c, c + Vector2(cos(a0), sin(a0)) * h * 1.3, c + Vector2(cos(a1), sin(a1)) * h * 1.3]), Color(YELLOW, 0.13))
+	_draw_coins()
+	var off := Vector2(randf_range(-1, 1), randf_range(-1, 1)) * 10.0
+	var tk := _pop((t - 0.05) / 0.3)
+	var flash := YELLOW if int(_t * 8.0) % 2 == 0 else Color.WHITE
+	_slam("CAN YOU", Vector2(w / 2.0, h * 0.25) + off, 170, flash, INK, -0.07, tk, w - 60.0)
+	_slam("DO IT?", Vector2(w / 2.0, h * 0.36) + off, 210, flash, INK, -0.07, tk, w - 60.0)
+	_slam("Last Mile", Vector2(w / 2.0, h * 0.47), 96, Color.WHITE, INK, 0.0, _pop((t - 0.3) / 0.3), w - 60.0)
+	if _cta.visible and _cta.scale.x > 0.5:
+		var bc := _cta.position + _cta.size / 2.0
+		_arrow(bc + Vector2(-_cta.size.x / 2.0 - 40.0, 12 * sin(_t * 20.0)), Vector2(1, 0), 0.7)
+		_arrow(bc + Vector2(_cta.size.x / 2.0 + 40.0, 12 * sin(_t * 20.0)), Vector2(-1, 0), 0.7)
+	_text("a Door Bowl game", Vector2(w / 2.0, _cta.position.y + _cta.size.y + 80.0), 36, Color(1, 1, 1, 0.7), 0.0, Color(0, 0, 0, 0))

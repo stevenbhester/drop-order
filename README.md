@@ -249,8 +249,10 @@ as a little flame inside the Daily button.
   comes with **3 hints** (the count is on the button). Out of them, Hint plays a pretend ad instead: one of
   three short spots for Last Mile itself, drawn live in code with the game's own van, houses and sounds
   (`scripts/promo_ad.gd`; the ideas of the three trailers): **fun** (every package has someone waiting),
-  **bait** (a clickbait parody: 99% FAIL THIS LEVEL!, an IQ meter, and the trailer's emoji reaction cam,
-  NOOB then PRO) and **trash** (breaking news about GTA VI, a record scratch, "NO GAME DARES???", a slam on
+  **bait** (the clickbait trailer, beat for beat: 99% FAIL THIS LEVEL!; the NOOB starts well, thinks at a
+  fork, turns back into its own torn road, FAIL, a sad trombone, IQ 2; the PRO rewinds and solves it in
+  fire and coins, IQ 999; then the next level loads and it's Grand Tour: WHAAATTT?!; CAN YOU DO IT? With
+  the trailer's emoji reaction cam, white-glove hand and 150 bpm bed) and **trash** (breaking news about GTA VI, a record scratch, "NO GAME DARES???", a slam on
   the beat, a fancam of a burning run filmed through the trailer's shader with its follow cam, zoom
   punches, tilts, RGB split, flashes and speed ramps, then a message for Rockstar). The trash talk's music
   is synthesized on a worker thread while the news plays (`scripts/promo_music.gd`): a newsroom bed and a
