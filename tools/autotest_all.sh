@@ -71,8 +71,14 @@ if [ $first -eq 1 ]; then
   $G --headless --path . --quit-after 100000 -- --level=12 --autohintad > $out/hintad.txt 2>&1
   grep -h "AUTOTEST hintad\|SCRIPT ERROR" $out/hintad.txt | head -3
   # Dragging a route into the crusher: a quick pass keeps it, holding there and letting go scraps it.
-  $G --headless --path . --quit-after 100000 -- --level=12 --autocancel > $out/cancel.txt 2>&1
-  grep -h "AUTOTEST cancel\|SCRIPT ERROR" $out/cancel.txt | head -3
+  # (The zone sits partly over the Hint and Undo buttons: a few levels, so the drag comes in from different places.)
+  for L in 12 45 95; do
+    $G --headless --path . --quit-after 100000 -- --level=$L --autocancel > $out/cancel-$L.txt 2>&1 &
+  done
+  wait
+  cok=$(cat $out/cancel-*.txt | grep -c 'AUTOTEST cancel L[0-9]* ok')
+  echo "scrap a route in the crusher: $cok/3 levels ok"
+  grep -h "AUTOTEST cancel .*FAILED\|SCRIPT ERROR" $out/cancel-*.txt | head -3
   # Replay ghost path: a try, Retry, and the next try shows it with arrowheads at its turns.
   $G --headless --path . --quit-after 100000 -- --level=30 --autoghost --save=gas:5 > $out/ghost.txt 2>&1
   grep -h "AUTOTEST ghost\|SCRIPT ERROR" $out/ghost.txt | head -3

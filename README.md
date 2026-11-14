@@ -26,10 +26,13 @@ side roads, and a speedrun mode.
   | Thunder Mesa | 76–83 | roadworks, ice, lockers |
   | Skyline Summit | 84–90 | roadworks, gates, pickups/warehouses, bridges |
 
-  Every level is rated (`tools/twist_levels.gd --rate`: search size, route length, mechanics) and each
-  zone is ordered like a training load rather than a straight ramp: a moderate intro for the new idea,
-  mid-tier runs, a spike (the zone's challenge level), then a cooldown; easy ones as breathers. Not
-  always in that order: Harbour Lights ends on a breather, Thunder Mesa saves its spike for last.
+  Every level is planned, generated and scored by the **level engine** (`design/level_engine.md`): each
+  slot has a flavour (what it asks of you: a fork, a decoy, a sorter, two answers, neighbourhoods with
+  doors...), a difficulty to aim for and the mechanics that must matter, and no flavour comes twice
+  running. Each zone is ordered like a training load rather than a straight ramp: a moderate intro for the
+  new idea, mid-tier runs, a spike (the zone's challenge level), then a cooldown; easy ones as breathers.
+  `design/level_scores.md` lists every level's flavour and its fun, cleverness, complexity and difficulty
+  scores.
 - **Endgame · The Long Haul (91–95):** huge, very hard levels, everything at once.
 - **Insane · Death Valley (96–100):** 25+ packages each. The van never holds more than 12 at once: the
   rest wait in **warehouses** along the way (a pickup with a "+N" that loads all its parcels as you pass),
@@ -137,8 +140,10 @@ sticker and opens that offer instead.
   longer (5 tiles, up to 14), the effects quicker and busier, and hot runs add flames, white water, a
   third zombie, taller peaks. Drawn by `Wreckage` (`style`); `TrailPreview` shows a stretch in the
   garage. `-- --wake=<id>` to try one, `-- --unlock=<id>` for its card.
-- **Drop-offs vs pickups:** every house that wants packages stands on a round bullseye in its colour
-  (grey for lockers); pickups keep their square lot with a dashed outline.
+- **Drop-offs vs pickups:** every house that wants packages stands on a round pad: pale and plain, so the
+  building's own colour pops, with a thin rim in that colour (grey for lockers) and faint waves drifting in
+  toward the building until it has everything (`scripts/pad_pulse.gd`). Pickups keep their square lot with
+  a dashed outline, and waves going out from the dock to the outline while there's something to collect.
 - **Win celebrations** (`scripts/ride_wins.gd`): every ride shows off when a level's won, and when it's
   picked in the Garage: the van hops twice; the monster truck bounces on crazy hydraulics; the scooter
   pops a wheelie and spins; Mr. Frosty twirls to its jingle; the rocket van boosts; the hover van lifts
@@ -362,7 +367,8 @@ as a little flame inside the Daily button.
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |
 | `scripts/roadworks.gd` | Roadworks on a road tile (counts down deliveries, then clears) |
-| `tools/twist_levels.gd`, `make_mega.gd` | Design aids: add ice/lockers/roadworks to generated levels and rate difficulty (`--rate`); add exits for parted routes |
+| `tools/make_plan.py`, `gen_levels.gd`, `level_metrics.gd`, `level_report.gd`, `assemble_levels.py`, `level_review.py`, `gen_all.sh`, `score_all.sh` | The level engine: the plan for all 100 levels, the generator, the scoring, the scorecard and the assembly (`design/level_engine.md`) |
+| `tools/generate.gd`, `twist_levels.gd`, `fix_ice.gd`, `make_mega.gd` | The older route-first generator and its helpers (still used for dailies, side roads and parted routes) |
 | `scripts/symbol_card.gd`, `tip_bubble.gd` | "What's this?" explainers for board symbols; one-time tips pointing at things |
 | `ads/playable/` | The playable ad (one MRAID 2.0 HTML file for Tapjoy and co.; see its README) |
 | `scripts/portrait_host.gd` | Sideways play: a portrait column in the middle of the screen for menus and pop-ups |
@@ -396,7 +402,14 @@ godot --headless --path . --script res://tools/validate_levels.gd -- --ablate
 # Play every level (or a range) with injected input in several modes; prints a summary
 tools/autotest_all.sh            # or: tools/autotest_all.sh 21 40 autoundo
 
-# Generate candidate levels (see levels/README.md for options)
+# The level engine (design/level_engine.md): plan, generate, assemble, score
+python3 tools/make_plan.py                       # tools/level_plan.json from the table in the script
+tools/gen_all.sh 120 1                           # 120 s per slot, seed 1 (add slot numbers to redo a few)
+python3 tools/assemble_levels.py                 # best candidate per slot -> levels/levels.json
+tools/score_all.sh > build/levelgen/scores.jsonl && python3 tools/level_review.py build/levelgen/scores.jsonl
+godot --headless --path . --script res://tools/level_report.gd -- --from=41 --to=47    # the scorecard
+
+# The older generator (dailies, side roads; see levels/README.md for options)
 godot --headless --path . --script res://tools/generate.gd -- --w=6 --h=8 --n=5 --oneway=2
 
 # Play one level with injected mouse drags; prints an AUTOTEST line and quits.

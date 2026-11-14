@@ -1,5 +1,9 @@
 # Level format
 
+Levels 1–100 are made by the level engine: plan in `tools/make_plan.py`, generator `tools/gen_levels.gd`,
+scores in `design/level_scores.md`. See `design/level_engine.md` before editing them by hand; a hand edit
+is fine, but run the scorecard after (`tools/level_report.gd`).
+
 All levels live in `levels.json` as `{"levels": [ ... ]}`. Order in the file = level number.
 
 ```json
@@ -81,6 +85,9 @@ each day, repeating (see `scripts/daily.gd`). The validator checks them too.
   `scripts/cosmetics.gd`). It isn't part of the rules; the validator checks it can be picked up on the way
   to a win (on some winning route, or by driving past the last delivery in the same drag).
   `tools/place_gifts.gd` lists good spots.
+- `flavor`: what kind of puzzle the level is (`fork`, `decoy`, `sorter`, `twodoor`...). Written by the level
+  engine (`design/level_engine.md`) and used only by the tools: the game ignores it, players never see it,
+  and it isn't part of the "redesigned since you beat it" fingerprint.
 - `preview`: `true` marks a sneak-peek level (shown with a PEEK tag).
 - `challenge`: `true` marks a difficulty spike (much harder than its neighbours): a hazard rim and flame on
   the map, a "CHALLENGE!" intro until it's beaten, and a 500 Dollaroo bonus on the first win. One per

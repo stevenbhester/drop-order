@@ -214,9 +214,19 @@ func _ready() -> void:
 					m.position = (pts.back() as Vector2).lerp(zone, (k + 1) / 4.0)
 					m.button_mask = MOUSE_BUTTON_MASK_LEFT
 					Input.parse_input_event(m)
+					# Headless, a motion event waits for the next event before it's handed on: push it through,
+					# or the finger "arrives" in the zone only as it lifts.
+					Input.flush_buffered_events()
 					await get_tree().process_frame
+				var in_zone: bool = g._cz_in
+				var seg_then: int = g.seg.size()
+				var st_then: String = Game.State.keys()[g.state]
 				await get_tree().create_timer(hold).timeout
 				var armed: bool = g._cz_t >= Game.CANCEL_HOLD
+				if OS.get_cmdline_user_args().has("--verbose"):
+					var hov := get_viewport().gui_get_hovered_control()
+					print("cancel: in the zone=%s, planned %d tiles, %s, held %.2fs, over %s" % [in_zone, seg_then, st_then, g._cz_t,
+						(hov.get_class() + " " + str(hov.name) + " " + str(hov.get_global_rect())) if hov else "nothing"])
 				_mouse(zone, false)
 				await get_tree().create_timer(0.3).timeout
 				notes.append("hold %.1fs: drawn=%d armed=%s state=%s route=%d" % [hold, drawn, armed, Game.State.keys()[g.state], g.route.size()])

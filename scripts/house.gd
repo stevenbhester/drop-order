@@ -35,6 +35,36 @@ var ghost_done := false:
 var _scale_tw: Tween
 var _pos_tw: Tween
 
+## The stroke round the building, so it stands off its pad: a child House that draws just the building, in
+## one flat colour (a darker shade of the house's own), eight times a hair's breadth off in every direction,
+## behind the real one. `silhouette` marks that child.
+const STROKE := 0.026
+const OUTLINE_SHADER := "shader_type canvas_item;\nuniform vec4 tint : source_color = vec4(0.0, 0.0, 0.0, 1.0);\nvoid fragment() {\n\tCOLOR = vec4(tint.rgb, COLOR.a * tint.a);\n}\n"
+static var _outline_shader: Shader
+var silhouette := false
+var _outline: House
+
+
+func _ready() -> void:
+	if silhouette:
+		set_process(false)
+		return
+	if _outline_shader == null:
+		_outline_shader = Shader.new()
+		_outline_shader.code = OUTLINE_SHADER
+	_outline = House.new()
+	_outline.silhouette = true
+	_outline.color = color
+	_outline.locker = locker
+	_outline.order = order
+	_outline.size = size
+	_outline.theme = theme
+	_outline.show_behind_parent = true
+	var mat := ShaderMaterial.new()
+	mat.shader = _outline_shader
+	_outline.material = mat
+	add_child(_outline)
+
 
 func is_full() -> bool:
 	return filled >= order
@@ -112,13 +142,6 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var s := size
-	if _glow > 0.0:
-		# The glow: soft rings of its colour round the house, breathing.
-		var pulse := 0.75 + 0.25 * sin(_gt * 3.2)
-		var gc := Vector2(0, -s * 0.24)
-		for k in 5:
-			var r := s * (0.36 + k * 0.07)
-			draw_circle(gc, r, Color(color, 0.075 * _glow * pulse))
 	var w := s * 0.62
 	var h := s * 0.4
 	var done := is_full()
@@ -129,7 +152,31 @@ func _draw() -> void:
 		roof = roof.lerp(Color("b9b9b9"), 0.5)
 	var ink := roof.darkened(0.28)
 	var glass := Color("e9e9e9") if done else Color("fff1b8")
+	if silhouette:
+		# Just the building's shape, nudged eight ways (the shader paints it all one colour).
+		for k in 8:
+			var a := TAU * k / 8.0
+			draw_set_transform(Vector2(cos(a), sin(a)) * s * STROKE, 0.0, Vector2.ONE)
+			_shape(s, w, h, wall, roof, ink, glass, done)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
+	if _outline:
+		var tint := color.darkened(0.45) if not done else Color("8d8d96")
+		(_outline.material as ShaderMaterial).set_shader_parameter("tint", tint)
+	if _glow > 0.0:
+		# The glow: soft rings of its colour round the house, breathing.
+		var pulse := 0.75 + 0.25 * sin(_gt * 3.2)
+		var gc := Vector2(0, -s * 0.24)
+		for k in 5:
+			var r := s * (0.36 + k * 0.07)
+			draw_circle(gc, r, Color(color, 0.075 * _glow * pulse))
 	DrawUtil.rrect(self, Rect2(-w * 0.62, -s * 0.05, w * 1.24, s * 0.11), Color(0, 0, 0, 0.13), s * 0.05)
+	_shape(s, w, h, wall, roof, ink, glass, done)
+	_after(s, w, h, roof, done)
+
+
+## The building itself, in whichever theme is worn.
+func _shape(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color, done: bool) -> void:
 	# Each colour is a different kind of place (its packages' class): same footprint, same light walls and
 	# coloured roof, so it's still the colour you read.
 	var look := theme if theme != "" else Looks.building
@@ -139,7 +186,6 @@ func _draw() -> void:
 		_castle(s, w, h, roof, ink, done)
 	else:
 		_building(s, w, h, wall, roof, ink, glass, done)
-	_after(s, w, h, roof, done)
 
 
 ## The usual buildings: each colour a different kind of place.

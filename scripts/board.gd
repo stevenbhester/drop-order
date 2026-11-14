@@ -108,6 +108,12 @@ func setup(level: LevelData, tile_size: float) -> void:
 		n.size = tile
 		n.base_pos = center(h.pos) + Vector2(0, tile * 0.3)
 		n.position = n.base_pos
+		var pulse := PadPulse.new()
+		pulse.tile = tile
+		pulse.color = n.color
+		pulse.house = n
+		pulse.position = center(h.pos) + Vector2(0, tile * 0.06)
+		add_child(pulse)
 		add_child(n)
 		house_nodes.append(n)
 	for sh in L.shops:
@@ -268,13 +274,14 @@ func _draw() -> void:
 					DrawUtil.rrect(self, r, Palette.YARD, tile * 0.18)
 	# Drop-offs stand on a round bullseye in the colour they want, so they can't be mistaken for pickups
 	# (square lots with a dashed outline).
+	# Drop-offs stand on a round pad: pale and plain, so the building's own colour is what pops, with a thin
+	# rim in that colour (PadPulse adds faint waves drifting in toward the building). Pickups keep their
+	# square lot (Shop).
 	for h in L.houses:
 		var col: Color = Palette.pkg(h.color) if h.color != "any" else Color("8f98aa")
 		var hc := center(h.pos) + Vector2(0, tile * 0.06)
-		draw_circle(hc, tile * 0.47, col.darkened(0.15))
-		draw_circle(hc, tile * 0.42, col.lerp(Palette.GRASS.lerp(Color.WHITE, 0.6), 0.78))
-		draw_circle(hc, tile * 0.3, col.lerp(Color.WHITE, 0.45))
-		draw_circle(hc, tile * 0.18, col.lerp(Palette.GRASS.lerp(Color.WHITE, 0.6), 0.78))
+		draw_circle(hc, tile * 0.46, Palette.GRASS.lerp(Color.WHITE, 0.74))
+		draw_arc(hc, tile * 0.445, 0, TAU, 48, col.darkened(0.08), tile * 0.045, true)
 
 	# Roads: rounded squares + bridges to right/down neighbours, with a darker curb pass first.
 	var m := tile * 0.12

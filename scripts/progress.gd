@@ -301,6 +301,13 @@ func _load() -> void:
 	if lf is Dictionary:
 		for k in lf:
 			level_fp[int(k)] = int(lf[k])
+	# 0.7 build 23 redesigned every level from 5 to 100. A save from before that beat the old ones: they show
+	# as UPDATED on the map (hollow stars) until they're beaten again. (Saves that already kept fingerprints
+	# show it by themselves; this is for the ones that didn't.)
+	if int(d.get("levels_v", 1)) < 3:
+		for n in completed:
+			if int(n) >= 5 and int(n) <= 100 and not level_fp.has(int(n)):
+				level_fp[int(n)] = 1
 	var mg = d.get("mega", {})
 	if mg is Dictionary:
 		for k in mg:
@@ -316,7 +323,7 @@ func _save() -> void:
 		var st := {}
 		for k in stars:
 			st[str(k)] = stars[k]
-		f.store_string(JSON.stringify({"levels_v": 2, "prefs_v": 1, "completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
+		f.store_string(JSON.stringify({"levels_v": 3, "prefs_v": 1, "completed": completed.keys(), "stars": st, "gas": gas, "gas_t": gas_t,
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,

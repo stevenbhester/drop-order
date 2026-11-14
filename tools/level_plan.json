@@ -1,0 +1,4241 @@
+{
+ "slots": [
+  {
+   "n": 1,
+   "w": 5,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "keep",
+   "title": "First Drop",
+   "keep": true
+  },
+  {
+   "n": 2,
+   "w": 5,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "keep",
+   "title": "Top Goes First",
+   "keep": true
+  },
+  {
+   "n": 3,
+   "w": 5,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "keep",
+   "title": "Burning Rubber",
+   "keep": true
+  },
+  {
+   "n": 4,
+   "w": 5,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "keep",
+   "title": "One Pass",
+   "keep": true
+  },
+  {
+   "n": 5,
+   "w": 5,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Rush Hour",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "need": [],
+   "challenge": true,
+   "gift": "racing"
+  },
+  {
+   "n": 6,
+   "w": 5,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Side Streets",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    0.8,
+    2.8
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "need": [],
+   "gift": "monster_truck"
+  },
+  {
+   "n": 7,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Double Order",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "need": [],
+   "intro": "multi"
+  },
+  {
+   "n": 8,
+   "w": 5,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Bulk Buyer",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "overlap_max": 0.7,
+   "multi": [
+    1,
+    3
+   ],
+   "need": [],
+   "gift": "drizzlet"
+  },
+  {
+   "n": 9,
+   "w": 5,
+   "h": 5,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "One Way",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "oneway": [
+    1,
+    2
+   ],
+   "need": [
+    "oneway"
+   ],
+   "intro": "oneway"
+  },
+  {
+   "n": 10,
+   "w": 5,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Against Traffic",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    0.8,
+    2.8
+   ],
+   "late": 0.1,
+   "oneway": [
+    1,
+    2
+   ],
+   "need": [
+    "oneway"
+   ]
+  },
+  {
+   "n": 11,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Downtown",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "need": []
+  },
+  {
+   "n": 12,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "knot",
+   "title": "Long Haul",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 10,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "need": []
+  },
+  {
+   "n": 13,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Overpass",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "need": [
+    "bridge"
+   ],
+   "gift": "bonkle",
+   "intro": "bridge"
+  },
+  {
+   "n": 14,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "longcon",
+   "title": "Flyover",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    4.6,
+    6.2
+   ],
+   "doom_min": 7,
+   "bridge": [
+    1,
+    1
+   ],
+   "need": [],
+   "challenge": true,
+   "gift": "duskwood"
+  },
+  {
+   "n": 15,
+   "w": 6,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Spaghetti Junction",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    0.8,
+    2.8
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "need": [],
+   "gift": "key"
+  },
+  {
+   "n": 16,
+   "w": 6,
+   "h": 9,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Suburbs",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "overlap_max": 0.7,
+   "multi": [
+    1,
+    3
+   ],
+   "need": [],
+   "gift": "gloaming"
+  },
+  {
+   "n": 17,
+   "w": 7,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Rainbow Row",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "need": []
+  },
+  {
+   "n": 18,
+   "w": 7,
+   "h": 9,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Crosstown",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    2.8,
+    4.6
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "bridge": [
+    1,
+    1
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "need": []
+  },
+  {
+   "n": 19,
+   "w": 7,
+   "h": 9,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Gridlock",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    0.8,
+    2.8
+   ],
+   "late": 0.1,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "need": []
+  },
+  {
+   "n": 20,
+   "w": 7,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "knot",
+   "title": "Last Mile",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    4.6,
+    6.2
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "need": [],
+   "challenge": true
+  },
+  {
+   "n": 21,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Return to Sender",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ],
+   "gift": "sprout",
+   "intro": "pickup"
+  },
+  {
+   "n": 22,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "restock",
+   "title": "Pick Up, Drop Off",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 23,
+   "w": 6,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Corner Shops",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    1.8,
+    3.4
+   ],
+   "late": 0.1,
+   "oneway": [
+    0,
+    2
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 24,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "sorter",
+   "title": "High Street",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 25,
+   "w": 5,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Checkpoint",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "need": [
+    "gate"
+   ],
+   "intro": "gate"
+  },
+  {
+   "n": 26,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Toll Road",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "overlap_max": 0.7,
+   "oneway": [
+    0,
+    2
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "need": [
+    "gate"
+   ],
+   "gift": "puffball"
+  },
+  {
+   "n": 27,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "restock",
+   "title": "Key Delivery",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "need": [
+    "gate",
+    "pickup"
+   ]
+  },
+  {
+   "n": 28,
+   "w": 7,
+   "h": 9,
+   "tier": "hard",
+   "flavor": "districts",
+   "title": "Border Control",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    5.6,
+    7.0
+   ],
+   "districts": 2,
+   "doors": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "need": [
+    "gate"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 29,
+   "w": 5,
+   "h": 5,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Clocking Off",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "ret": true,
+   "need": [],
+   "intro": "return"
+  },
+  {
+   "n": 30,
+   "w": 6,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Round Trip",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    1.8,
+    3.4
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "ret": true,
+   "need": []
+  },
+  {
+   "n": 31,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Overtime",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 32,
+   "w": 7,
+   "h": 9,
+   "tier": "hard",
+   "flavor": "longcon",
+   "title": "Night Shift",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    5.6,
+    7.0
+   ],
+   "doom_min": 7,
+   "oneway": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [],
+   "challenge": true
+  },
+  {
+   "n": 33,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Turntable",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "hub": [
+    1,
+    2
+   ],
+   "need": [
+    "hub"
+   ],
+   "gift": "key",
+   "intro": "hub"
+  },
+  {
+   "n": 34,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "sorter",
+   "title": "Mix-Up",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "hub": [
+    1,
+    2
+   ],
+   "need": [
+    "hub"
+   ],
+   "gift": "mosaic_moth"
+  },
+  {
+   "n": 35,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Shuffle",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "shops": [
+    1,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 36,
+   "w": 7,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "sorter",
+   "title": "Sorting Office",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    5.6,
+    7.0
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    1,
+    2
+   ],
+   "need": [
+    "hub"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 37,
+   "w": 7,
+   "h": 9,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Rush Order",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    1.8,
+    3.4
+   ],
+   "late": 0.1,
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 38,
+   "w": 6,
+   "h": 9,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Mixed Bag",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    3.6,
+    5.4
+   ],
+   "overlap_max": 0.7,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ],
+   "gift": "rivet"
+  },
+  {
+   "n": 39,
+   "w": 7,
+   "h": 9,
+   "tier": "hard",
+   "flavor": "restock",
+   "title": "Black Friday",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    5.6,
+    7.0
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 40,
+   "w": 6,
+   "h": 9,
+   "tier": "hard",
+   "flavor": "districts",
+   "title": "Christmas Eve",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    5.6,
+    7.0
+   ],
+   "districts": 2,
+   "doors": 2,
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "gate"
+   ]
+  },
+  {
+   "n": 41,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "First Frost",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ],
+   "intro": "ice"
+  },
+  {
+   "n": 42,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Black Ice",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "late": 0.1,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ]
+  },
+  {
+   "n": 43,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Snowplough",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ],
+   "gift": "key"
+  },
+  {
+   "n": 44,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "knot",
+   "title": "Avalanche",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ]
+  },
+  {
+   "n": 45,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Hot Chocolate",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [],
+   "theme": "ice",
+   "theme_n": 3
+  },
+  {
+   "n": 46,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Unmarked",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ]
+  },
+  {
+   "n": 47,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "longcon",
+   "title": "Whiteout",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.2,
+    7.8
+   ],
+   "doom_min": 7,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 48,
+   "w": 5,
+   "h": 6,
+   "tier": "medium",
+   "flavor": "restock",
+   "title": "Low Tide",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice",
+    "pickup"
+   ]
+  },
+  {
+   "n": 49,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Fish Market",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "overlap_max": 0.7,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 50,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "sorter",
+   "title": "Lighthouse Keeper",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 51,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Seagulls",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "late": 0.1,
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 52,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Ferry Crossing",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 53,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "knot",
+   "title": "Storm Surge",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.2,
+    7.8
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    1,
+    3
+   ],
+   "need": [
+    "ice",
+    "pickup"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 54,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Same Street, Again",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 55,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Any Colour",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ],
+   "intro": "locker"
+  },
+  {
+   "n": 56,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "dump",
+   "title": "Arcade",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 57,
+   "w": 6,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Night Owls",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "late": 0.1,
+   "oneway": [
+    0,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 58,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "districts",
+   "title": "Neon Nightmare",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.2,
+    7.8
+   ],
+   "districts": 2,
+   "doors": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "gate",
+    "locker"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 59,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Vending Machine",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "gate": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 60,
+   "w": 6,
+   "h": 8,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Karaoke",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "oneway": [
+    0,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 61,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "dump",
+   "title": "Last Train",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.2,
+    7.8
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 62,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Apple Cart",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 63,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "sorter",
+   "title": "Cider Run",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 64,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Scarecrow",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "overlap_max": 0.7,
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 65,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Hay Bales",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.4,
+    3.8
+   ],
+   "late": 0.1,
+   "shops": [
+    1,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 66,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "restock",
+   "title": "Pumpkin Patch",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 67,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "dump",
+   "title": "Harvest Moon",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.2,
+    7.8
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "locker"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 68,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "knot",
+   "title": "No Return Address",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.2,
+    6.0
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "lockers": [
+    1,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 69,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "intro",
+   "title": "Men at Work",
+   "houses": [
+    2,
+    4
+   ],
+   "colors": 3,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 800,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 8,
+   "cover_min": 0.45,
+   "diff": [
+    0.5,
+    3.6
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ],
+   "intro": "works"
+  },
+  {
+   "n": 70,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "districts",
+   "title": "Diversion",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "districts": 2,
+   "doors": 1,
+   "hub": [
+    0,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ]
+  },
+  {
+   "n": 71,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "sorter",
+   "title": "Rush Hour, Again",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "hub": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "hub"
+   ]
+  },
+  {
+   "n": 72,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Traffic Cone",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ]
+  },
+  {
+   "n": 73,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "longcon",
+   "title": "Gridlock Deluxe",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.6,
+    8.2
+   ],
+   "doom_min": 7,
+   "oneway": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 74,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Lunch Break",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.6,
+    4.0
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "hub": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": []
+  },
+  {
+   "n": 75,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "The Other Van",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ]
+  },
+  {
+   "n": 76,
+   "w": 5,
+   "h": 6,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Dust Devil",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.6,
+    4.0
+   ],
+   "late": 0.1,
+   "ice": [
+    1,
+    3
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "ice",
+    "works"
+   ]
+  },
+  {
+   "n": 77,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "dump",
+   "title": "Flash Flood",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 78,
+   "w": 5,
+   "h": 6,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Tumbleweed",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "overlap_max": 0.7,
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ]
+  },
+  {
+   "n": 79,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "districts",
+   "title": "Cactus Mail",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "districts": 2,
+   "doors": 2,
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "works"
+   ]
+  },
+  {
+   "n": 80,
+   "w": 6,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "decoy",
+   "title": "Lightning Rod",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "ice": [
+    0,
+    3
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 81,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "freerun",
+   "title": "Siesta",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 6,
+   "plans": [
+    3,
+    14
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.6,
+    4.0
+   ],
+   "routes_max": 58,
+   "late": 0.15,
+   "bits_max": 3.2,
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 82,
+   "w": 6,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "knot",
+   "title": "Mirage",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    30,
+    65
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.6,
+    8.2
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "ice": [
+    0,
+    3
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "locker"
+   ]
+  },
+  {
+   "n": 83,
+   "w": 7,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "longcon",
+   "title": "Thunderclap",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.6,
+    8.2
+   ],
+   "doom_min": 7,
+   "ice": [
+    1,
+    3
+   ],
+   "lockers": [
+    1,
+    2
+   ],
+   "works": [
+    1,
+    2
+   ],
+   "need": [
+    "ice",
+    "locker",
+    "works"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 84,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "restock",
+   "title": "Cloud Nine",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 85,
+   "w": 7,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "twodoor",
+   "title": "Penthouse",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 86,
+   "w": 7,
+   "h": 8,
+   "tier": "medium",
+   "flavor": "hoard",
+   "title": "Crane Lift",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "stock": 4,
+   "max_order": 4,
+   "load_min": 8,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    2,
+    4
+   ],
+   "multi": [
+    3,
+    8
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ]
+  },
+  {
+   "n": 87,
+   "w": 6,
+   "h": 7,
+   "tier": "easy",
+   "flavor": "fork",
+   "title": "Thin Air",
+   "houses": [
+    3,
+    5
+   ],
+   "colors": 3,
+   "free_min": 4,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 1500,
+   "loops": [
+    55,
+    85
+   ],
+   "len_min": 11,
+   "cover_min": 0.45,
+   "diff": [
+    2.6,
+    4.0
+   ],
+   "late": 0.1,
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 88,
+   "w": 7,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "sorter",
+   "title": "Window Washer",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.6,
+    8.2
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 89,
+   "w": 6,
+   "h": 7,
+   "tier": "medium",
+   "flavor": "twin",
+   "title": "Mile Zero",
+   "houses": [
+    4,
+    6
+   ],
+   "colors": 4,
+   "free_min": 6,
+   "plans": [
+    2,
+    2
+   ],
+   "nodes_max": 3000,
+   "loops": [
+    65,
+    95
+   ],
+   "len_min": 13,
+   "cover_min": 0.45,
+   "diff": [
+    4.6,
+    6.4
+   ],
+   "overlap_max": 0.7,
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "pickup"
+   ]
+  },
+  {
+   "n": 90,
+   "w": 7,
+   "h": 8,
+   "tier": "hard",
+   "flavor": "districts",
+   "title": "Top of the World",
+   "houses": [
+    5,
+    7
+   ],
+   "colors": 4,
+   "free_min": 10,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 5000,
+   "loops": [
+    70,
+    100
+   ],
+   "len_min": 16,
+   "cover_min": 0.5,
+   "diff": [
+    6.6,
+    8.2
+   ],
+   "districts": 2,
+   "doors": 2,
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    1,
+    2
+   ],
+   "works": [
+    0,
+    2
+   ],
+   "need": [
+    "gate"
+   ],
+   "challenge": true
+  },
+  {
+   "n": 91,
+   "w": 9,
+   "h": 11,
+   "tier": "end",
+   "flavor": "decoy",
+   "title": "Needle in a Haystack",
+   "houses": [
+    7,
+    10
+   ],
+   "colors": 5,
+   "free_min": 12,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    7.4,
+    8.4
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "need": [
+    "pickup"
+   ],
+   "repaints": 6
+  },
+  {
+   "n": 92,
+   "w": 8,
+   "h": 12,
+   "tier": "end",
+   "flavor": "knot",
+   "title": "Last Orders",
+   "houses": [
+    7,
+    10
+   ],
+   "colors": 5,
+   "free_min": 2,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    30,
+    65
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    7.4,
+    8.4
+   ],
+   "ext": [
+    0,
+    1
+   ],
+   "late": 0.15,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ],
+   "repaints": 6
+  },
+  {
+   "n": 93,
+   "w": 8,
+   "h": 12,
+   "tier": "end",
+   "flavor": "districts",
+   "title": "The Long Way Round",
+   "houses": [
+    7,
+    10
+   ],
+   "colors": 5,
+   "free_min": 12,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    7.6,
+    8.6
+   ],
+   "districts": 3,
+   "doors": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ],
+   "repaints": 6
+  },
+  {
+   "n": 94,
+   "w": 8,
+   "h": 11,
+   "tier": "end",
+   "flavor": "sorter",
+   "title": "Night Freight",
+   "houses": [
+    7,
+    10
+   ],
+   "colors": 5,
+   "free_min": 12,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    8.0,
+    9.0
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    1,
+    2
+   ],
+   "need": [
+    "hub"
+   ],
+   "repaints": 6,
+   "gift": "deep_field"
+  },
+  {
+   "n": 95,
+   "w": 8,
+   "h": 12,
+   "tier": "end",
+   "flavor": "longcon",
+   "title": "Grand Tour",
+   "houses": [
+    7,
+    10
+   ],
+   "colors": 5,
+   "free_min": 12,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    8.6,
+    9.6
+   ],
+   "doom_min": 7,
+   "oneway": [
+    0,
+    2
+   ],
+   "bridge": [
+    1,
+    1
+   ],
+   "multi": [
+    1,
+    3
+   ],
+   "shops": [
+    1,
+    2
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "ret": true,
+   "need": [
+    "pickup"
+   ],
+   "repaints": 6,
+   "challenge": true
+  },
+  {
+   "n": 96,
+   "w": 9,
+   "h": 12,
+   "tier": "end",
+   "flavor": "hoard",
+   "title": "Bulk Order",
+   "houses": [
+    8,
+    11
+   ],
+   "colors": 4,
+   "free_min": 12,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    7.8,
+    8.8
+   ],
+   "stock": 5,
+   "max_order": 4,
+   "load_min": 8,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    14,
+    22
+   ],
+   "shops": [
+    4,
+    6
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ],
+   "repaints": 6,
+   "minpkg": 25
+  },
+  {
+   "n": 97,
+   "w": 9,
+   "h": 11,
+   "tier": "end",
+   "flavor": "districts",
+   "title": "Peak Season",
+   "houses": [
+    8,
+    11
+   ],
+   "colors": 4,
+   "free_min": 12,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    7.8,
+    8.8
+   ],
+   "districts": 2,
+   "doors": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    14,
+    22
+   ],
+   "shops": [
+    4,
+    6
+   ],
+   "stock": 5,
+   "max_order": 4,
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ],
+   "repaints": 6,
+   "minpkg": 25
+  },
+  {
+   "n": 98,
+   "w": 9,
+   "h": 11,
+   "tier": "end",
+   "flavor": "twodoor",
+   "title": "Overstock",
+   "houses": [
+    8,
+    11
+   ],
+   "colors": 4,
+   "free_min": 12,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    8.2,
+    9.2
+   ],
+   "late": 0.65,
+   "ext": [
+    3,
+    7
+   ],
+   "two_door": 3.0,
+   "late_min": 2,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    14,
+    22
+   ],
+   "shops": [
+    4,
+    6
+   ],
+   "stock": 5,
+   "max_order": 4,
+   "gate": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ],
+   "repaints": 6,
+   "minpkg": 25
+  },
+  {
+   "n": 99,
+   "w": 8,
+   "h": 12,
+   "tier": "end",
+   "flavor": "sorter",
+   "title": "Cyber Monday",
+   "houses": [
+    8,
+    11
+   ],
+   "colors": 4,
+   "free_min": 12,
+   "plans": [
+    1,
+    1
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    8.4,
+    9.4
+   ],
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    14,
+    22
+   ],
+   "shops": [
+    4,
+    6
+   ],
+   "stock": 5,
+   "max_order": 4,
+   "gate": [
+    0,
+    2
+   ],
+   "hub": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ],
+   "repaints": 6,
+   "minpkg": 25
+  },
+  {
+   "n": 100,
+   "w": 9,
+   "h": 12,
+   "tier": "end",
+   "flavor": "hoard",
+   "title": "The Last Mile",
+   "houses": [
+    8,
+    11
+   ],
+   "colors": 4,
+   "free_min": 12,
+   "plans": [
+    1,
+    2
+   ],
+   "nodes_max": 8000,
+   "loops": [
+    65,
+    95
+   ],
+   "routes_max": 55,
+   "len_min": 26,
+   "cover_min": 0.45,
+   "diff": [
+    9.0,
+    10.0
+   ],
+   "stock": 5,
+   "max_order": 4,
+   "load_min": 8,
+   "oneway": [
+    0,
+    2
+   ],
+   "multi": [
+    14,
+    22
+   ],
+   "shops": [
+    4,
+    6
+   ],
+   "gate": [
+    0,
+    2
+   ],
+   "need": [
+    "warehouse"
+   ],
+   "repaints": 6,
+   "challenge": true,
+   "minpkg": 25
+  }
+ ]
+}

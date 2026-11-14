@@ -52,7 +52,7 @@ const MAX_LOAD := 12
 ## has been redesigned since.
 static func fingerprint(d: Dictionary) -> int:
 	var c: Dictionary = d.duplicate(true)
-	for k in ["title", "hint", "gift", "challenge", "preview"]:
+	for k in ["title", "hint", "gift", "challenge", "preview", "flavor"]:
 		c.erase(k)
 	# Spacing inside map rows doesn't count (reformatting the file mustn't look like a redesign).
 	if c.get("map") is Array:

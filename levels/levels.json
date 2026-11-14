@@ -3,6 +3,7 @@
     {
       "title": "First Drop",
       "hint": "Drag a route from the van to the red house.",
+      "flavor": "intro",
       "map": [
         ". . . . .",
         ". # # # .",
@@ -17,6 +18,7 @@
     {
       "title": "Top Goes First",
       "hint": "Only the TOP package can be delivered.",
+      "flavor": "intro",
       "map": [
         ". . . . .",
         ". b # . .",
@@ -31,6 +33,7 @@
     {
       "title": "Burning Rubber",
       "hint": "You drive so hard the road tears up behind you, so you can never cross your own wreckage. Which way round?",
+      "flavor": "intro",
       "map": [
         ". . . . .",
         ". # # # .",
@@ -46,6 +49,7 @@
       "title": "One Pass",
       "hint": "Plan the whole loop first: once you've torn a road up, it's gone.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
         ". . . . .",
         ". # # # .",
@@ -59,1505 +63,1614 @@
     },
     {
       "title": "Rush Hour",
-      "challenge": true,
       "hint": "Wrong turn? Undo takes back your last drive. One free per try.",
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "decoy",
       "map": [
         "# # # # #",
-        "# y . b #",
+        "# b # . S",
         "# # # # #",
-        "# . r . #",
+        "# . # r #",
+        "# g # b #",
         "# # # # #",
-        "# p . . #",
-        "# # S # #"
+        ". . y . ."
       ],
-      "gift": {"at": [0, 5], "item": "racing"},
-      "stack": ["purple", "yellow", "red", "blue"]
+      "gift": {"at": [4, 2], "item": "racing"},
+      "stack": ["red", "blue", "yellow", "green", "blue"]
     },
     {
       "title": "Side Streets",
+      "hint": "Lots of ways to do this one. Take whichever you like.",
       "no_revisit": true,
-      "gift": {"at": [0, 5], "item": "monster_truck"},
+      "flavor": "freerun",
       "map": [
-        "r . . . .",
+        "# # # # S",
+        "# r # . #",
+        "# # # # #",
+        "# g # g #",
         "# # # # #",
         "# b # b #",
-        "# . # . #",
-        "# # # . #",
-        "# r # . .",
-        "S # # # #"
+        "# # # # #"
       ],
-      "stack": ["red", "red", "blue", "blue"]
+      "gift": {"at": [4, 1], "item": "monster_truck"},
+      "stack": ["blue", "blue", "green", "green", "red"]
     },
     {
       "title": "Double Order",
       "hint": "A ×2 house wants two packages of its colour.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "b  .  .  .  .",
+        ".  .  .  g  .",
         "#  #  #  #  #",
-        "#  .  #  .  #",
-        "#  #  #  .  #",
-        "#  r2 .  .  #",
-        "#  #  S  #  #"
+        "#  r  #  g2 #",
+        "#  #  #  #  #",
+        "#  .  #  b  #",
+        "#  S  #  #  #"
       ],
-      "stack": ["red", "blue", "red"]
+      "stack": ["red", "green", "green", "green", "blue"]
     },
     {
       "title": "Bulk Buyer",
+      "hint": "Two ways to win. One of them passes something shiny.",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
+        "b2 .  .  y  .",
         "#  #  #  #  #",
-        "S  .  #  .  #",
-        "#  r  #  #  #",
-        "#  .  #  b  r",
+        "#  g  #  r  #",
         "#  #  #  #  #",
-        "#  .  #  .  #",
+        "#  b  #  g2 #",
         "#  #  #  #  #",
-        ".  .  .  .  y2"
+        "#  .  S  .  #",
+        "#  #  #  #  #"
       ],
-      "gift": {"at": [1, 4], "item": "drizzlet"},
-      "stack": ["blue", "yellow", "yellow", "red", "red"]
+      "gift": {"at": [1, 5], "item": "drizzlet"},
+      "stack": ["blue", "blue", "blue", "green", "yellow", "red", "green", "green"]
     },
     {
       "title": "One Way",
       "hint": "Arrows are one-way. You can turn onto one, but you must leave it the way it points.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "S # # y #",
-        "# . # y #",
-        "# # < . #",
-        "# b # . #",
-        "# # > # #"
+        ". # < # .",
+        "g # . # .",
+        "b # S # .",
+        ". # . # .",
+        "g # # # r"
       ],
-      "stack": ["yellow", "blue", "yellow"]
+      "stack": ["green", "red", "green", "blue"]
     },
     {
       "title": "Against Traffic",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        "# # # # S",
-        "# p # . #",
-        "# b # . #",
-        "# y # # #",
-        "# . # . v",
-        "v p # . #",
+        ". g . . .",
         "# # # # #",
-        "y . . . ."
+        "v r # . #",
+        "# # # # #",
+        "# r # . #",
+        "# # # # #",
+        "# b # . #",
+        "# # # # S"
       ],
-      "stack": ["purple", "blue", "purple", "yellow", "yellow"]
+      "stack": ["green", "red", "red", "blue"]
     },
     {
       "title": "Downtown",
+      "hint": "You can drive past a house and come back to it from another street.",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
+        ".  .  .  r  .  .",
         "#  #  #  #  #  .",
-        "#  y  #  p2 #  .",
-        "#  .  ^  .  #  .",
-        "#  >  #  .  #  .",
-        "#  y  b  .  #  y",
+        "#  g2 #  b2 #  .",
         "#  #  #  #  #  .",
-        "#  .  #  .  .  .",
-        "#  S  #  #  #  ."
+        "#  g  #  .  #  .",
+        "#  #  #  S  #  .",
+        "#  y  #  .  #  .",
+        "#  >  #  #  #  ."
       ],
-      "stack": ["yellow", "blue", "purple", "purple", "yellow", "yellow"]
+      "stack": ["red", "blue", "blue", "green", "green", "green", "yellow"]
     },
     {
       "title": "Long Haul",
+      "hint": "One long winding drive. Don't box yourself in.",
       "no_revisit": true,
+      "flavor": "knot",
       "map": [
-        ". . . p . .",
-        ". # # # # .",
-        ". # y y # .",
-        ". # # # # .",
-        ". # b . . .",
-        ". # # S # .",
-        ". # . . # .",
-        "y # # # # b"
+        "# # # # # .",
+        "# b g . # .",
+        "# . # # # .",
+        "# y # y # .",
+        "# # # # # .",
+        "# . # r # .",
+        "# S # # # .",
+        ". . . . . ."
       ],
-      "stack": ["yellow", "blue", "yellow", "purple", "yellow", "blue"]
+      "stack": ["yellow", "blue", "green", "yellow", "red"]
     },
     {
       "title": "Overpass",
       "hint": "Bridges cross twice: once each way. Drive straight over.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "# . # # S",
-        "# . # y #",
+        "r . . b .",
+        "# # # # #",
+        "# g # b #",
         "# # + # #",
-        "# y # . #",
-        "# # # . #",
-        ". . b . ."
+        "# . # . #",
+        "# S # # #"
       ],
-      "gift": {"at": [3, 0], "item": "bonkle"},
-      "stack": ["yellow", "yellow", "blue"]
+      "gift": {"at": [2, 4], "item": "bonkle"},
+      "stack": ["green", "red", "blue", "blue"]
     },
     {
       "title": "Flyover",
-      "challenge": true,
+      "hint": "An early turn decides the ending. Look a long way ahead.",
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "longcon",
       "map": [
-        "S # # # # #",
-        "# . # . y #",
         "# # # # # #",
-        "# . # . . #",
-        "# # + # # #",
-        "# p # r . #",
+        "S . b # g #",
         "# # # # # #",
-        "b . r . . ."
+        "# . . # y #",
+        "# # # + # #",
+        "# b y # . #",
+        "# # # # # #",
+        ". . . r . ."
       ],
-      "gift": {"at": [2, 0], "item": "duskwood"},
-      "stack": ["purple", "blue", "red", "yellow", "red"]
+      "gift": {"at": [1, 4], "item": "duskwood"},
+      "stack": ["blue", "green", "yellow", "red", "yellow", "blue"]
     },
     {
       "title": "Spaghetti Junction",
-      "gift": {"at": [5, 1], "item": "key"},
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        "# # # # # #",
-        ". p # y b #",
-        "# # + # # #",
-        "v . ^ r r #",
-        "# . # . . S",
-        "# # # . . #",
-        "# . # . . #",
-        "# # # r . #"
+        ". . . r b .",
+        ". # # # # #",
+        ". # . # g #",
+        "b # < # # #",
+        ". # g # . #",
+        ". # # + # #",
+        ". # . # . #",
+        ". S # # # #"
       ],
-      "stack": ["blue", "yellow", "red", "red", "purple", "red"]
+      "gift": {"at": [2, 7], "item": "key"},
+      "stack": ["blue", "green", "red", "blue", "green"]
     },
     {
       "title": "Suburbs",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        "S  #  #  #  .  #",
-        "#  r2 r  #  b  #",
-        "#  #  #  #  #  #",
-        "#  .  .  p  .  #",
-        "#  .  .  .  .  #",
-        "#  #  #  #  #  #",
-        "#  .  .  #  .  #",
-        "#  #  #  #  #  #",
-        ".  b  .  .  .  ."
+        ".  #  #  #  #  #",
+        ".  #  .  #  y  #",
+        ".  #  S  #  #  #",
+        ".  #  .  #  r  #",
+        ".  #  #  #  #  #",
+        ".  #  .  #  g  #",
+        ".  #  #  #  #  #",
+        ".  #  .  #  b2 #",
+        "y2 #  #  #  #  #"
       ],
-      "gift": {"at": [3, 6], "item": "gloaming"},
-      "stack": ["red", "blue", "blue", "purple", "red", "red"]
+      "gift": {"at": [5, 1], "item": "gloaming"},
+      "stack": ["green", "blue", "blue", "yellow", "yellow", "yellow", "red"]
     },
     {
       "title": "Rainbow Row",
+      "hint": "The nearest house isn't always the first stop.",
       "no_revisit": true,
+      "flavor": "decoy",
       "map": [
-        "r . . . . . .",
-        "# # # # # # #",
-        "# b # . # y .",
-        "# # # > # # #",
-        "# r # p # g #",
-        "^ p # . # . ^",
-        "# # # # # S #"
+        "# # # # # # .",
+        "# r g # . # y",
+        "# # # # # # .",
+        "# y . S . # .",
+        "# . . # r # .",
+        "# # # # # # .",
+        "b . . . . . ."
       ],
-      "stack": ["purple", "red", "blue", "red", "purple", "green", "yellow"]
+      "stack": ["blue", "yellow", "red", "green", "yellow", "red"]
     },
     {
       "title": "Crosstown",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        ".  #  .  #  #  #  #",
-        ".  #  .  #  .  b  #",
-        ".  #  .  #  .  y  #",
-        ".  #  #  +  #  #  #",
-        ".  #  r  #  .  .  #",
-        "b2 #  #  #  .  .  #",
-        ".  #  .  #  .  .  #",
-        ".  S  #  #  #  #  #",
-        ".  .  .  r  .  .  b"
+        ".  #  S  #  #  #  .",
+        ".  #  .  #  .  #  .",
+        ".  #  #  #  #  #  .",
+        ".  #  .  #  b2 #  .",
+        "y  #  #  +  #  #  g",
+        ".  #  .  #  b  #  .",
+        ".  #  #  #  #  #  y",
+        ".  #  .  #  r2 #  .",
+        ".  #  #  #  #  #  ."
       ],
-      "stack": ["yellow", "blue", "red", "red", "blue", "blue", "blue"]
+      "stack": ["red", "red", "yellow", "green", "blue", "yellow", "blue", "blue"]
     },
     {
       "title": "Gridlock",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        "# # # . # # #",
-        "# . . . # . #",
-        "# . # # # # #",
-        "# r p . # . .",
-        "# # # # # # #",
-        "v . # b # y p",
-        "# < # # + # #",
-        "# r # . # b #",
-        "S # # b # # #"
+        ". . . . . . .",
+        ". # # # # # #",
+        ". S . . # . #",
+        ". # # # + # #",
+        ". # g . # r #",
+        ". # # # # # #",
+        "g # b . # b #",
+        ". # # # # # #",
+        ". . . . . . ."
       ],
-      "stack": ["red", "red", "purple", "blue", "yellow", "blue", "purple", "blue"]
+      "stack": ["green", "blue", "blue", "red", "green"]
     },
     {
       "title": "Last Mile",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "knot",
       "map": [
-        "#  #  #  #  #  #  #",
-        "v  g  #  .  #  y  #",
-        "#  p  #  g2 ^  .  S",
-        "#  #  +  #  #  #  #",
-        ".  .  #  r  #  r  #",
-        ".  .  #  .  ^  .  #",
-        "#  #  #  #  <  #  #",
-        ".  .  .  p  .  .  ."
+        ".  #  #  #  #  #  .",
+        ".  #  r  #  .  #  y",
+        ".  #  #  #  S  #  .",
+        ".  #  r  #  .  #  y",
+        ".  #  #  +  #  #  .",
+        ".  #  .  #  b2 #  .",
+        "b2 #  #  #  #  #  .",
+        ".  .  .  .  .  g  ."
       ],
-      "stack": ["green", "purple", "green", "purple", "red", "red", "green", "yellow"]
+      "stack": ["yellow", "red", "red", "blue", "blue", "green", "blue", "blue", "yellow"]
     },
     {
       "title": "Return to Sender",
       "hint": "Parcel shops load their parcel onto the TOP of your stack as you drive past.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        ". # # # .",
-        "b # . # r",
-        ". # . # .",
-        ". # . # .",
-        "B # # # .",
-        ". . S . ."
+        "# # # # #",
+        "# r # R #",
+        "# # # # #",
+        "# B # . S",
+        "# # # # #",
+        "b g . r ."
       ],
-      "gift": {"at": [3, 4], "item": "sprout"},
-      "stack": ["red"]
+      "gift": {"at": [2, 1], "item": "sprout"},
+      "stack": ["red", "green"]
     },
     {
       "title": "Pick Up, Drop Off",
+      "hint": "A pickup lands on TOP. Fetch it when you want it there, not before.",
       "no_revisit": true,
+      "flavor": "restock",
       "map": [
-        "# # # # # R",
-        "# . # . # r",
-        "# . # r # .",
-        "# # # # # .",
-        "# . S . # .",
-        "# # # # # b",
-        ". . . r . ."
+        ". # # # # #",
+        ". S . # g #",
+        ". # # # # #",
+        "b # G # y #",
+        "g # # # # #",
+        ". # B # r #",
+        "b # # # # #"
       ],
-      "stack": ["blue", "red", "red"]
+      "stack": ["green", "yellow", "red", "blue"]
     },
     {
       "title": "Corner Shops",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        "# # # # # #",
-        "# B v . . #",
-        "# . # . . #",
-        "# # # # # #",
-        "# B # b y #",
-        "# . S . . #",
-        "# # # # # #",
-        ". . b . . b"
+        ". . . . . .",
+        "# # # # # r",
+        "# g # b # .",
+        "# # # # # .",
+        "# G # b # .",
+        "# # # # # .",
+        "# B # b # .",
+        "S < # # # ."
       ],
-      "stack": ["yellow", "blue"]
+      "stack": ["blue", "blue", "red"]
     },
     {
       "title": "High Street",
+      "hint": "The roads are wide open. The order is the puzzle.",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        ". y . r . .",
-        ". # # # # #",
-        ". # y # R #",
-        ". # # < # #",
-        ". # b # p #",
-        ". v # # # #",
-        ". # . S . #",
-        "Y # # # # #"
+        "g . B G . .",
+        "# # # # # b",
+        "# b # . # .",
+        "# # # S # .",
+        "# g # . # .",
+        "# # # < # .",
+        "# . # y # .",
+        "# # # # # r"
       ],
-      "stack": ["yellow", "blue", "purple"]
+      "stack": ["red", "yellow", "green", "blue"]
     },
     {
       "title": "Checkpoint",
       "hint": "Colour gates only lift while your top package matches their colour.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "r  .  .  .  .",
-        "#  .  .  .  .",
-        "=r .  .  .  .",
-        "#  #  #  .  .",
-        "#  .  #  y  .",
-        "#  .  #  .  .",
-        "#  #  #  .  .",
-        ".  S  .  .  ."
+        ".  #  S  #  #",
+        ".  #  .  .  #",
+        ".  #  .  .  #",
+        ".  #  #  #  =r",
+        ".  #  .  r  #",
+        ".  #  #  #  #",
+        ".  #  g  b  #",
+        ".  #  #  #  #"
       ],
-      "stack": ["red", "yellow"]
+      "stack": ["green", "blue", "red"]
     },
     {
       "title": "Toll Road",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        "#  #  #  #  #  #",
-        "#  y  .  S  .  =b",
-        "#  #  #  #  >  #",
-        "#  r  .  #  b  #",
-        "#  #  #  #  #  #",
-        "#  .  r  #  .  #",
-        "#  #  #  #  .  #",
-        "r  .  .  .  .  ."
+        ".  .  .  b  .  .",
+        "#  #  #  #  #  .",
+        "=b .  #  r  #  .",
+        "#  #  #  #  #  b",
+        "#  r  #  y  #  .",
+        "#  #  #  #  #  .",
+        "#  g  #  .  #  .",
+        "#  #  #  S  #  ."
       ],
-      "gift": {"at": [5, 6], "item": "puffball"},
-      "stack": ["blue", "yellow", "red", "red", "red"]
+      "gift": {"at": [4, 7], "item": "puffball"},
+      "stack": ["yellow", "blue", "red", "blue", "red", "green"]
     },
     {
       "title": "Key Delivery",
       "hint": "Need a certain colour on top? A shop might have one.",
       "no_revisit": true,
+      "flavor": "restock",
       "map": [
-        ".  .  b  .  .  .",
-        "#  #  #  #  #  .",
-        "#  .  #  .  #  y",
-        "#  .  #  y  #  .",
-        "#  S  #  #  #  .",
-        "#  .  #  r  =b .",
-        "#  #  #  #  #  .",
-        ".  .  .  .  R  ."
+        "r  .  .  y  .  .",
+        "#  #  #  #  #  #",
+        "#  R  y  #  b  #",
+        "=y #  #  #  #  #",
+        "#  Y  .  #  .  #",
+        "#  #  S  #  #  #",
+        "#  g  .  #  b  #",
+        "#  #  #  #  #  #"
       ],
-      "stack": ["yellow", "blue", "yellow"]
+      "stack": ["blue", "blue", "yellow", "green"]
     },
     {
       "title": "Border Control",
-      "challenge": true,
+      "hint": "Two neighbourhoods, and two ways between them.",
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "districts",
       "map": [
-        "#  #  #  S  #  #  .",
-        "#  b2 #  .  .  #  .",
-        "#  .  #  #  #  #  .",
-        "=r .  #  .  .  #  .",
-        "#  .  #  .  .  #  .",
-        "#  #  v  #  #  #  .",
-        "#  .  #  .  .  #  b",
-        "#  r2 #  b  .  #  .",
-        "#  <  #  #  #  #  ."
+        ".  #  #  #  #  #  #",
+        ".  #  .  .  #  g  #",
+        ".  #  #  S  #  #  #",
+        ".  #  y  .  #  .  #",
+        ".  #  #  #  #  #  #",
+        ".  =b b2 .  =g r  .",
+        "r  #  #  #  #  #  #",
+        ".  #  .  b2 #  g  #",
+        ".  #  #  #  #  #  #"
       ],
-      "stack": ["blue", "blue", "blue", "red", "red", "blue"]
+      "stack": ["green", "red", "green", "blue", "blue", "red", "blue", "blue", "yellow"]
     },
     {
       "title": "Clocking Off",
       "hint": "End of shift: deliver everything, then park back at the depot.",
       "no_revisit": true,
       "return": true,
+      "flavor": "intro",
       "map": [
-        "# # # # #",
-        "# b . y #",
-        "# . . . #",
-        "# . . . #",
-        "# # S # #"
+        "# S # # #",
+        "# . # r #",
+        "# g # # #",
+        "# g # b #",
+        "# # # # #"
       ],
-      "stack": ["blue", "yellow"]
+      "stack": ["red", "blue", "green", "green"]
     },
     {
       "title": "Round Trip",
       "no_revisit": true,
       "return": true,
+      "flavor": "freerun",
       "map": [
-        ". # # # # #",
-        "y # r # b #",
-        "y # # # # #",
-        ". # . # y #",
-        ". # . # . #",
-        ". # # # . S",
-        ". # . . . #",
-        ". # # # # #"
+        ". . . . . .",
+        "# # # # # .",
+        "S . # r # .",
+        "# # # # # .",
+        "# r # g # .",
+        "# # # # # .",
+        "# g # b # .",
+        "# # # # # ."
       ],
-      "stack": ["red", "yellow", "yellow", "blue", "yellow"]
+      "stack": ["red", "green", "blue", "green", "red"]
     },
     {
       "title": "Overtime",
       "no_revisit": true,
       "return": true,
+      "flavor": "decoy",
       "map": [
-        "#  #  #  #  #  r",
-        "#  .  #  .  #  .",
-        "#  #  #  S  #  .",
-        "#  y  #  .  #  .",
-        "#  #  #  #  #  .",
-        "#  y  #  b  #  .",
-        "#  =r #  #  #  .",
-        "Y  .  .  .  .  ."
+        ". . y . . .",
+        "# # # # # .",
+        "# Y # G # .",
+        "# # # # # g",
+        "S . b y # .",
+        "# # # # # .",
+        "# r # g # .",
+        "# # # # # ."
       ],
-      "stack": ["red", "yellow", "blue"]
+      "stack": ["red", "blue", "green", "yellow"]
     },
     {
       "title": "Night Shift",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
       "return": true,
+      "flavor": "longcon",
       "map": [
-        "# # # > # # #",
-        "# p # r # p #",
-        "# . # p # . #",
-        "# # # # < # #",
+        "# # # # # . #",
         "# . # . # . #",
-        "# # # p # # #",
-        "# . # . # . S",
-        "# . # . # b #",
+        "# # # # # S #",
+        "# g # g # . #",
+        "# # # # # # #",
+        "# y # b # . #",
+        "# # # # # # #",
+        "# b # r # y #",
         "# # # # # # #"
       ],
-      "stack": ["blue", "purple", "purple", "red", "purple", "purple"]
+      "stack": ["green", "yellow", "blue", "green", "red", "blue", "yellow"]
     },
     {
       "title": "Turntable",
-      "gift": {"at": [1, 3], "item": "key"},
       "hint": "Sorting hubs swap your top two packages as you drive over them.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        ". # # # .",
-        "r # . # b",
-        ". # . # .",
-        ". # # # .",
-        ". . @ . .",
-        ". . S . ."
+        "# S # # #",
+        "# . # g #",
+        "# # # # #",
+        "# b # r #",
+        "# # @ # #",
+        ". . . b ."
       ],
-      "stack": ["blue", "red"]
+      "gift": {"at": [2, 0], "item": "key"},
+      "stack": ["green", "blue", "red", "blue"]
     },
     {
       "title": "Mix-Up",
+      "hint": "Decide what you want on top before you reach the hub.",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        "# # # # # .",
-        ". . # b # .",
-        ". b # . # .",
-        "# # # # # y",
-        "@ . # r # r",
-        "# # # # # .",
-        "# . S . # .",
-        "# # # # # ."
+        ". b . . y .",
+        ". # # # # #",
+        ". # . # . @",
+        ". # S # # #",
+        ". # . # b #",
+        ". # # # # #",
+        "r # . # b #",
+        ". # @ # # #"
       ],
-      "gift": {"at": [0, 0], "item": "mosaic_moth"},
-      "stack": ["blue", "red", "yellow", "blue", "red"]
+      "gift": {"at": [4, 3], "item": "mosaic_moth"},
+      "stack": ["red", "blue", "blue", "yellow", "blue"]
     },
     {
       "title": "Shuffle",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        ". . y . . .",
-        "# # # # # #",
-        "# . S . y #",
-        "# r # . . #",
-        "# b # # # #",
-        "# . # . . #",
-        "# . @ . R #",
-        "# # # # # #"
+        "S # # r # .",
+        "# . # y # .",
+        "# g # g # .",
+        "# # # # @ .",
+        "# y # b # .",
+        "@ # # # # .",
+        "# Y # B # .",
+        "# # # # # ."
       ],
-      "stack": ["blue", "yellow", "yellow"]
+      "stack": ["green", "red", "yellow", "green"]
     },
     {
       "title": "Sorting Office",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "sorter",
       "map": [
-        "p  #  #  #  #  #  #",
-        ".  =p r  b  .  y  #",
-        ".  #  #  #  #  #  #",
-        ".  #  y  .  #  p  #",
-        ".  #  #  #  #  #  #",
-        ".  #  .  .  S  .  @",
-        ".  #  .  .  #  .  #",
-        ".  #  #  #  #  #  #"
+        "@ # # S # # .",
+        "# g # . . # .",
+        "# # # # # # .",
+        "# . # b . # .",
+        "# # @ # # # g",
+        "# y # . r # .",
+        "# y # # # # .",
+        ". . . . . b ."
       ],
-      "stack": ["blue", "yellow", "red", "purple", "purple", "yellow"]
+      "stack": ["blue", "yellow", "green", "yellow", "blue", "red", "green"]
     },
     {
       "title": "Rush Order",
       "no_revisit": true,
       "return": true,
+      "flavor": "fork",
       "map": [
-        ".  .  R  .  .  r  .",
-        ".  #  #  #  #  #  #",
-        ".  #  .  .  #  .  #",
-        ".  #  .  .  #  R  #",
-        "r  #  #  #  #  #  #",
-        "r  #  .  .  #  y  #",
-        ".  #  #  #  #  #  #",
-        ".  =r y  .  r  .  #",
-        ".  #  #  #  #  S  #"
+        "# # # # # . .",
+        "# b # r # . .",
+        "# . # . # . .",
+        "# . # # # . .",
+        "# G # . # . .",
+        "# . # . # . .",
+        "# # # # # . .",
+        "# . . . S . .",
+        "# # # # # g ."
       ],
-      "stack": ["yellow", "red", "red", "yellow"]
+      "stack": ["blue", "red"]
     },
     {
       "title": "Mixed Bag",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        "# # # # # #",
-        "# r # y B #",
-        "# # + # # @",
-        "S . # b . #",
-        "# # # . . #",
-        "# . # r . #",
-        "# p # . . #",
-        "# # # # # #",
-        ". y . . . ."
+        "# # # # # .",
+        "# y # y # .",
+        "# # # # # g",
+        "# Y # r # .",
+        "# # + # # .",
+        "# b # . # .",
+        "# # # # # .",
+        "S . # b # .",
+        "# # # # # ."
       ],
-      "gift": {"at": [1, 4], "item": "rivet"},
-      "stack": ["purple", "yellow", "red", "red", "yellow"]
+      "gift": {"at": [3, 8], "item": "rivet"},
+      "stack": ["red", "green", "yellow", "blue", "blue"]
     },
     {
       "title": "Black Friday",
       "no_revisit": true,
+      "flavor": "restock",
       "map": [
-        "#  #  #  #  #  #  p",
-        "=r b3 #  B  .  S  .",
-        "#  r  #  p  .  #  .",
-        "#  #  #  #  #  #  .",
-        "#  .  #  .  .  #  .",
-        "#  #  #  #  #  v  .",
-        "#  P  #  .  .  #  .",
-        "#  #  #  #  #  #  .",
-        ".  .  p  .  .  .  ."
+        ".  .  .  .  .  .  .",
+        "#  #  #  #  #  #  #",
+        "v  G  #  .  #  r  #",
+        "#  #  #  #  #  #  #",
+        "#  .  #  g  =y y2 #",
+        "#  #  #  #  #  #  #",
+        "#  b  #  r  #  b  #",
+        "S  #  #  #  #  #  #",
+        ".  .  g  .  .  .  ."
       ],
-      "stack": ["blue", "purple", "red", "blue", "purple"]
+      "stack": ["red", "blue", "green", "red", "yellow", "yellow", "blue"]
     },
     {
       "title": "Christmas Eve",
       "hint": "Everything you've learned. Then home for the holidays.",
       "no_revisit": true,
       "return": true,
+      "flavor": "districts",
       "map": [
-        "#  #  #  #  #  .",
-        "#  .  #  .  #  .",
-        "@  #  #  S  #  b",
-        "#  P  #  .  #  b",
-        "#  #  #  #  #  .",
-        "#  p  #  .  #  .",
-        "#  #  #  #  #  .",
-        "#  r  #  p  #  r",
-        "#  #  #  =p #  ."
+        ".  #  #  #  S  #",
+        ".  #  b  #  .  #",
+        ".  @  #  #  #  @",
+        ".  #  b  #  .  #",
+        "r  #  #  #  #  #",
+        ".  #  g  .  y  =y",
+        "G  #  #  #  #  #",
+        ".  #  y  #  r  #",
+        ".  #  #  #  #  #"
       ],
-      "stack": ["blue", "blue", "purple", "red", "red"]
+      "stack": ["blue", "blue", "red", "yellow", "yellow", "red"]
     },
     {
       "title": "First Frost",
       "hint": "Ice! You can't turn on it: slide straight across.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "# # # # # #",
-        "# . . p r #",
-        "~ S ~ # # #",
-        "# . # p . #",
-        "# # ^ # # #",
-        "# b # r . #",
-        "# # # . . #"
+        ". # # # . #",
+        ". # b # . #",
+        ". # # ~ # #",
+        ". # r # . #",
+        ". # # # # #",
+        ". # . # g v",
+        ". S # # # #"
       ],
-      "stack": ["purple", "red", "blue", "purple", "red"]
+      "stack": ["green", "blue", "red"]
     },
     {
       "title": "Black Ice",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        ". r . . . .",
-        "# # # S # .",
-        "# y2 # . # .",
-        "v # ~ # ~ .",
-        "# p # y # .",
-        "# # # # # .",
-        ". . y2 . . ."
+        ".  .  b2 .  .  .",
+        "#  #  #  #  #  .",
+        "#  g2 #  .  #  .",
+        "~  #  #  S  #  .",
+        "#  .  #  .  #  .",
+        "#  g2 #  r  #  .",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["purple", "yellow", "yellow", "red", "yellow", "yellow", "yellow"]
+      "stack": ["green", "green", "blue", "blue", "red", "green", "green"]
     },
     {
       "title": "Snowplough",
-      "gift": {"at": [4, 6], "item": "key"},
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        ". . r . . .",
-        ". # # ~ # #",
-        ". # . S . #",
-        ". # . ~ # v",
-        "p # . # y2 #",
-        ". # y # . #",
-        "p2 # # # # #"
+        "#  #  #  #  #  .",
+        "#  .  #  .  #  .",
+        "#  #  #  S  ~  .",
+        "#  y2 #  .  #  .",
+        "#  #  #  <  #  .",
+        "#  r  y  b  #  g2",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["yellow", "yellow", "red", "purple", "yellow", "purple", "purple"]
+      "gift": {"at": [2, 3], "item": "key"},
+      "stack": ["red", "yellow", "blue", "green", "green", "yellow", "yellow"]
     },
     {
       "title": "Avalanche",
       "no_revisit": true,
+      "flavor": "knot",
       "map": [
-        "# # # # # #",
-        "# y2 . . . #",
-        "~ # # # . #",
-        "# . p2 # y2 #",
-        "# # # v # ~",
-        "# . p2 # p2 #",
-        "S # # # # #"
+        ".  #  #  #  #  #",
+        "r  #  .  #  y  #",
+        ".  #  S  #  #  #",
+        ".  #  .  #  b2 #",
+        ".  ~  #  #  #  #",
+        ".  #  g2 #  r  #",
+        ".  #  #  ~  >  #"
       ],
-      "stack": ["purple", "purple", "purple", "purple", "yellow", "yellow", "yellow", "yellow", "purple", "purple"]
+      "stack": ["red", "green", "green", "red", "yellow", "blue", "blue"]
     },
     {
       "title": "Hot Chocolate",
       "hint": "Breather. Warm hands, cold roads.",
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        ". . r2 . .",
-        "# S # # #",
-        "# . # r #",
-        "# # # # ~",
-        "# b2 y2 . v",
-        "# # # # #"
+        ".  g  b2 r  .",
+        "#  #  #  ~  #",
+        "#  r3 #  g  #",
+        "#  ~  #  ~  #",
+        "S  .  #  .  #",
+        "#  #  ~  #  #"
       ],
-      "stack": ["blue", "blue", "red", "red", "red", "yellow", "yellow"]
+      "stack": ["green", "red", "red", "red", "blue", "blue", "red", "green"]
     },
     {
       "title": "Unmarked",
       "no_revisit": true,
+      "flavor": "decoy",
       "map": [
-        ". # . # # #",
-        ". # r # p #",
-        ". v # # r #",
-        ". ^ . . . #",
-        ". # y p2 r #",
-        ". # # # # ~",
-        ". # . S . #",
-        ". # # ~ # #"
+        ".  .  r  y  .  .",
+        "#  #  ~  #  #  .",
+        "#  .  #  b  #  .",
+        "#  #  #  #  #  .",
+        "S  .  #  r  #  .",
+        "#  #  #  #  #  .",
+        "^  b  #  g3 #  .",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["red", "purple", "red", "red", "yellow", "purple", "purple"]
+      "stack": ["blue", "green", "green", "green", "red", "blue", "yellow", "red"]
     },
     {
       "title": "Whiteout",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "longcon",
       "map": [
-        ". # # # # #",
-        ". # . # b ^",
-        "b2 ~ # ~ # #",
-        ". # b # r2 #",
-        ". # b2 # y2 #",
-        "b ~ # v # #",
-        ". # . # . #",
-        ". S # # # #"
+        ".  .  .  .  g  .",
+        ".  #  #  #  #  #",
+        ".  #  r2 #  b  #",
+        "y2 #  #  #  #  #",
+        ".  #  g2 #  .  #",
+        ".  #  #  #  S  ~",
+        ".  #  b  #  .  #",
+        ".  #  #  #  #  #"
       ],
-      "stack": ["red", "red", "yellow", "yellow", "blue", "blue", "blue", "blue", "blue", "blue", "blue"]
+      "stack": ["yellow", "yellow", "red", "red", "green", "blue", "green", "green", "blue"]
     },
     {
       "title": "Low Tide",
       "hint": "Pickups and ice, together at last.",
       "no_revisit": true,
+      "flavor": "restock",
       "map": [
-        "# # # S #",
-        "# b r . #",
         "# # ~ # #",
-        ". y # b #",
-        ". . # B #",
-        "# # # # #"
+        "# r # b #",
+        "# g # B #",
+        "# # # # #",
+        "# y # R #",
+        "# # # # S"
       ],
-      "stack": ["yellow", "red", "blue"]
+      "stack": ["yellow", "green"]
     },
     {
       "title": "Fish Market",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        "# # # # # .",
-        "# y # b . .",
-        "# # + # # B",
-        "# . # r # .",
-        "# . # # ~ y",
-        "# . # . # p",
-        "# . # # S ."
+        ". # # # # #",
+        ". # Y # . S",
+        "b # # # # #",
+        ". # g # B #",
+        "g # # + # #",
+        "r # b # y #",
+        ". # # # # #"
       ],
-      "stack": ["red", "yellow", "yellow", "purple"]
+      "stack": ["blue", "green", "green", "red"]
     },
     {
       "title": "Lighthouse Keeper",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        ". . . . . Y",
         "# # # # # #",
-        "# . # b b #",
-        "~ S + # # #",
-        "# . # y r #",
-        "# # # # # #",
-        ". . b . . ."
+        "# y . # b #",
+        "~ # S # # ~",
+        "# y . # G #",
+        "# # # + # #",
+        "# r R # g #",
+        "# # # # # #"
       ],
-      "stack": ["blue", "blue", "red", "blue"]
+      "stack": ["blue", "yellow", "yellow"]
     },
     {
       "title": "Seagulls",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
         "# # # # #",
-        "# . y . #",
-        "# B # . #",
-        "# b # . #",
-        "# y # b #",
-        "S # ~ # #"
+        "S . # r #",
+        "# # # # #",
+        "# g # G #",
+        "# # # # #",
+        ". . b r g"
       ],
-      "stack": ["yellow", "yellow", "blue"]
+      "stack": ["green", "blue", "red", "red"]
     },
     {
       "title": "Ferry Crossing",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        "# # # # # #",
-        "# . # . r #",
-        "# R # . b #",
-        "S . # r p #",
-        "~ # + # # #",
-        "# y # . . #",
-        "# # # # # #"
+        "# # # # # .",
+        "# r # g # r",
+        "# # + # # .",
+        "# R # b # .",
+        "# # # # # .",
+        "# y # . # .",
+        "# # ~ S # ."
       ],
-      "stack": ["purple", "blue", "red", "yellow"]
+      "stack": ["green", "red", "blue", "yellow"]
     },
     {
       "title": "Storm Surge",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "knot",
       "map": [
         "# # # # # #",
-        "# r R p . #",
-        "# r # # # #",
-        "# . # P . .",
-        "# b # . . .",
-        "# # + # # #",
-        "# r # . b #",
-        "# # # S # #"
+        "# . r # b #",
+        "# # # + # #",
+        "# g y # B #",
+        "# y Y # b #",
+        "# # # # # ~",
+        "# r . S . #",
+        "# # # # # #"
       ],
-      "stack": ["blue", "red", "red", "blue"]
+      "stack": ["green", "yellow", "red", "red", "blue"]
     },
     {
       "title": "Same Street, Again",
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        "R # # # y #",
-        ". # . # . #",
-        ". # # + # ~",
-        ". # b # r #",
-        ". # # # # S",
-        ". . . b p .",
-        ". . . . . ."
+        "r # # # # #",
+        ". # R # g #",
+        "g # # # # #",
+        ". # . # b #",
+        ". # # + # #",
+        ". # r # . #",
+        ". # # # S #"
       ],
-      "stack": ["yellow", "blue", "blue", "purple"]
+      "stack": ["red", "green", "green", "blue"]
     },
     {
       "title": "Any Colour",
       "hint": "Lockers take whatever's on top. Any colour at all.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        ". . . y .",
-        "S # # # #",
-        "# y # y y",
         "# # # # #",
-        "# . # w #",
-        "# # > # #"
+        "# w # b #",
+        "# g # w #",
+        "# # # # #",
+        "v r # . #",
+        "# # # S #"
       ],
-      "stack": ["yellow", "yellow", "yellow", "yellow", "blue"]
+      "stack": ["red", "green", "red", "blue", "blue"]
     },
     {
       "title": "Arcade",
+      "hint": "A locker will happily take a package you needed somewhere else.",
       "no_revisit": true,
+      "flavor": "dump",
       "map": [
-        ". . . . p .",
-        "# S # # =p #",
-        "# . # y . #",
-        "# # # # # #",
-        "# y # r b .",
-        "# # # # # #",
-        "w . . . . ."
+        "#  #  #  #  #  g",
+        "#  b  #  w  #  y",
+        "#  #  =r #  #  r",
+        "#  w  #  .  #  .",
+        "#  #  #  #  #  .",
+        "#  b  #  .  S  .",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["red", "blue", "purple", "yellow", "purple", "yellow"]
+      "stack": ["green", "yellow", "red", "yellow", "blue", "blue", "blue"]
     },
     {
       "title": "Night Owls",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        "# # # # # b",
-        "# . S . # .",
-        "# < # # # r",
-        "# b # y # .",
-        "# p # w =y .",
-        "# . # . # w",
-        "# # # # # .",
-        ". . . . . ."
+        "#  #  #  #  #  #",
+        "#  .  #  .  g  #",
+        "#  #  #  #  <  #",
+        "#  b  #  b  r  #",
+        "#  #  #  #  #  #",
+        "S  .  #  r  w  #",
+        "#  #  #  #  =r #",
+        ".  .  .  .  .  ."
       ],
-      "stack": ["blue", "red", "yellow", "blue", "blue", "purple", "blue"]
+      "stack": ["blue", "red", "green", "red", "green", "blue"]
     },
     {
       "title": "Neon Nightmare",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "districts",
       "map": [
-        "w . g . b .",
-        "# # # # # #",
-        "# g # . . #",
-        "# # # > # #",
-        "# . # . w #",
-        "# # # # =r #",
-        "# . # r p b",
-        "# S # # # #"
+        "#  #  #  #  #  .",
+        "#  .  S  .  #  .",
+        "#  #  #  #  #  .",
+        "#  y  y  w  =b .",
+        "#  #  #  #  #  .",
+        "#  b  #  r  #  .",
+        "#  #  #  #  #  g",
+        ".  w  g  .  .  ."
       ],
-      "stack": ["blue", "purple", "red", "purple", "blue", "green", "blue", "green"]
+      "stack": ["red", "blue", "yellow", "yellow", "green", "red", "green", "blue"]
     },
     {
       "title": "Vending Machine",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        ". . r . . .",
-        "# =r # . S .",
-        "# p # . # .",
-        "# # # # # .",
-        "# y # . # .",
-        "# # # # # .",
-        "r . p w . ."
+        "#  #  #  #  #  .",
+        "#  b  #  r  =r .",
+        "#  #  #  #  #  b",
+        "#  y  #  g  #  .",
+        "#  #  #  #  #  .",
+        "#  .  #  w  #  .",
+        "#  S  #  #  #  ."
       ],
-      "stack": ["purple", "red", "yellow", "red", "purple", "yellow"]
+      "stack": ["yellow", "green", "blue", "red", "blue", "blue"]
     },
     {
       "title": "Karaoke",
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        ". . . . . .",
-        "# # # # # p",
-        "# b # . =p p",
-        "# . # . # b",
-        "# S # # # .",
-        "# . ^ w # .",
-        "# # # # # w",
-        ". . y . . ."
+        "S  #  =g #  #  .",
+        "#  r  #  g  #  .",
+        "v  #  #  #  #  .",
+        "#  .  #  b  #  .",
+        "#  #  #  #  #  w",
+        "#  b  #  r  #  .",
+        "#  #  #  #  #  .",
+        ".  .  .  .  .  ."
       ],
-      "stack": ["yellow", "yellow", "purple", "blue", "purple", "purple", "blue"]
+      "stack": ["blue", "red", "red", "blue", "green", "red"]
     },
     {
       "title": "Last Train",
       "no_revisit": true,
+      "flavor": "dump",
       "map": [
-        "# # # > # #",
-        "# p # . p #",
-        "# =b # # # #",
-        "p b # w . #",
-        ". . # . b #",
-        "# # # # # #",
-        "# . S . w #",
-        "# . # # # #"
+        ".  y  .  .  .  r",
+        "g  #  #  #  #  #",
+        ".  =y b  #  w  #",
+        ".  #  #  #  #  #",
+        ".  #  g  #  y  =y",
+        ".  #  #  #  #  #",
+        ".  #  .  #  w  #",
+        ".  #  S  #  #  #"
       ],
-      "stack": ["purple", "purple", "purple", "blue", "blue", "blue", "yellow"]
+      "stack": ["green", "yellow", "blue", "green", "red", "red", "yellow", "blue"]
     },
     {
       "title": "Apple Cart",
       "hint": "Lockers out in the country. Mind what's on top.",
-      "return": true,
       "no_revisit": true,
+      "return": true,
+      "flavor": "decoy",
       "map": [
+        ". # S # # #",
+        "w # . # b #",
         ". # # # # #",
-        ". # . S . #",
-        ". # b # . #",
+        ". # y # r #",
         ". # # # # #",
-        ". . y # y #",
-        ". # # # # #",
-        ". . . w p p"
+        ". # g # y #",
+        "r # # # # #"
       ],
-      "stack": ["yellow", "purple", "purple", "red", "yellow", "blue"]
+      "stack": ["blue", "red", "yellow", "green", "red", "yellow", "red"]
     },
     {
       "title": "Cider Run",
-      "return": true,
       "no_revisit": true,
+      "return": true,
+      "flavor": "sorter",
       "map": [
-        ". # # # # #",
-        "w # y b y #",
-        "r # # # # #",
-        ". # b # . S",
-        ". # # # # #",
-        ". # . # . #",
-        ". # . # # #"
+        ". S # # # #",
+        "r # B # B #",
+        "y # # # # #",
+        "g # y # w #",
+        "w # # # # #",
+        ". # r # b #",
+        ". # # # # #"
       ],
-      "stack": ["yellow", "yellow", "yellow", "red", "blue", "blue"]
+      "stack": ["red", "yellow", "green", "yellow", "red", "red"]
     },
     {
       "title": "Scarecrow",
-      "return": true,
       "no_revisit": true,
+      "return": true,
+      "flavor": "twin",
       "map": [
-        "# S # # # w",
-        "# . # . # .",
-        "# # # # # .",
-        "# p # . # .",
-        "# . # # # p",
-        "# r . r # .",
-        "# # # # # r"
+        "# # # # # #",
+        "# r # g . #",
+        "S . # # # #",
+        "# w # y g #",
+        "# # # # # #",
+        "# r # . b #",
+        "# # # # # #"
       ],
-      "stack": ["yellow", "purple", "purple", "red", "red", "red"]
+      "stack": ["green", "red", "yellow", "green", "blue", "red", "green"]
     },
     {
       "title": "Hay Bales",
       "hint": "Easy does it.",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        ". # # # #",
-        ". # B w #",
-        "b # . . #",
-        "y # # S #",
-        "r # b . #",
-        ". # # # #"
+        "r b B . g",
+        "# # # # #",
+        "# g # w #",
+        "# # # # #",
+        "# w # r #",
+        "S # # # #"
       ],
-      "stack": ["blue", "blue", "red", "yellow"]
+      "stack": ["red", "green", "green", "red", "red", "blue"]
     },
     {
       "title": "Pumpkin Patch",
-      "return": true,
       "no_revisit": true,
+      "return": true,
+      "flavor": "restock",
       "map": [
-        ". # # # # #",
-        ". y . # . #",
-        ". # # # # #",
-        ". # R # r #",
-        ". # w # y #",
-        "y # # # # #",
-        "r # . S . #",
-        "w # # # # #"
+        "# # # S # .",
+        "# b # . # w",
+        "# . # . # r",
+        "# # # R # .",
+        "# g # r # .",
+        "# # # # # .",
+        "# w # y # .",
+        "# . # # # ."
       ],
-      "stack": ["blue", "red", "yellow", "yellow", "red", "yellow"]
+      "stack": ["blue", "green", "yellow", "yellow", "red", "blue"]
     },
     {
       "title": "Harvest Moon",
+      "no_revisit": true,
       "challenge": true,
       "return": true,
-      "no_revisit": true,
+      "flavor": "dump",
       "map": [
         "# # # # # #",
-        "# b # w b #",
+        "# y r # g #",
         "# # # # # #",
-        "# . # . . #",
-        "# # # S # #",
-        "# y r . . #",
+        "S . r # b #",
         "# # # # # #",
-        ". . w Y . y"
+        "# . . # B #",
+        "# w y # w #",
+        "# # # # # #"
       ],
-      "stack": ["red", "blue", "red", "blue", "yellow", "yellow"]
+      "stack": ["yellow", "red", "green", "red", "green", "yellow", "red"]
     },
     {
       "title": "No Return Address",
-      "return": true,
       "no_revisit": true,
+      "return": true,
+      "flavor": "knot",
       "map": [
-        "# # # # # p",
-        "# p # y # .",
-        "# w # . # .",
-        "# . # # # .",
-        "# p # . S .",
         "# # # # # .",
-        "r . . . . ."
+        "# y # w # .",
+        "# # # # # .",
+        "y g # . # g",
+        "# # # . # r",
+        "# w # b # .",
+        "# # # # S ."
       ],
-      "stack": ["yellow", "purple", "purple", "red", "purple", "red"]
+      "stack": ["yellow", "yellow", "green", "yellow", "yellow", "green", "red", "blue"]
     },
     {
       "title": "Men at Work",
       "hint": "Roadworks open once you've made enough deliveries. The sign counts down.",
       "no_revisit": true,
+      "flavor": "intro",
       "map": [
-        "# # # # b",
-        "# . y ^ .",
-        "# # c2 # .",
-        "# . . S .",
-        "# # # # r",
-        ". . b . ."
+        "#  #  #  #  #",
+        "#  r  #  g  #",
+        "#  #  c1 #  #",
+        "#  b  #  .  #",
+        "#  #  #  S  #",
+        ".  .  .  .  ."
       ],
-      "stack": ["yellow", "blue", "blue", "red"]
+      "stack": ["red", "blue", "green"]
     },
     {
       "title": "Diversion",
+      "hint": "Finish one side of town before the roadworks let you through.",
       "no_revisit": true,
+      "flavor": "districts",
       "map": [
-        "# # # # # .",
-        "@ . # r # p",
-        "# . # b # .",
-        "# # # . # .",
-        "# . c4 p # p",
-        "S # # # # .",
-        ". . . . . ."
+        ".  #  #  #  #  S",
+        ".  #  .  #  .  #",
+        ".  #  #  #  #  #",
+        ".  b  b  c1 .  y",
+        ".  #  #  #  #  #",
+        ".  #  g  #  r  #",
+        ".  #  #  @  #  #"
       ],
-      "stack": ["red", "purple", "purple", "purple", "blue"]
+      "stack": ["red", "yellow", "green", "blue", "blue"]
     },
     {
       "title": "Rush Hour, Again",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        ". . . b . .",
-        ". # # # # #",
-        "p # . # . #",
-        ". # S > # #",
-        "b # . # b #",
-        ". # . # # c1",
-        ". # b # y #",
-        ". # c2 @ # #"
+        ". # # # > #",
+        "b # g # . #",
+        ". # # # S #",
+        ". # . # . #",
+        ". # # # # @",
+        ". # y # b #",
+        ". @ # # # #",
+        ". . . r . ."
       ],
-      "stack": ["blue", "purple", "blue", "blue", "yellow", "blue"]
+      "stack": ["green", "yellow", "blue", "blue", "red"]
     },
     {
       "title": "Traffic Cone",
       "no_revisit": true,
+      "flavor": "decoy",
       "map": [
-        "# # # # # .",
-        "# y c2 b # .",
-        "# b ^ # # .",
-        "# . # b # r",
-        "# . c5 b # .",
-        "# . @ . # .",
-        "# # # S # .",
-        ". . . . . ."
+        ".  .  .  y  .  .",
+        "#  #  #  #  c2 #",
+        "#  r  .  #  .  #",
+        "@  #  #  #  #  #",
+        "#  g  .  #  b  #",
+        "@  #  #  #  #  #",
+        "#  .  .  #  .  v",
+        "#  #  #  #  S  #"
       ],
-      "stack": ["blue", "blue", "blue", "yellow", "red", "blue"]
+      "stack": ["red", "blue", "green", "yellow"]
     },
     {
       "title": "Gridlock Deluxe",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "longcon",
       "map": [
-        "# # # # # #",
-        "c4 b r # b c2",
-        "# < # ^ # #",
-        "@ . b # r #",
-        "# . r # p #",
-        "# # # # # #",
-        "# . . . . S",
-        "# # # # # #"
+        "#  #  #  #  #  #",
+        "#  .  .  #  r  #",
+        "#  #  #  #  #  ^",
+        "#  .  b  #  .  #",
+        "#  y  .  #  b  #",
+        "#  #  c4 #  #  @",
+        "#  g  .  S  .  #",
+        "#  #  #  #  #  #"
       ],
-      "stack": ["red", "red", "blue", "blue", "blue", "red", "purple"]
+      "stack": ["blue", "green", "yellow", "blue", "red"]
     },
     {
       "title": "Lunch Break",
       "hint": "Take five.",
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        "# # # # # .",
-        "# . # . @ .",
-        "# b # . c4 .",
-        "# # # # # .",
-        "r b # b # .",
-        ". . # . S .",
-        "# # # # # y"
+        "# # # # # @",
+        "# . # . . #",
+        "# # # b . #",
+        "# b # . g #",
+        "# # @ S # #",
+        "# g # . r #",
+        "# # # # # #"
       ],
-      "stack": ["blue", "blue", "red", "blue", "yellow"]
+      "stack": ["green", "blue", "blue", "red", "green"]
     },
     {
       "title": "The Other Van",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        "r # # # # #",
-        ". c1 . S . #",
-        ". # # # # #",
-        ". # . # r #",
-        ". # p ^ . #",
-        "r # # # p #",
-        "p # . v p #",
-        ". @ # # # c5"
+        ".  .  .  .  .  .",
+        ".  #  #  #  #  #",
+        ".  #  .  S  .  #",
+        ".  #  #  @  #  #",
+        ".  #  r  #  b  #",
+        "g  #  #  @  #  ^",
+        "r  #  y  #  g  #",
+        ".  #  #  c4 #  #"
       ],
-      "stack": ["red", "purple", "purple", "purple", "red", "purple", "red"]
+      "stack": ["blue", "green", "red", "green", "red", "yellow"]
     },
     {
       "title": "Dust Devil",
       "hint": "Roadworks, ice and lockers, all out in the desert.",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        "# # ~ # #",
-        "S . # y #",
-        "# . # y #",
-        "# # # # #",
-        "# b # y #",
-        "# r c2 # #"
+        "S  #  #  #  #",
+        "#  r  #  b  #",
+        "#  #  #  #  #",
+        "#  g  #  g  #",
+        "#  #  ~  c1 #",
+        ".  .  .  .  ."
       ],
-      "stack": ["yellow", "blue", "red", "yellow", "yellow"]
+      "stack": ["red", "green", "green", "blue"]
     },
     {
       "title": "Flash Flood",
       "no_revisit": true,
+      "flavor": "dump",
       "map": [
-        "S # # # # #",
-        "# b # b y #",
-        "# # # c2 # #",
-        "# b # . r #",
-        "# c4 ~ # # #",
-        "y . # . w #",
-        "# # # . . #",
-        ". . . . . ."
+        ". b . . . .",
+        "# # # # # g",
+        "# y # . # .",
+        "# # # # # .",
+        "# w # r # .",
+        "# # # # # .",
+        "# w # . S .",
+        "# # # # # ."
       ],
-      "stack": ["red", "red", "blue", "yellow", "blue", "yellow", "blue"]
+      "stack": ["yellow", "red", "green", "blue", "green", "yellow"]
     },
     {
       "title": "Tumbleweed",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        "# # # # #",
-        "# . S . #",
-        "# # # y #",
-        "# r c2 y #",
-        "# # # # #",
-        ". r r . ."
+        "b  g  .  .  b",
+        "#  #  #  #  #",
+        "#  r  #  y  c2",
+        "#  #  #  #  #",
+        "S  .  #  r  #",
+        "#  #  #  #  #"
       ],
-      "stack": ["red", "yellow", "red", "red", "yellow"]
+      "stack": ["blue", "green", "red", "blue", "yellow", "red"]
     },
     {
       "title": "Cactus Mail",
       "no_revisit": true,
+      "flavor": "districts",
       "map": [
-        ". # # # c5 #",
-        "y # . S . #",
-        ". # # # # #",
-        "w # . # . #",
-        "b # # # # #",
-        "r # . . y #",
-        "y # # # # #"
+        "#  #  #  #  #  .",
+        "#  b  #  b  #  .",
+        "#  #  #  #  S  .",
+        "c3 g  #  y  .  .",
+        "#  #  #  #  #  .",
+        "#  y  #  w  #  r",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["yellow", "yellow", "yellow", "red", "blue", "yellow"]
+      "stack": ["yellow", "red", "yellow", "yellow", "green", "blue", "blue"]
     },
     {
       "title": "Lightning Rod",
       "no_revisit": true,
+      "flavor": "decoy",
       "map": [
-        "# # ~ # # #",
-        "# . # . w #",
-        "# S # . . #",
-        "# . # . y #",
-        "# . # . y #",
-        "# r # # # c3",
-        "# p . y r #",
-        "# # # # # #"
+        ". . . g w .",
+        ". # # # # #",
+        ". S . # r #",
+        ". # # # # #",
+        ". # b # y #",
+        ". # # # # #",
+        ". # b # g #",
+        ". # # ~ # #"
       ],
-      "stack": ["red", "purple", "purple", "yellow", "yellow", "yellow", "red"]
+      "stack": ["blue", "green", "yellow", "blue", "red", "yellow", "green"]
     },
     {
       "title": "Siesta",
       "hint": "Shade and a short route.",
       "no_revisit": true,
+      "flavor": "freerun",
       "map": [
-        "r . . . . .",
-        "# # c3 # # .",
-        "# . # . # .",
-        "# y # p # b",
-        "# # # p # w",
-        "# . # . # .",
-        "# # # # S ."
+        ".  #  #  #  #  #",
+        ".  #  w  #  b  #",
+        ".  #  #  #  #  #",
+        "g  #  w  c1 .  #",
+        "r  #  #  #  S  #",
+        ".  #  b  #  .  #",
+        ".  #  #  #  #  #"
       ],
-      "stack": ["red", "yellow", "purple", "purple", "blue", "red"]
+      "stack": ["red", "green", "red", "blue", "blue", "blue"]
     },
     {
       "title": "Mirage",
       "no_revisit": true,
+      "flavor": "knot",
       "map": [
-        ". . . p b y",
-        "# # # # # #",
-        "c2 . b . b #",
-        "# # # # # #",
-        "c2 . S . . #",
-        "~ # # # # #",
-        "# w # b . #",
-        "# # # . . #"
+        ". # # # # #",
+        "r # w # b #",
+        "w ~ # # # #",
+        ". # b # . #",
+        "g # # # S #",
+        ". # g . . #",
+        ". # # # # #",
+        ". y . . . ."
       ],
-      "stack": ["blue", "yellow", "blue", "purple", "blue", "blue", "blue"]
+      "stack": ["red", "blue", "green", "yellow", "green", "blue", "blue", "blue"]
     },
     {
       "title": "Thunderclap",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "longcon",
       "map": [
-        ". # # # ~ # #",
-        ". # r . # . #",
-        "r # # # # # #",
-        ". # b r # y #",
-        ". # # # # # #",
-        ". # r . S . #",
-        ". c7 # # # # #",
-        ". w . . r . ."
+        "#  #  #  c2 #  #  .",
+        "#  .  #  g  .  #  .",
+        "#  .  #  .  r  #  .",
+        "#  #  #  #  #  #  .",
+        "#  w  #  g  w  #  .",
+        "#  #  ~  #  #  #  b",
+        "#  .  #  y  .  #  .",
+        "S  #  #  #  #  #  ."
       ],
-      "stack": ["blue", "blue", "red", "red", "yellow", "red", "red", "red"]
+      "stack": ["green", "yellow", "blue", "blue", "red", "green", "blue"]
     },
     {
       "title": "Cloud Nine",
       "hint": "The last climb. Everything you know, a bit higher up.",
       "no_revisit": true,
+      "flavor": "restock",
       "map": [
-        ". . . p . .",
-        ". # # # # #",
-        "y =y b # b #",
-        ". # # # p #",
-        ". # . # B #",
-        "b # . # . #",
-        ". S # c5 # #"
+        "#  #  #  #  #  .",
+        "c2 .  #  y  #  .",
+        "#  =y #  #  #  .",
+        "#  r  =r g  #  .",
+        "#  #  #  #  #  .",
+        "#  .  #  B  #  .",
+        "S  #  #  #  #  b"
       ],
-      "stack": ["purple", "blue", "purple", "yellow", "blue"]
+      "stack": ["yellow", "red", "green"]
     },
     {
       "title": "Penthouse",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        ". S # # # # #",
-        ". # P . # b #",
-        ". # # # # . #",
-        ". =p . b p . #",
-        ". # . p . p #",
-        ". # c2 # # # c6",
-        ". # . p # b #",
-        ". # # # # # #"
+        ".  g  .  .  .  .  .",
+        ".  #  #  #  #  #  #",
+        ".  #  .  y  #  .  #",
+        ".  #  S  #  #  #  #",
+        ".  #  .  G  #  Y  #",
+        ".  c1 #  #  #  #  #",
+        ".  #  .  r  #  g  #",
+        "b  #  #  #  #  #  #"
       ],
-      "stack": ["blue", "purple", "blue", "purple", "purple", "blue"]
+      "stack": ["green", "red", "blue"]
     },
     {
       "title": "Crane Lift",
+      "hint": "Warehouses (+N) hand over everything at once. Make room first.",
       "no_revisit": true,
+      "flavor": "hoard",
       "map": [
-        ". . . r . . Y3",
-        ". # # # # # #",
-        ". # p # y y #",
-        ". # # + c3 # #",
-        "y =y . S . y #",
-        ". c6 . # # # #",
-        ". # . # . . #",
-        "p # # # # # #"
+        ".  b  .  .  .  .  R",
+        "#  #  #  #  #  #  #",
+        "#  .  #  R2 #  r3 #",
+        "#  #  #  #  #  #  c5",
+        "#  r2 #  .  #  .  #",
+        "#  #  #  #  +  #  #",
+        "#  .  #  y3 #  g2 #",
+        "#  S  #  #  #  =y #"
       ],
-      "stack": ["purple", "yellow", "purple", "red"]
+      "stack": ["yellow", "yellow", "yellow", "green", "green", "blue", "red", "red"]
     },
     {
       "title": "Thin Air",
       "no_revisit": true,
+      "flavor": "fork",
       "map": [
-        ". . y b . B",
-        "# # =y # # #",
-        "# . . # b #",
-        "# # # # # #",
-        "# p . r . #",
-        "c3 # # # S #",
-        "b . . . . ."
+        "#  #  #  #  #  g",
+        "#  r  c1 G  #  .",
+        "#  #  #  #  #  .",
+        "#  .  #  g  #  .",
+        "#  S  #  .  =b .",
+        "#  .  #  b  #  r",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["red", "purple", "blue", "yellow", "blue"]
+      "stack": ["red", "blue", "green", "red"]
     },
     {
       "title": "Window Washer",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        ". . . . r . .",
-        "# # # # c1 # #",
-        "# . # p # r #",
-        "# . # . # . #",
-        "# c5 # # # # #",
-        "# . b y # . #",
-        "# =p # # # S #",
-        "B . p p . . ."
+        ".  .  b  .  .  .  .",
+        "#  #  #  #  #  #  S",
+        "#  .  #  r  #  b  #",
+        "#  #  #  #  #  #  #",
+        "#  y  #  g  #  r  #",
+        "#  #  #  #  #  #  #",
+        ".  .  =g b  #  B  #",
+        "#  #  #  #  #  #  #"
       ],
-      "stack": ["purple", "purple", "purple", "yellow", "red", "red"]
+      "stack": ["yellow", "blue", "red", "red", "green", "blue"]
     },
     {
       "title": "Mile Zero",
       "no_revisit": true,
+      "flavor": "twin",
       "map": [
-        ". Y . r . y",
-        ". # # # # #",
-        ". =y y # . #",
-        ". # b # y c2",
-        ". # # # # #",
-        ". S . # b #",
-        ". # # # # #"
+        "#  #  #  #  #  g",
+        "S  .  =y b  #  .",
+        "#  #  #  #  #  r",
+        "#  B  #  y  #  .",
+        "#  #  #  #  #  .",
+        "#  b  #  G  #  g",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["blue", "red", "yellow", "yellow", "blue"]
+      "stack": ["green", "blue", "red", "yellow"]
     },
     {
       "title": "Top of the World",
-      "challenge": true,
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "districts",
       "map": [
-        "b . . r R . .",
-        "# # # =r # # #",
-        "# r # . # . #",
-        "# # c6 y # # #",
-        ". . # . # . b",
-        "# # # # + # #",
-        "# y . . # r #",
-        "# # S # # # #"
+        ".  .  .  .  g  .  .",
+        "#  c2 #  #  #  #  #",
+        "#  B  #  .  #  G  #",
+        "#  #  #  S  #  #  #",
+        "b  r  #  .  =b .  g",
+        "#  #  #  #  +  #  #",
+        "#  y  #  b  #  .  #",
+        "#  #  #  #  #  #  #"
       ],
-      "stack": ["yellow", "red", "blue", "red", "blue", "yellow"]
+      "stack": ["yellow", "blue", "green", "red"]
     },
     {
       "title": "Needle in a Haystack",
-      "hint": "A huge map with a short answer. Most roads are a trap.",
+      "hint": "The nearest drop isn't the first one. Look twice.",
       "no_revisit": true,
+      "flavor": "decoy",
       "map": [
-        ". # # # # # # # #",
-        ". ^ y . # . . . #",
-        ". # # S # # # # #",
-        "g # . . # . # . #",
-        "p # # # # # # # #",
-        ". # . . # . # . #",
-        "y # # # ^ # # . #",
-        ". # . b # . # . #",
-        "b # . B # r # . #",
-        "g # # # # # # # #",
-        ". . p . b . . . ."
+        "# . S # # # # # .",
+        "# . # . # y . # .",
+        "# # # # # # # # .",
+        "# . # . # p . # .",
+        "# # # # # . . # .",
+        "r . . g # . . # b",
+        "# # # # # # # # .",
+        "# . # P # . . # p",
+        "# . # . # . Y # y",
+        "# # # # # # # # .",
+        ". . . . . . . . ."
       ],
-      "stack": ["blue", "red", "purple", "green", "blue", "yellow", "purple", "green", "yellow"]
+      "stack": ["blue", "green", "red", "yellow", "purple"]
     },
     {
       "title": "Last Orders",
       "hint": "Everything out, then all the way home.",
       "no_revisit": true,
       "return": true,
+      "flavor": "knot",
       "map": [
-        ". # y # # # # #",
-        ". # b # b # y #",
-        ". # # + # # # #",
-        ". # . v y # . #",
-        ". # # # < # # #",
-        ". # . . . # . #",
-        ". # # # . # # #",
-        ". # . g . # Y #",
-        "p # # # S # # #",
-        ". # . . . # p #",
-        ". # # # # @ # #",
-        ". . . . . . p ."
+        "# @ # # # # # .",
+        "# . # r # B # .",
+        "# # # # # # # .",
+        "# . # g # . # .",
+        "# # + # # # # .",
+        "# . # y # . # .",
+        "# . # # # S # .",
+        "# . # p # . # .",
+        "# b # # # # # .",
+        "# . # g # . # .",
+        "# # # b # # # .",
+        ". . . . y . . ."
       ],
-      "stack": ["yellow", "blue", "yellow", "blue", "purple", "purple", "purple", "green"]
+      "stack": ["yellow", "green", "red", "blue", "green", "yellow", "purple"]
     },
     {
       "title": "The Long Way Round",
-      "hint": "One route, fifty-two tiles. Plan the whole shift.",
+      "hint": "Three neighbourhoods, one shift. Mind which way you leave each.",
       "no_revisit": true,
       "return": true,
+      "flavor": "districts",
       "map": [
-        "# # < S # # # .",
-        "@ . # . # . # .",
-        "# # # # > # # r",
-        "# p # . . . # .",
-        "# # + # # # # b",
-        "# . # . # . # .",
-        "# # # . # # # .",
-        "# p # b # . # .",
-        "# y # # # # # .",
-        "# . # p # . # .",
-        "# b # . # G # .",
-        "# # # # # # # g"
+        ". . . . . b . .",
+        "S # # # # # # r",
+        "# . # . # p # .",
+        "# # # # # # # .",
+        "# . . . . g # r",
+        "@ # # # # # # .",
+        "# b # . # y # .",
+        "# # # # # # # .",
+        "# g G . # . . .",
+        "# # # # + # # .",
+        "# p # Y # y # .",
+        "# # # # # # # ."
       ],
-      "stack": ["red", "blue", "purple", "yellow", "blue", "purple", "purple", "blue"]
+      "stack": ["blue", "red", "purple", "red", "green", "yellow", "blue", "purple"]
     },
     {
       "title": "Night Freight",
-      "hint": "Two gates, a hub, two shops. Get the order right.",
+      "hint": "Get the order right before you get going.",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        "G   g   .   .   .   .   .   .",
-        "#   #   #   #   #   #   #   #",
-        "=r  r   #   .   .   #   .   #",
-        "#   #   #   #   #   #   #   #",
-        "#   R   #   .   .   #   .   #",
-        "#   >   #   #   #   #   #   #",
-        "=g  g   #   .   .   #   .   #",
-        "@   #   #   #   #   #   #   #",
-        "#   p   #   .   r   #   .   S",
-        "#   #   #   #   #   <   #   #",
-        ".   .   y   .   .   b   b   p"
+        ".  #  #  #  #  #  #  #",
+        ".  #  b  #  y  #  .  #",
+        ".  #  #  #  #  #  #  #",
+        "B  =y .  #  .  #  .  #",
+        ".  #  .  #  .  #  .  @",
+        ".  #  #  #  #  #  #  #",
+        ".  #  r  #  .  #  Y  #",
+        ".  #  #  @  #  #  #  #",
+        ".  #  .  #  p  #  b  #",
+        "r  #  S  #  #  <  #  #",
+        ".  .  .  .  g  .  .  ."
       ],
-      "gift": {"at": [6, 1], "item": "deep_field"},
-      "stack": ["green", "purple", "yellow", "red", "blue", "blue", "purple"]
+      "gift": {"at": [1, 1], "item": "deep_field"},
+      "stack": ["blue", "purple", "green", "red", "red"]
     },
     {
       "title": "Grand Tour",
-      "challenge": true,
       "hint": "Everything at once. Good luck.",
       "no_revisit": true,
+      "challenge": true,
       "return": true,
+      "flavor": "longcon",
       "map": [
-        "R   #   #   #   #   #   #   #",
-        "r   =r  r2  #   .   #   .   #",
-        ".   #   =r  +   #   #   #   #",
-        ".   p   R   #   y   #   y   #",
-        ".   #   #   #   #   +   #   #",
-        ".   #   .   #   y   #   .   @",
-        ".   #   .   #   .   #   g   #",
-        ".   #   #   #   #   #   #   #",
-        ".   #   .   #   .   #   p2  #",
-        ".   #   #   #   #   #   #   ^",
-        ".   #   .   #   .   #   .   S",
-        ".   #   #   #   <   #   #   #"
+        ".  .  .  .  .  .  .  .",
+        "#  #  #  #  #  #  #  .",
+        "#  .  #  r  #  .  S  .",
+        "#  #  #  #  #  #  #  .",
+        "#  Y  #  g  #  .  #  p2",
+        "#  #  #  #  #  #  #  b",
+        "#  y  #  .  #  g  #  .",
+        "#  .  =g y  #  .  #  .",
+        "@  #  #  #  +  #  #  .",
+        "#  r  #  p  #  .  #  .",
+        "#  #  #  #  #  #  #  .",
+        ".  .  .  Y  .  .  .  ."
       ],
-      "stack": ["purple", "yellow", "red", "purple", "yellow", "yellow", "green", "purple"]
+      "stack": ["purple", "purple", "blue", "green", "green", "red", "purple", "red"]
     },
     {
       "title": "Bulk Order",
       "hint": "Warehouses (+N) load everything at once. Make room first.",
       "no_revisit": true,
+      "flavor": "hoard",
       "map": [
-        "r   #   #   #   #   #   #   #   #",
-        ".   #   .   r4  #   Y5  #   y2  ^",
-        ".   =b  R5  .   #   #   #   #   #",
-        ".   #   .   .   S   .   #   y4  #",
-        ".   #   .   y2  #   y2  #   Y5  #",
-        ".   #   #   #   #   #   #   #   @",
-        ".   b3  .   .   #   b   #   y3  #",
-        ".   #   #   =b  #   #   #   #   #",
-        ".   #   B5  .   #   .   #   .   #",
-        ".   #   #   #   >   #   #   <   #",
-        "R4  #   .   b4  #   .   b3  Y   #",
-        "r4  #   #   #   #   #   #   #   #"
+        ".  #  #  @  .  #  #  #  .",
+        ".  #  r2 #  .  .  .  #  .",
+        ".  #  #  #  #  #  .  #  .",
+        ".  S  .  #  .  #  b4 #  .",
+        ".  #  #  #  #  #  #  #  .",
+        ".  #  R3 #  y4 #  .  .  .",
+        ".  #  #  #  #  #  #  #  b2",
+        "r3 #  .  #  G3 #  .  #  g2",
+        ".  #  #  #  #  #  #  #  .",
+        ".  #  .  #  g4 #  .  #  .",
+        ".  #  G3 #  .  #  Y4 #  .",
+        ".  #  #  #  #  #  #  #  y4"
       ],
-      "stack": ["blue", "blue", "blue", "blue", "blue", "blue", "yellow", "yellow"]
+      "stack": ["blue", "blue", "blue", "blue", "blue", "blue", "yellow", "yellow", "yellow", "yellow", "red", "red"]
     },
     {
       "title": "Peak Season",
       "no_revisit": true,
+      "flavor": "districts",
       "map": [
-        "p   #   #   #   #   S   #   #   #",
-        ".   #   y3  #   r3  .   #   P4  #",
-        ".   #   #   #   #   #   #   <   #",
-        ".   #   .   #   .   .   #   .   #",
-        ".   #   #   #   #   #   #   #   #",
-        ".   #   .   #   B2  b4  #   p4  #",
-        ".   #   .   #   .   B5  #   b3  #",
-        ".   #   #   #   >   >   #   #   #",
-        "b   =b  .   .   y2  .   #   B2  =p",
-        ".   #   #   #   #   @   #   #   #",
-        ".   .   .   p4  .   .   Y2  P4  b"
+        ".  .  .  B2 .  .  r4 .  .",
+        ".  #  #  #  #  #  #  #  .",
+        ".  #  R4 #  .  #  b2 #  .",
+        ".  #  #  #  #  #  #  #  y",
+        ".  #  G3 #  b4 #  .  #  g2",
+        ".  #  #  #  #  #  S  #  .",
+        ".  =y .  =g .  .  .  .  .",
+        ".  @  #  #  #  #  #  #  .",
+        ".  #  y4 #  g4 #  .  #  r4",
+        ".  #  #  #  #  #  #  #  .",
+        ".  .  .  .  .  .  Y4 .  ."
       ],
-      "stack": ["yellow", "purple", "yellow", "yellow", "red", "red", "red"]
+      "stack": ["green", "yellow", "green", "red", "red", "red", "red", "green", "blue", "blue", "blue", "blue"]
     },
     {
       "title": "Overstock",
       "no_revisit": true,
+      "flavor": "twodoor",
       "map": [
-        "#   #   v   #   #   #   #   #   #",
-        "p   p5  #   b   .   r2  #   .   .",
-        "#   #   #   #   #   =b  #   #   #",
-        "#   p4  #   P5  B   R2  #   .   #",
-        "#   y4  #   .   Y4  .   #   .   #",
-        "#   #   #   #   #   #   #   #   #",
-        "#   .   #   .   #   P5  #   p   #",
-        "#   .   #   .   #   P   =p  .   #",
-        "#   #   #   #   #   #   #   S   #",
-        "#   p   #   p4  #   .   v   .   #",
-        "#   y4  #   #   #   #   #   #   #"
+        ".  #  #  #  #  #  <  #  .",
+        ".  #  g2 #  r  #  r4 .  .",
+        ".  #  .  #  .  #  #  #  .",
+        ".  #  b3 #  .  #  .  #  .",
+        ".  #  #  #  #  #  S  #  .",
+        ".  #  g4 #  B3 #  .  #  y4",
+        ".  #  .  #  .  #  Y3 #  .",
+        ".  #  #  #  #  #  #  #  .",
+        ".  #  .  #  .  #  b4 #  .",
+        ".  #  #  #  #  #  #  #  B4",
+        ".  .  G4 .  .  .  .  y3 ."
       ],
-      "stack": ["purple", "purple", "purple", "purple", "purple", "yellow", "yellow", "yellow", "yellow"]
+      "stack": ["red", "red", "red", "red", "green", "green", "red", "yellow", "yellow", "yellow", "yellow"]
     },
     {
       "title": "Cyber Monday",
       "no_revisit": true,
+      "flavor": "sorter",
       "map": [
-        "#   #   #   #   #   #   #   #",
-        "#   B5  y   #   .   y2  .   #",
-        "#   #   #   ^   #   #   #   #",
-        "#   r   y4  #   y2  #   .   #",
-        "#   #   =y  #   #   #   >   #",
-        "#   Y3  .   #   Y4  #   .   #",
-        "#   y3  r3  #   .   #   Y5  =b",
-        "#   #   #   #   #   #   #   #",
-        "#   .   R4  #   .   .   .   #",
-        "#   #   #   #   #   #   #   #",
-        "#   b3  b3  #   .   v   r4  #",
-        "#   .   .   #   S   #   #   #"
+        ".  .  .  .  y3 .  .  .",
+        "#  #  #  #  #  #  #  .",
+        "#  b2 #  r3 #  .  .  .",
+        "#  #  #  #  #  y4 #  .",
+        "#  Y2 #  Y4 #  r4 #  .",
+        "#  #  #  #  #  #  #  .",
+        "#  .  #  R2 #  .  #  .",
+        "#  #  #  #  #  #  #  .",
+        "=y g2 #  R5 #  .  S  .",
+        "#  #  @  .  #  #  #  .",
+        "#  b3 #  .  #  .  #  .",
+        "#  #  #  #  #  #  #  g4"
       ],
-      "stack": ["blue", "red", "red", "red", "red"]
+      "stack": ["blue", "blue", "yellow", "green", "green", "blue", "blue", "blue", "green", "green", "green", "green"]
     },
     {
       "title": "The Last Mile",
-      "challenge": true,
       "hint": "Good luck, driver.",
       "no_revisit": true,
+      "challenge": true,
+      "flavor": "hoard",
       "map": [
-        ".   .   .   .   r4  .   .   .   r2",
-        "#   #   #   =r  #   #   #   #   #",
-        "#   r   .   R4  #   b2  #   R2  #",
-        "#   #   #   #   #   #   #   #   #",
-        "#   r3  r2  b2  v   .   #   B4  #",
-        "#   #   #   #   #   #   #   .   #",
-        "#   b2  #   .   #   .   #   R5  #",
-        "#   B2  v   #   v   #   #   y4  #",
-        "#   b2  #   .   #   .   .   b2  =y",
-        "#   #   #   #   #   #   #   #   #",
-        "#   B4  #   b2  #   .   #   .   #",
-        "#   =y  #   #   #   S   #   #   #"
+        ".  r3 r2 .  .  .  .  .  .",
+        ".  #  #  #  #  #  #  #  #",
+        ".  #  .  #  .  R5 #  y4 #",
+        ".  #  #  #  #  #  #  #  #",
+        ".  #  .  S  .  .  #  .  #",
+        ".  #  b4 #  .  .  #  .  #",
+        "g4 #  #  #  <  #  #  #  #",
+        ".  #  g4 #  .  Y2 #  y3 #",
+        ".  #  #  #  #  #  #  #  #",
+        ".  #  G2 #  .  .  #  .  #",
+        ".  #  <  #  #  #  #  #  #",
+        ".  b2 .  .  .  .  .  .  Y5"
       ],
-      "stack": ["red", "yellow", "yellow", "yellow", "yellow", "blue", "blue"]
+      "stack": ["blue", "blue", "green", "green", "green", "green", "green", "green", "blue", "blue", "blue", "blue"]
     }
   ]
 }

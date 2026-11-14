@@ -1,11 +1,21 @@
 # Last Mile: level design prospectus (all levels, presents, keys, detours, bosses, new mechanics)
 
+> **Status, 15 Nov 2026.** The engine this brief asked for is built, and levels 1–100 have been
+> regenerated with it: see `design/level_engine.md` (how it works) and `design/level_scores.md` (every
+> level's flavour and scores). This brief stays as the reasoning behind it. Two things changed in the
+> building: answers are counted as **plans** (the order things happen), not routes, so "1–3 solutions"
+> below now reads "1–2 plans, driven any of several ways"; and route choice is counted as the delivery
+> **orders** the map allows. Still open from this brief: more detours and bosses (§6, §7), more presents and
+> keys in the back half (§4, §5), staged districts with diners (§14), and the new mechanics (§9).
+
 This is the brief for the level overhaul. It's written for a designer (Fable) who hasn't seen the
 conversations behind it, so it says what the game is, what's wrong, what "good" means, what's already built,
 and what's left to decide. Steven (the game's owner) will review the result on TestFlight.
 
-Read in this order: §1 (what we're doing and why), §2 (rules every level must meet), then whatever section
-your current step needs. §12 is the deliverable checklist.
+Read in this order: §1 (what we're doing and why), §13 (the north star: not connect-the-dots), §2 (rules
+every level must meet), then whatever section your current step needs. §12 is the deliverable checklist.
+§13–§18 were added last (14 Nov) after measuring route choice; where they disagree with an earlier
+section, they win. In particular the search-node targets in §3 are secondary to route choice.
 
 ---
 
@@ -68,7 +78,10 @@ So the job is four things at once:
 A level passes when all of these hold. Most are measured by `tools/level_report.gd`.
 
 1. **The packages decide the route.** Shuffle the stack and the layout should suggest a different route.
-   A level you can solve without reading the stack fails, however many search nodes it takes.
+   A level you can solve without reading the stack fails, however many search nodes it takes. Measured as
+   **route choice** ("free" in `level_report.gd`): how many winning routes there are if colours didn't
+   matter. Three or fewer is connect-the-dots (flag DOTS). Floors: easy 4+, medium 12+, hard 30+; the stack
+   then cuts those to 1–3 (§13).
 2. **Not trivially easy**, scaled to where it sits (targets in §3). "EASY" in the report means score
    under 9, 6+ solutions, or under 400 search nodes.
 3. **No decoration.** Every mechanic on the map changes the answer: turned into plain road, it must open up
@@ -98,6 +111,9 @@ route length, coverage, a score, and the flags. The last full run of 41–100 is
 
 - **Every level from 41 to 90 is EASY** (19–130 search nodes). The endgame (91–100) takes 480–2,200, which
   is the bar to aim near late on.
+- **Half of levels 1–90 are connect-the-dots.** With colours ignored, 45 of 90 have three or fewer winning
+  routes, and 18 of the 20 in levels 41–60 (exactly where Steven said it feels solved on sight). No level
+  has more than 27 (level 14). The map leaves a handful of routes and the stack just picks one.
 - **26 levels have a decorative mechanic**: roadworks in most of 69–90, ice in most of 41–54 and 76–83
   (`tools/fix_ice.gd` moved ice onto junctions, but the layouts still force the route).
 - **1–40** (`design/level_report_1_40.txt`): no decorative mechanics, but all 40 are under the report's
@@ -258,7 +274,9 @@ entries, an intro level that meets §2.4, and enough levels after it to make it 
 5. **Paint station** ("use sparingly"). Repaints the top package once (to the station's colour). It changes
    what "the order" means, cheaply. Recommend a handful of late levels and maybe a boss.
 
-If you only build one, build the cowcatcher.
+If you only build one, build the cowcatcher (it adds routes). If two, add the paint station: it acts on
+the stack, and stack mechanics add decisions where road mechanics (roundabouts, more one-ways) remove
+routes (§13).
 
 ## 10. Process
 
@@ -312,9 +330,144 @@ On a branch (not main):
 - A short note for Steven: what changed most, what you weren't sure about, and anything that needs his
   decision (mechanics built or skipped, boss rewards).
 
-Acceptance: validator and autotests pass; the report shows no EASY level in 41–100 outside deliberate
+Acceptance: validator and autotests pass; no DOTS past level 4 except levels tagged as the Knot flavour;
+every level tagged with a flavour (§15) and no flavour twice running; the report shows no EASY level in 41–100 outside deliberate
 breathers, no two EASY in a row, no DECOR; every intro level passes §2.4; presents/keys appear about one
 level in three from Part 2 on, staged per §4; every locked detour has its key first; 4–6 bosses.
+
+## 13. North star: we are not playing connect-the-dots
+
+Steven: "the type of thing you open on the toilet for a quick brainteaser distraction then realize you're
+still sitting there 30 minutes later." And: "We are not playing connect-the-dots here."
+
+- **Why it's connect-the-dots today:** the generator draws a drive first and derives the stack from it, on
+  sparse street grids. So the stack is a consequence of the one route the map allows, never a choice
+  between routes (§3's numbers).
+- **The fix:** the map offers many routes; the stack chooses. Route choice (free routes) is the number to
+  push up, then the stack, pickups and houses cut it to 1–3.
+- **Stack mechanics add decisions** (pickups, warehouses, hubs, lockers, ×N houses, a paint station).
+  **Road mechanics remove routes** (one-ways, ice, roadworks, gates). Use road mechanics as doors between
+  parts of a map (§14) and to take away the *obvious* route, never to narrow a map to one path.
+- **Easy levels stay**, as breathing room. They get freedom instead of force: several routes work, or
+  there's one clear fork. Easy must not mean "only one way to drive".
+- Search size is secondary. Empty space inflates it without adding a single decision.
+
+## 14. Try-and-see play: build bigger maps out of districts
+
+The worry: small levels ask you to solve the whole thing before the first move. That doesn't scale to big
+maps, and it isn't the loop that keeps people playing (start, see how it goes, back up, try again).
+
+1. **Districts.** A medium or hard map is 2–4 neighbourhoods, each a small puzzle of its own, joined by
+   **doors**. Roadworks are progress doors (open after N deliveries: this gives roadworks a real job).
+   Gates are state doors (the right colour on top). Bridges and one-ways are no-way-back doors. A hub at a
+   junction re-orders you on the way through.
+2. **What crosses a door is small and nameable:** which door, what's on top, what's still aboard. The
+   player's plan becomes "clear this block, leave by the east bridge with blue on top", not a 40-move line.
+3. **Districts interact continuously, not only in sequence.** A pickup in one feeds another; a house
+   faces streets in two districts (deliver from either side); leaving by a different door changes how
+   the next one starts.
+4. **Safe openers.** On medium and harder maps at least two first segments keep a win alive, so starting
+   is not a commitment to a full plan. Commitments happen at doors.
+5. **Mistakes show early.** A wrong choice should fail inside its district, within a few moves, not 30
+   moves later. Keep "doomed depth" (how long a route with no win left can keep driving) short, except in
+   the Long con flavour.
+6. **Size by districts, not tiles:** hard = 3–4 districts on up to 7×10; a boss = 4–6.
+
+Measures to add to the report: districts (pieces of the road graph with door tiles removed), safe openers,
+doomed depth.
+
+**Two kinds of district map.**
+
+- **Open districts:** the whole map is visible from the start and the doors are roadworks, gates, bridges
+  and one-ways (points 1–3 above). Carrying state across a door is fair here, because the player can see
+  where it's going.
+- **Staged districts, with diner checkpoints** (agreed with Steven; not built yet). The rules:
+  1. A stage ends when every delivery in it is done, the van is empty, and it parks on the diner tile.
+  2. At the diner the game saves, the road crew repairs every road, and the next stage's load is waiting.
+     Nothing is carried across (it would be guesswork: the next stage can't be seen yet).
+  3. So every player starts a stage in the same state: at the diner, fresh roads, that stage's stack. A
+     checkpoint can never save a lost position, **provided each stage is winnable from that state**.
+  4. Old streets stay drivable in later stages (as through-roads; their houses are done), so later
+     stages have more route choice.
+  5. **Zoom-out stages** (use sometimes): stage 1 is a small map in the middle; at the diner the camera
+     zooms out and stage 2 adds roads round the edges and new buildings throughout, old streets
+     included. Three stages at most on a phone (about 3×3, then 5×7, then 7×10).
+
+  For the designer, each stage is an ordinary level: its own map, stack and start. The only extra rules
+  are that a stage's roads include all of the previous stage's, its start is the previous stage's diner,
+  and it ends on its own diner. Suggested format: the mega routes' `parts`, each part carrying its full
+  map. The validator should solve every stage on its own and check the road sets nest. Reverse miles
+  (`design/game_plan.md`) refill at each diner.
+
+## 15. Level flavours (internal; players never see these)
+
+A level's flavour is what it asks of you. Tag each level `"flavor": "<name>"` in levels.json (the game
+ignores it, and it's excluded from the redesign fingerprint). Signatures are how the tools recognise one.
+
+| Tier | Flavour | Why it's fun | Why it's hard | Signature |
+|---|---|---|---|---|
+| Easy | **Fork** | one real choice; two routes look right | reading the top three packages | free 2–6, 1 solution |
+| Easy | **Free run** | open map, big loops, several ways to win | nothing for the win; the present is the puzzle | free 20+, 4+ solutions on purpose, a present on one |
+| Easy | **Decoy** | the "aha" of one trick | the nearest house is the wrong first stop | free 4+; the obvious opener dies within 5 moves |
+| Medium | **Sorter** | open map; the order is the whole puzzle | sequencing with hubs and pickups | free 12+, 1–2 solutions, needs a stack mechanic |
+| Medium | **Two-door** | driving past a house on purpose | which pass counts | 2+ houses facing two streets, both sides used |
+| Medium | **Dump** | throwing a package away feels naughty | spotting the one that's in the way | unwinnable without its locker |
+| Medium | **Restock** | "not yet" is a move | holding off on the obvious pickup | a pickup the solution drives past first |
+| Medium | **Knot** | the loop itself (today's standard level) | spatial: the self-avoiding path | free ≤ 6; allowed, at most one level in four |
+| Hard | **Districts** | progress you can bank | carrying state across doors | 3+ districts (§14) |
+| Hard | **Hoard** | juggling a full van | making room before collecting | load reaches 12 |
+| Hard | **Long con** | the reveal | an early, innocent choice decides the end | high doomed depth by design; rare |
+| Hard | **Twin** | finding the second answer | the harder one carries the present or key | 2 solutions sharing under half their tiles |
+| Boss | **Bulk order** | absurd volume | Hoard at three times the size | 25+ packages through warehouses |
+| Boss | **Toll roads** | paying the Baron in colours | a gate at every district door | every door a gate |
+| Boss | **Roadworks racket** | he dug the city up | districts open only by deliveries | every door roadworks |
+| Boss | **Rush hour** | a Knot at city scale | one-ways and ice, in districts | 4+ districts, road mechanics only |
+| Boss | **The works** | everything he's got | all of it, with checkpoints | 5–6 districts |
+
+Rhythm: never the same flavour twice running; 3–4 flavours per zone; an easy flavour after each spike;
+Knot at most one in four. The report should print the flavour and flag repeats.
+
+## 16. The story behind it (never spelled out to players)
+
+We're the last independent courier in the city. Baron Von Bottomline (Hoardly Inc.) wants to buy us out,
+so he places orders rigged to be undeliverable: awkward loads, dug-up roads, toll gates. Every job we
+finish, all he's done is pay us for extra work, which is why he's furious. Boss levels are his biggest
+efforts yet.
+
+It's background, to keep motives and tone consistent. Hint at it where it lands: boss lines, the odd
+level hint or title ("Somebody ordered 26 parcels to one street. Wonder who."), chest notes. The
+frictions are his too: fuel comes from his gas stations, and hints are the GPS.
+
+## 17. Generator changes (to build, most valuable first)
+
+1. **Map first, stack second.** Today: route, then stack. Instead: make the map, count free routes, then
+   search house colours, the stack and pickups for a set that cuts them to 1–3. Reject maps under the
+   tier's floor.
+2. **Aim at route choice and safe openers, not search size**, in the generator and in the mutation search
+   (§10.4): score = free routes ÷ solutions, plus safe openers.
+3. **Denser maps:** more loops, fewer dead ends, one-tile blocks with houses inside so they face two
+   streets.
+4. **District mode:** generate small maps, stitch them with door tiles, carry the stack across, and check
+   each district can be won from each state it can be entered in.
+5. **Flavour presets** (`--flavor=sorter`): floors and required mechanics from §15's signatures.
+6. **Twists must earn it:** keep a road-restricting twist only if it removes solutions *and* leaves free
+   routes above the floor.
+7. **Report:** flavour, districts, safe openers, doomed depth; flag flavour repeats.
+8. **Presents and keys by stage** (§4), using the Twin signature for stage D.
+9. **Calibrate against people** once testers' per-level attempts and times exist; all of the above are
+   proxies until then.
+
+## 18. Game changes these designs lean on (not built; Steven's call)
+
+Decided since; the detail is in `design/game_plan.md`:
+
+- **Undo as reverse miles:** a per-level budget of tiles you can take back, in as many goes as you like,
+  with no star cost. Design maps so short probes are worth making.
+- **No automatic dead-end signal.** Noticing you're doomed is part of the puzzle, so keep doomed depth
+  short by design. (Dispatch, a once-a-level yes/no check, is a late, opt-in reward.)
+- **Diner checkpoints** on staged district maps (§14).
+- **Fuel as the Baron's gas stations, hints as GPS**; beating a boss removes one friction for good.
+- **Per-level tester stats** (attempts, retries, time), with a line in the privacy policy.
 
 ## Appendix: tools
 

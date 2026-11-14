@@ -82,6 +82,14 @@ func _draw() -> void:
 			draw_line(Vector2(x, zr.position.y - s * 0.022), Vector2(minf(x + dash * 0.5, zr.end.x - s * 0.06), zr.position.y - s * 0.022), Color.WHITE, s * 0.03)
 			draw_line(Vector2(x, zr.end.y + s * 0.022), Vector2(minf(x + dash * 0.5, zr.end.x - s * 0.06), zr.end.y + s * 0.022), Color.WHITE, s * 0.03)
 			x += dash
+		# Faint waves going out from the dock to the outline ("take these away"), while there's something to take.
+		if not empty:
+			var mid := zr.get_center() + Vector2(0, s * 0.06)
+			for k in 2:
+				var u := fmod(_t / 2.6 + k * 0.5, 1.0)
+				var half := Vector2(zr.size.x, zr.size.y) * 0.5 * lerpf(0.3, 0.98, u)
+				var wave := Rect2(mid - half, half * 2.0).intersection(zr)
+				draw_rect(wave, Color(color, 0.34 * sin(PI * u)), false, s * 0.03)
 	# The dock itself: plain and dark, so the parcels stand out.
 	var dock := Rect2(-w / 2, -h - s * 0.02, w, h)
 	DrawUtil.rrect(self, Rect2(dock.position + Vector2(0, s * 0.03), dock.size), Color(0, 0, 0, 0.18), s * 0.05)

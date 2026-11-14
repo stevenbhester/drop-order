@@ -1275,6 +1275,17 @@ func _busy_modal() -> bool:
 	return modal != null and is_instance_valid(modal)
 
 
+## The cancel zone sits partly over the bottom buttons, and a button swallows the pointer's moves before
+## _unhandled_input sees them. So while a route's being drawn, the zone follows the finger from here.
+func _input(event: InputEvent) -> void:
+	if state != State.DRAWING or dpad_mode or _busy_modal():
+		return
+	if event is InputEventMouseMotion:
+		if Progress.auto and not (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
+			return
+		_cz_track(event.position)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _busy_modal():
 		return
