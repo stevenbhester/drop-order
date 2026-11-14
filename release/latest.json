@@ -1,11 +1,10 @@
 {
-	"build": 15,
+	"build": 16,
 	"name": "The Long Road",
 	"notes": [
-		"New pretend ads when you're out of hints: three little Last Mile spots, drawn in the game (skip any time).",
-		"Ice now sits on junctions, where it actually stops you turning (it was mostly on straight roads before).",
-		"The package trail behind the van is off by default (Options to switch it on)."
+		"The trash-talk ad gets its fan edit back (zoom punches, RGB split, flashes, speed ramps) and a beat to go with it.",
+		"The clickbait ad's reaction cam is back: NOOB, then PRO, and a lot of yelling."
 	],
-	"ready_at": 1794617826,
+	"ready_at": 1794620440,
 	"version": "0.7"
 }
