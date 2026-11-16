@@ -89,6 +89,7 @@ func _ready() -> void:
 	var tsf := tsb.duplicate() as StyleBoxFlat
 	tsf.border_color = Palette.ACCENT
 	_text.add_theme_stylebox_override("focus", tsf)
+	UiTheme.text_caret(_text)
 	_text.text_changed.connect(_refresh_send)
 	col.add_child(_text)
 

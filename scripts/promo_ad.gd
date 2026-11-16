@@ -1,6 +1,6 @@
 class_name PromoAd
 extends CanvasLayer
-## Pretend ads for Last Mile itself, played when you're out of hints: three short spots drawn live in code
+## Pretend ads for Last Mile itself, played when you're out of gas for a hint: three short spots drawn live in code
 ## (like FakeAd's Frontiers Celestia one), each the idea of one of the game's trailers, with the game's own
 ## van, houses and sounds:
 ##   fun    Cozy. "Every package has someone waiting." A finger draws one route; the van delivers them all.
@@ -205,6 +205,10 @@ func _ready() -> void:
 	_root = Control.new()
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
+	# A tap on the ad points at Skip (it doesn't skip).
+	_root.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			FakeAd.nudge(_skip))
 	_root.theme = UiTheme.theme()
 	_root.draw.connect(_draw_back)
 	add_child(_root)
@@ -255,10 +259,10 @@ func _ready() -> void:
 	_root.add_child(_hud)
 
 	_skip = JuicyButton.new()
-	_skip.font_px = 36
+	_skip.font_px = 46
 	_skip.label = "Skip  »"
-	_skip.custom_minimum_size = Vector2(230, 92)
-	_skip.size = Vector2(230, 92)
+	_skip.custom_minimum_size = Vector2(320, 128)
+	_skip.size = Vector2(320, 128)
 	_skip.pressed.connect(func():
 		Sfx.play("click")
 		_close())
@@ -283,7 +287,9 @@ func _ready() -> void:
 
 func _layout() -> void:
 	var vp := _root.size if _root.size != Vector2.ZERO else _root.get_viewport_rect().size
-	_skip.position = Vector2(vp.x - _skip.size.x - 36.0, 40.0 + _top)
+	# Bottom corner under the thumb (the left one in left-hand mode): skipping should take no effort.
+	var sy := vp.y - _bottom - _skip.size.y - 56.0
+	_skip.position = Vector2(36.0 if Progress.left_hand else vp.x - _skip.size.x - 36.0, sy)
 	_cta.position = Vector2((vp.x - _cta.size.x) / 2.0, vp.y * 0.62)
 	_cta.pivot_offset = _cta.size / 2.0
 	_stage.position = _board_origin()

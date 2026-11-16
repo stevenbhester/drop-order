@@ -13,6 +13,7 @@ const ARROWS := {"^": Vector2i(0, -1), ">": Vector2i(1, 0), "v": Vector2i(0, 1),
 
 var number := 0
 var title := ""
+var flavor := ""                 # what kind of puzzle the level engine made it (tools only; sent with ratings)
 var hint := ""
 var width := 0
 var height := 0
@@ -37,7 +38,7 @@ var house_roads: Array = []      # per house: Array[Vector2i] of touching road t
 var shop_roads: Array = []       # per shop: Array[Vector2i] of touching road tiles
 var fp := 0                      # fingerprint(): the puzzle's identity, to spot redesigns
 var gift := Vector2i(-1, -1)     # a road tile with a cosmetic on it (optional; not part of the rules)
-var gift_item := ""              # Cosmetics id, or "key" (a key that opens a locked side road)
+var gift_item := ""              # Cosmetics id, "key" (a key that opens a locked side road) or "headlights" (the van's first, level 2)
 var preview := false             # a sneak-peek level (harder than the release would have yet)
 var challenge := false           # a spike: much harder than its neighbours (an intro, a badge, a big win)
 var spice := 0                   # dailies: how hard today's is, 1 (mild) to 3 (spicy); 0 = not said
@@ -68,6 +69,7 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L.number = num
 	L.fp = fingerprint(d)
 	L.title = str(d.get("title", ""))
+	L.flavor = str(d.get("flavor", ""))
 	L.hint = str(d.get("hint", ""))
 	L.no_revisit = bool(d.get("no_revisit", true))
 	L.return_depot = bool(d.get("return", false))
@@ -106,7 +108,7 @@ static func from_dict(d: Dictionary, num: int) -> LevelData:
 	L._index_neighbours()
 	L._validate()
 	if L.gift_item != "":
-		if L.gift_item != "key" and not Cosmetics.ITEMS.has(L.gift_item):
+		if L.gift_item != "key" and L.gift_item != "headlights" and not Cosmetics.ITEMS.has(L.gift_item):
 			L.errors.append("gift: unknown item '%s'" % L.gift_item)
 		elif not L.is_road(L.gift) or L.gift == L.start:
 			L.errors.append("gift must be on a road tile other than S")
@@ -198,7 +200,7 @@ func _validate() -> void:
 		if exit.x != 0 and exit.y != 0 and exit.x != width - 1 and exit.y != height - 1:
 			errors.append("the exit (E) must be on the map's edge")
 		if return_depot:
-			errors.append("a level can't have both an exit and a return to the depot")
+			errors.append("a job can't have both an exit and a return to the depot")
 	for w in works:
 		if w == start:
 			errors.append("roadworks can't be on the start tile")

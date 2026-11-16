@@ -66,6 +66,8 @@ if [ $first -eq 1 ]; then
   wait
   tok=$(cat $out/touch-*.txt | grep -c 'AUTOTEST touch .* ok:')
   echo "symbol card by touch and mouse: $tok/6 levels ok"
+  # The garage: a drag that starts on a tile scrolls the list (and picks nothing); a tap picks.
+  $G --headless --path . --quit-after 3000 -- --garage --autogarage --autotest 2>&1 | grep "AUTOTEST garage"
   # The level's hints (none counted with the option on; asking twice without a move costs one), the tip, a
   # video ad skipped straight away, unlimited hints.
   $G --headless --path . --quit-after 100000 -- --level=12 --autohintad > $out/hintad.txt 2>&1

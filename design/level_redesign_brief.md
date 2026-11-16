@@ -1,12 +1,13 @@
 # Last Mile: level design prospectus (all levels, presents, keys, detours, bosses, new mechanics)
 
-> **Status, 15 Nov 2026.** The engine this brief asked for is built, and levels 1–100 have been
-> regenerated with it: see `design/level_engine.md` (how it works) and `design/level_scores.md` (every
-> level's flavour and scores). This brief stays as the reasoning behind it. Two things changed in the
-> building: answers are counted as **plans** (the order things happen), not routes, so "1–3 solutions"
-> below now reads "1–2 plans, driven any of several ways"; and route choice is counted as the delivery
-> **orders** the map allows. Still open from this brief: more detours and bosses (§6, §7), more presents and
-> keys in the back half (§4, §5), staged districts with diners (§14), and the new mechanics (§9).
+> **Status, 15 Nov 2026 (second pass).** Read `design/level_engine.md` instead of this for how levels are
+> made and judged. The first engine built from this brief (many winning plans, an open town, the answer
+> written in the queue) shipped in build 23 and Steven found its levels trivial. The second engine goes
+> the other way: one answer, many wrong plans that don't look wrong, measured as an experienced player
+> thinks (in stops and doors). So where this brief asks for several solutions or several plans, it has
+> been overruled, and the tools it names (`level_report.gd` and the rest) are gone: see `tools/engine/`.
+> Still open from this brief: more detours and bosses (§6, §7), more presents and keys in the back half
+> (§4, §5), staged districts with diners (§14), and the new mechanics (§9).
 
 This is the brief for the level overhaul. It's written for a designer (Fable) who hasn't seen the
 conversations behind it, so it says what the game is, what's wrong, what "good" means, what's already built,

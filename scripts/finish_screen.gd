@@ -2,7 +2,7 @@ class_name FinishScreen
 extends Control
 ## The level finish, in the style of a fighting-game "a new challenger joins" freeze frame: the world goes dark
 ## behind focus lines, a slashed banner whips across, the van punches in big with a white cut-out edge, and
-## "DELIVERED!" slams down. Then the stat panels slide in one by one (time, stars, momentum) and the rewards fly
+## "DELIVERED!" slams down. Then the stat panels slide in one by one (time, packages, momentum) and the rewards fly
 ## up to the wallet and gas gauge. With momentum the van is engulfed in anime fire: more, taller and hotter
 ## the higher it is. A challenge level beaten for the first time goes bigger: the banner turns to hazard tape,
 ## "CHALLENGE CRUSHED!" slams down instead, confetti flies and the bonus is called out.
@@ -19,7 +19,10 @@ const BUTTONS_AT := 1.7
 const INK := Color(0.1, 0.07, 0.16)
 
 var level: LevelData
-var stars := 3
+## Packages this win added to the count delivered (0 on a replay: they were counted the first time), and
+## the packages on the job (shown as +0 on a replay).
+var fresh := 0
+var packages := 0
 var reward := 0
 var gas_back := false
 var secs := 0.0
@@ -30,6 +33,8 @@ var missed_item := false
 var found_key := false
 var missed_key := false
 var daily := false
+## A daily solved and not shared yet today: the begging bubble over Share (Daily.beg), until it's tapped.
+var beg := ""
 var last_level := false
 ## A side road's title (the label says SIDE ROAD instead of the level number).
 var side_title := ""
@@ -38,10 +43,15 @@ var side_kind := "SIDE ROAD"
 var _word := "DELIVERED!" if randf() > 0.02 else "DELIVERED?"
 ## A side road's power-up ("Free hints for 10 minutes"), or "".
 var bonus_line := ""
+## A line or two of what's next, under the rewards (the first job's: keep an eye out for headlights).
+var note := ""
 ## First win on a challenge level.
 var crushed := false
+var boss := false               # ...and it was a boss fight ("BARON BEATEN!", to match "BOSS FIGHT!" going in)
 var coin_chip: CoinChip
 var gas_chip: GasChip
+## The new item's card was already shown (a boss's package): just its tag here.
+var item_opened := false
 
 var _t := 0.0
 var _van: Van
@@ -57,6 +67,8 @@ var _shake := 0.0
 var _center := Vector2.ZERO
 var _band := 0.0
 var _unlock_shown := false
+var _tag: ItemTag
+var _equip: JuicyButton          # "Wear it", beside the tag, while the find isn't being worn
 
 
 func _ready() -> void:
@@ -84,7 +96,7 @@ func _ready() -> void:
 	_next.font_px = 74
 	_next.bg = Palette.GOOD
 	_next.fg = Color.WHITE
-	_next.label = "Levels" if last_level else "Next"
+	_next.label = "Jobs" if last_level else "Next"
 	_next.icon_name = "" if last_level else "next"
 	_next.size = Vector2(560, 156)
 	_next.visible = false
@@ -103,6 +115,7 @@ func _ready() -> void:
 		_share.visible = false
 		_share.pressed.connect(func():
 			Sfx.play("click")
+			beg = ""
 			share_pressed.emit())
 		add_child(_share)
 		_next.size = Vector2(380, 156)
@@ -155,9 +168,33 @@ func _out(u: float) -> float:
 	return 1.0 - pow(1.0 - u, 3.0)
 
 
+## Impatient? A tap during the build-up jumps to the end of it (the rewards still land, all at once).
+## What momentum is, for whoever taps it (here, or the flame under the level's name in a job).
+const MOMENTUM_TIP := "Momentum: jobs delivered in a row.\nThree in a row and the van catches fire.\nA retry or giving up puts it out."
+
+func _gui_input(e: InputEvent) -> void:
+	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and _t < BUTTONS_AT:
+		accept_event()
+		_t = maxf(_t, BUTTONS_AT - 0.01)
+	elif e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT \
+			and Rect2(_stat_pos(2) - Vector2(400, 54), Vector2(800, 108)).has_point(e.position):
+		# The MOMENTUM row tapped: what it is.
+		accept_event()
+		Sfx.play("click")
+		var tip := TipBubble.new()
+		tip.text = MOMENTUM_TIP
+		tip.target = get_global_transform_with_canvas() * _stat_pos(2)
+		add_child(tip)
+
+
 func _process(delta: float) -> void:
 	var before := _t
 	_t += delta
+	if _equip and Progress.wearing(new_item) and _equip.label != "Wearing it!":
+		# (Put on here, or on its card, opened again from the tag.)
+		_equip.label = "Wearing it!"
+		_equip.recolor(Palette.GOOD, Color.WHITE)
+		_equip.pop()
 	_shake = maxf(0.0, _shake - delta * 3.0)
 	# The van punches in.
 	var punch := _pop((_t - 0.06) / 0.26)
@@ -178,11 +215,11 @@ func _process(delta: float) -> void:
 	while _panels < 3 and _t >= PANEL_AT + _panels * PANEL_EVERY:
 		_panels += 1
 		Sfx.play("whoosh", 1.2 + _panels * 0.08, -6.0)
-	while _landed < stars and _t >= PANEL_AT + PANEL_EVERY + 0.12 + _landed * 0.12:
-		var at := _stat_pos(1) + Vector2(-60.0 + _landed * 60.0, 0)
-		_fx.burst(at, Palette.STAR_GOLD, 10, 500.0, 18.0)
-		Sfx.play("star", 1.0 + 0.12 * _landed, -4.0)
-		_landed += 1
+	# New packages counted: the "+N" lands with a burst.
+	if _landed == 0 and fresh > 0 and _t >= PANEL_AT + PANEL_EVERY + 0.12:
+		_landed = 1
+		_fx.burst(_stat_pos(1) + Vector2(230, 0), Palette.STAR_GOLD, 16, 600.0, 18.0)
+		Sfx.play("star", 1.1, -4.0)
 	if not _paid and _t >= PAY_AT:
 		_paid = true
 		var from := _stat_pos(2) + Vector2(0, 150)
@@ -199,9 +236,13 @@ func _process(delta: float) -> void:
 	# A new find gets its own big moment, over the top.
 	if new_item != "" and not _unlock_shown and _t >= PAY_AT + 0.7:
 		_unlock_shown = true
-		var card := UnlockCard.new()
-		card.item = new_item
-		add_child(card)
+		if item_opened:
+			_show_item_tag()          # (already opened, from the boss's package)
+		else:
+			var card := UnlockCard.new()
+			card.item = new_item
+			add_child(card)
+			card.closed.connect(_show_item_tag)
 	if not _next.visible and _t >= BUTTONS_AT:
 		for b in [_next, _share]:
 			if b == null:
@@ -266,12 +307,19 @@ func _draw() -> void:
 	var base_col: Color = Palette.ACCENT if momentum <= 0 else pal[0]
 	if crushed:
 		base_col = ChallengeIntro.TAPE
+	# At night the banner's duller and darker, and its edges are dim.
+	var rim := Color(Color.WHITE, 0.9)
+	var top_lift := 0.18
+	if Palette.night:
+		base_col = Color.from_hsv(base_col.h, base_col.s * 0.7, base_col.v * 0.55)
+		rim = Color(Color.WHITE, 0.3)
+		top_lift = 0.06
 	var band_c := _center + Vector2(-v.x * 1.3 * (1.0 - slide), 0) + shake
 	draw_set_transform(band_c, ang, Vector2.ONE)
-	draw_rect(Rect2(-v.x, -band_h / 2.0 - 34.0, v.x * 2.0, 22.0), Color(Color.WHITE, 0.9))
+	draw_rect(Rect2(-v.x, -band_h / 2.0 - 34.0, v.x * 2.0, 22.0), rim)
 	draw_rect(Rect2(-v.x, -band_h / 2.0, v.x * 2.0, band_h), base_col)
-	draw_rect(Rect2(-v.x, -band_h / 2.0, v.x * 2.0, band_h * 0.42), base_col.lightened(0.18))
-	draw_rect(Rect2(-v.x, band_h / 2.0 + 12.0, v.x * 2.0, 22.0), Color(Color.WHITE, 0.9))
+	draw_rect(Rect2(-v.x, -band_h / 2.0, v.x * 2.0, band_h * 0.42), base_col.lightened(top_lift))
+	draw_rect(Rect2(-v.x, band_h / 2.0 + 12.0, v.x * 2.0, 22.0), rim)
 	if crushed:
 		# Hazard stripes along both edges of the band.
 		for edge in [-band_h / 2.0, band_h / 2.0 - 40.0]:
@@ -283,7 +331,7 @@ func _draw() -> void:
 	for i in 9:
 		var y := -band_h / 2.0 + 30.0 + i * band_h / 9.0
 		var x := fmod(_t * 2600.0 + i * 977.0, v.x * 2.4) - v.x * 1.2
-		draw_rect(Rect2(x, y, 260.0 + 140.0 * (i % 3), 8.0), Color(1, 1, 1, 0.35))
+		draw_rect(Rect2(x, y, 260.0 + 140.0 * (i % 3), 8.0), Color(1, 1, 1, 0.12 if Palette.night else 0.35))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Fire behind the van.
 	if momentum > 0 and _t > SLAM_AT - 0.05:
@@ -293,7 +341,7 @@ func _draw() -> void:
 	var f := UiTheme.font()
 	if _t > 0.15:
 		var k := _out((_t - 0.15) / 0.2)
-		var label := "LEVEL %d" % level.number if not daily else "DAILY #%d" % Daily.number(Daily.today())
+		var label := "JOB %d" % level.number if not daily else "DAILY #%d" % Daily.number(Daily.today())
 		if side_title != "":
 			label = side_kind
 		if level.title != "":
@@ -305,12 +353,12 @@ func _draw() -> void:
 		var s := lerpf(3.2, 1.0, _out(u))
 		var alpha := clampf(u * 2.0, 0.0, 1.0)
 		if crushed:
-			_skewed("CHALLENGE", Vector2(v.x / 2.0, _center.y + 205.0) + shake, int(84 * s), Color.WHITE, INK, 14, alpha, Color(base_col.darkened(0.3), alpha))
-			_skewed("CRUSHED!", Vector2(v.x / 2.0, _center.y + 320.0) + shake, int(156 * s), Color("fff3c4"), INK, 18, alpha, Color(Color("ff5a3c"), alpha))
+			_skewed("BARON" if boss else "CHALLENGE", Vector2(v.x / 2.0, _center.y + 205.0) + shake, int(84 * s), Color.WHITE, INK, 14, alpha, Color(base_col.darkened(0.3), alpha))
+			_skewed("BEATEN!" if boss else "CRUSHED!", Vector2(v.x / 2.0, _center.y + 320.0) + shake, int(156 * s), Color("fff3c4"), INK, 18, alpha, Color(Color("ff5a3c"), alpha))
 		else:
 			_skewed(_word, Vector2(v.x / 2.0, _center.y + 300.0) + shake, int(150 * s), Color("fff3c4"), INK, 18, alpha, Color(base_col.darkened(0.25), alpha))
 	# Stat panels.
-	var stats := [["TIME", Daily.clock(secs)], ["STARS", ""], ["MOMENTUM", "×%d" % momentum if momentum > 0 else "–"]]
+	var stats := [["TIME", Daily.clock(secs)], ["PACKAGES", ""], ["MOMENTUM", "×%d" % momentum if momentum > 0 else "–"]]
 	for i in mini(_panels, 3):
 		var k := _out((_t - PANEL_AT - i * PANEL_EVERY) / 0.22)
 		var c := _stat_pos(i) + Vector2((1.0 - k) * v.x, 0)
@@ -327,8 +375,7 @@ func _draw() -> void:
 		if not parts.is_empty():
 			_centered("   ".join(parts), Vector2(v.x / 2.0, y), int(44 * k), Color("ffe08a"))
 		if new_item != "":
-			var kind: String = {"paint": "PAINT", "topper": "TOPPER", "ride": "RIDE"}.get(Cosmetics.kind_of(new_item), "ITEM")
-			_centered("NEW %s!  %s" % [kind, Cosmetics.name_of(new_item)], Vector2(v.x / 2.0, y + 66.0), int(46 * k), Cosmetics.tint(new_item).lightened(0.3))
+			pass        # the item's tag (ItemTag) is there instead, once its card closes
 		elif found_key:
 			_centered("KEY FOUND! (%d in hand) It opens a locked detour." % Progress.keys, Vector2(v.x / 2.0, y + 66.0), int(40 * k), Color("ffe08a"))
 		elif missed_key:
@@ -337,7 +384,15 @@ func _draw() -> void:
 			_centered("Something shiny was on the road...", Vector2(v.x / 2.0, y + 66.0), int(36 * k), Color(1, 1, 1, 0.65))
 		if bonus_line != "":
 			_centered("BONUS: " + bonus_line + "!", Vector2(v.x / 2.0, y - 66.0), int(40 * k), Color("9ff0c4"))
-	draw_rect(Rect2(Vector2.ZERO, v), Color(1, 1, 1, maxf(0.0, 0.8 - _t * 7.0)))
+		if note != "":
+			var note_lines := note.split("\n")
+			for i in note_lines.size():
+				_centered(note_lines[i], Vector2(v.x / 2.0, y - 25.0 + i * 50.0), int((42 if i == 0 else 36) * k), Color("ffe08a") if i == 0 else Color(1, 1, 1, 0.85))
+	# Today's daily solved: please, tell someone.
+	if beg != "" and _share and _share.visible:
+		Daily.draw_beg(self, _share.position + Vector2(_share.size.x / 2.0, 0), beg, _t, clampf((_t - BUTTONS_AT - 0.4) / 0.3, 0.0, 1.0))
+	# The slam's white flash (a soft one at night: no blast of light in a dark room).
+	draw_rect(Rect2(Vector2.ZERO, v), Color(1, 1, 1, maxf(0.0, (0.08 if Palette.night else 0.28) - _t * 2.5)))
 
 
 ## The van's white cut-out edge, drawn behind the van body (in the van's own space).
@@ -355,7 +410,7 @@ func _draw_front() -> void:
 	var grow := _out((_t - SLAM_AT) / 0.35)
 	AnimeFire.draw_aura(_front, _van.position, Vector2(420, 260) * grow, _t, momentum, false)
 	var pal := AnimeFire.palette(momentum)
-	for i in 10 + mini(momentum, 8) * 3:
+	for i in 3 + mini(momentum, 8) * 4:
 		var u := fmod(_t * (0.5 + 0.05 * (i % 5)) + i * 0.137, 1.0)
 		var x := _van.position.x + sin(i * 12.9) * 260.0 + sin(_t * 3.0 + i) * 20.0
 		var y := _van.position.y + 140.0 - u * (300.0 + 40.0 * mini(momentum, 8))
@@ -431,13 +486,55 @@ func _panel(c: Vector2, label: String, value: String, i: int) -> void:
 	var f := UiTheme.font()
 	draw_string(f, c + Vector2(-w / 2 + 50, 14), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Color(1, 1, 1, 0.7))
 	if i == 1:
-		for k in 3:
-			var at := c + Vector2(150.0 + (k - 1) * 70.0, 0)
-			var lit := k < _landed
-			Icons.star(self, at, 30.0, Palette.STAR_GOLD if lit else Color(1, 1, 1, 0.16))
+		# "+7" in gold, the new total beside it; a replay's "+0", already counted.
+		var big := "+%d" % (fresh if fresh > 0 else 0)
+		var small := "%s total" % Progress.commas(Progress.delivered()) if fresh > 0 else "already counted"
+		var pop := 1.0 + 0.25 * maxf(0.0, 1.0 - (_t - PANEL_AT - PANEL_EVERY - 0.12) / 0.25) if _landed > 0 else 1.0
+		var px := int(58 * pop)
+		var vw := f.get_string_size(big, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		var vx := c.x + w / 2 - 70 - vw
+		draw_string(f, Vector2(vx, c.y + 20 * pop), big, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Palette.STAR_GOLD if fresh > 0 else Color(1, 1, 1, 0.45))
+		Icons.draw(self, "box", Vector2(vx - 40, c.y), 50.0, Color.WHITE)
+		var sw := f.get_string_size(small, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x
+		draw_string(f, Vector2(vx - 84 - sw, c.y + 12), small, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color(1, 1, 1, 0.55))
 	else:
 		var vw := f.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, 58).x
 		var vx := c.x + w / 2 - 70 - vw
 		draw_string(f, Vector2(vx, c.y + 20), value, HORIZONTAL_ALIGNMENT_LEFT, -1, 58, Color.WHITE)
 		if i == 2 and momentum > 0:
 			AnimeFire.draw_flame(self, Vector2(vx - 40, c.y + 26), 44, 64, _t, 3.0, AnimeFire.palette(momentum))
+
+
+## The find, as a little item tile with its name tag, under the rewards: tap it to see its card again.
+func _show_item_tag() -> void:
+	if _tag != null or new_item == "":
+		return
+	_tag = ItemTag.new()
+	_tag.item = new_item
+	var y := _stat_pos(2).y + 160.0
+	# Not wearing it (they said "Maybe later")? A button beside the tag, in case they've changed their mind.
+	var can_wear := Cosmetics.kind_of(new_item) != "" and Cosmetics.kind_of(new_item) != "topper" and Progress.owns(new_item) and not Progress.wearing(new_item)
+	var total := 620.0 + (250.0 if can_wear else 0.0)
+	_tag.position = Vector2((get_viewport_rect().size.x - total) / 2.0, y)
+	if can_wear:
+		_equip = JuicyButton.new()
+		_equip.label = "Wear it"
+		_equip.font_px = 38
+		_equip.bg = Palette.ACCENT
+		_equip.fg = Color.WHITE
+		_equip.size = Vector2(230, 110)
+		_equip.position = _tag.position + Vector2(640, 20)
+		_equip.pressed.connect(func():
+			if Progress.wearing(new_item):
+				return
+			Sfx.play("kaching", 1.1, -3.0)
+			Sfx.haptic(25)
+			Progress.put_on(new_item))
+		add_child(_equip)
+	_tag.pressed.connect(func():
+		Sfx.play("click")
+		var card := UnlockCard.new()
+		card.item = new_item
+		card.wrapped = false
+		add_child(card))
+	add_child(_tag)

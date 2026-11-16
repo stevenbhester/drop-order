@@ -17,6 +17,14 @@ var level: LevelData
 
 var _root: Control
 var _t := 0.0
+## Main-road boss fights laugh you in once a session (not again on every retry).
+static var _seen := {}
+
+
+static func should_show(L: LevelData) -> bool:
+	return Boss.is_level(L.number) and not _seen.has(L.number) and not Progress.auto
+
+
 var _go: JuicyButton
 var _closing := false
 var _line := ""
@@ -26,7 +34,9 @@ var _stamped := false
 
 func _ready() -> void:
 	layer = 70
-	_line = Boss.taunt()
+	_line = Boss.taunt_for(side)
+	if side.has("level"):
+		_seen[int(side["level"])] = true
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -103,6 +113,64 @@ func _text(text: String, at: Vector2, px: int, col: Color, outline: int, ang := 
 	_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
+## One piece of loot, like a game's item slot: a dark tile with a glowing frame in its rarity's colour
+## (headlights gold, undos blue, a paint job purple, anything else pink), its icon, a twinkle in the
+## corner, and its name under it (shrunk to fit `w`).
+func _loot_tile(c: Vector2, it: Dictionary, k: float, w: float) -> void:
+	if k <= 0.0:
+		return
+	var kind := str(it["kind"])
+	var rare: Color = {"lights": Color("ffc53d"), "undos": Color("4d9dff"), "paint": Color("b07aff"), "item": Color("ff6fae")}.get(kind, Color("bfc3cc"))
+	var s := 110.0
+	_root.draw_set_transform(c, 0.0, Vector2.ONE * k)
+	var r := Rect2(-s / 2.0, -s / 2.0, s, s)
+	var pulse := 0.5 + 0.5 * sin(_t * 3.0)
+	DrawUtil.rrect(_root, r.grow(10.0), Color(rare, 0.18 + 0.12 * pulse), 26)
+	DrawUtil.rrect(_root, r.grow(4.0), rare, 22)
+	DrawUtil.rrect(_root, r, Color("231a38"), 18)
+	DrawUtil.rrect(_root, Rect2(r.position + Vector2(6, 6), Vector2(s - 12, s * 0.42)), Color(1, 1, 1, 0.06), 14)
+	match kind:
+		"lights":
+			_root.draw_circle(Vector2(0, -6), 34.0, Color(rare, 0.25 + 0.15 * pulse))
+			Icons.draw(_root, "bulb", Vector2(0, -2), 64.0, rare)
+		"undos":
+			Icons.draw(_root, "undo", Vector2(-8, -6), 58.0, Color.WHITE)
+			var f := UiTheme.font()
+			var n := "+%d" % int(it["n"])
+			_root.draw_string_outline(f, Vector2(4, 40), n, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, 8, Color("231a38"))
+			_root.draw_string(f, Vector2(4, 40), n, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, rare)
+		"item" when Cosmetics.kind_of(str(it["item"])) == "trail":
+			Icons.draw(_root, "trail", Vector2(0, -2), 64.0, rare)
+		"paint", "item":
+			# A little van in the paint (or the item's own colour), side on.
+			var id := str(it["item"])
+			var body := Cosmetics.body_color(id) if kind == "paint" else Cosmetics.tint(id)
+			var cab := Cosmetics.cab_color(id) if kind == "paint" else body.darkened(0.3)
+			var vr := Rect2(-40, -26, 80, 44)
+			DrawUtil.rrect(_root, vr, body, 12)
+			if kind == "paint":
+				Cosmetics.draw_pattern(_root, id, Rect2(-40, -26, 52, 44))
+			DrawUtil.rrect(_root, Rect2(12, -26, 28, 30), cab, 10)
+			DrawUtil.rrect(_root, Rect2(18, -20, 16, 14), Color(0.85, 0.93, 1.0), 4)
+			for x in [-22.0, 22.0]:
+				_root.draw_circle(Vector2(x, 20), 10.0, Color("15131a"))
+				_root.draw_circle(Vector2(x, 20), 4.0, Color("bfbfc8"))
+		_:
+			Icons.star(_root, Vector2(0, -2), 36.0, rare)
+	# A twinkle on the frame's corner.
+	var tw := fmod(_t * 0.8 + c.x * 0.01, 1.0)
+	if tw < 0.35:
+		Icons.star(_root, Vector2(s / 2.0 - 6, -s / 2.0 + 6), 14.0 * sin(PI * tw / 0.35), Color.WHITE)
+	_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# The name, under it.
+	var f := UiTheme.font()
+	var label := str(it["label"])
+	var px := 28
+	while px > 18 and f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > w:
+		px -= 1
+	_text(label, c + Vector2(0, s / 2.0 + 34.0), px, rare.lightened(0.35), 6, 0.0, 1.0, k)
+
+
 ## Wraps `text` to lines no wider than `w` at `px`.
 static func wrap_text(text: String, px: int, w: float) -> Array:
 	var f := UiTheme.font()
@@ -145,6 +213,15 @@ func _draw_it() -> void:
 				if rng.randf() < 0.3:
 					_root.draw_rect(Rect2(wx, wy, 14, 22), Color(1.0, 0.85, 0.4, 0.35 * dim))
 		x += w
+	# His rocket, of course, going up behind the towers (it's drawn before him, so it's "behind").
+	var rk := Vector2(v.x * 0.86, base - 330.0 - _t * 70.0)
+	var flame := 46.0 + 14.0 * sin(_t * 40.0)
+	_root.draw_colored_polygon(PackedVector2Array([rk + Vector2(-10, 44), rk + Vector2(10, 44), rk + Vector2(0, 44 + flame)]), Color(1.0, 0.75, 0.3, 0.8 * dim))
+	DrawUtil.rrect(_root, Rect2(rk + Vector2(-13, -34), Vector2(26, 80)), Color(0.85, 0.87, 0.93, dim), 12.0)
+	_root.draw_colored_polygon(PackedVector2Array([rk + Vector2(-13, -26), rk + Vector2(0, -62), rk + Vector2(13, -26)]), Color(0.85, 0.87, 0.93, dim))
+	for sd: float in [-1.0, 1.0]:
+		_root.draw_colored_polygon(PackedVector2Array([rk + Vector2(sd * 13, 22), rk + Vector2(sd * 27, 48), rk + Vector2(sd * 13, 44)]), Color(Boss.GOLD, dim))
+	_root.draw_circle(rk + Vector2(0, -6), 6.0, Color(0.15, 0.2, 0.4, dim))
 	var sign_on := _t > 0.25 and (fmod(_t, 2.3) > 0.12 or _t < 1.0)
 	_text("HOARDLY INC.", Vector2(v.x / 2.0, sign_y), 78, Boss.GOLD if sign_on else Color(0.4, 0.33, 0.2), 14, 0.0, 1.0, dim)
 	_text("We deliver. To shareholders.", Vector2(v.x / 2.0, sign_y + 70.0), 34, Color(1, 1, 1, 0.75), 6, 0.0, 1.0, dim * clampf((_t - 0.4) / 0.3, 0.0, 1.0))
@@ -173,7 +250,7 @@ func _draw_it() -> void:
 		var px := 40
 		var lines: Array = wrap_text("“" + _line + "”", px, v.x - 200.0)
 		var bh := lines.size() * px * 1.25 + 56.0
-		var bubble := Rect2(70.0, maxf(sign_y + 120.0, feet.y - tall * 1.1 - bh - 50.0), v.x - 140.0, bh)
+		var bubble := Rect2(70.0, maxf(sign_y + 120.0, feet.y - tall * 1.2 - bh - 50.0), v.x - 140.0, bh)
 		_root.draw_set_transform(bubble.get_center(), 0.0, Vector2.ONE * k)
 		var local := Rect2(-bubble.size / 2.0, bubble.size)
 		DrawUtil.rrect(_root, Rect2(local.position + Vector2(0, 8), local.size), Color(0, 0, 0, 0.3), 36.0)
@@ -188,11 +265,17 @@ func _draw_it() -> void:
 	if _t >= STAMP_AT - 0.05:
 		var u := (_t - STAMP_AT + 0.05) / 0.16
 		var s := lerpf(2.6, 1.0, _out(u))
-		_text("BOSS FIGHT!", Vector2(v.x / 2.0, (floor_y + button_top) / 2.0 - 70.0), 128, Color("ff5d5d"), 22, -0.05, s, clampf(u * 2.0, 0.0, 1.0))
+		var loot := Boss.loot(side)
+		var fight_y := (floor_y + button_top) / 2.0 - (130.0 if not loot.is_empty() else 70.0)
+		_text("BOSS FIGHT!", Vector2(v.x / 2.0, fight_y), 128, Color("ff5d5d"), 22, -0.05, s, clampf(u * 2.0, 0.0, 1.0))
 		var k := _out((_t - STAMP_AT - 0.1) / 0.25)
-		_text(str(side.get("title", "")).to_upper(), Vector2(v.x / 2.0, button_top - 120.0), 50, Color.WHITE, 10, 0.0, 1.0, k)
-		var reward := str(side.get("reward", ""))
-		if reward != "":
-			var have := Progress.owns(reward)
-			var line := ("Beat him for: " + Cosmetics.name_of(reward)) if not have else "You've beaten him before. He's still mad."
-			_text(line, Vector2(v.x / 2.0, button_top - 55.0), 38, Boss.GOLD.lightened(0.3), 8, 0.0, 1.0, k)
+		if loot.is_empty():
+			_text(str(side.get("title", "")).to_upper(), Vector2(v.x / 2.0, button_top - 120.0), 50, Color.WHITE, 10, 0.0, 1.0, k)
+			_text("You've beaten him before. He's still mad.", Vector2(v.x / 2.0, button_top - 55.0), 38, Boss.GOLD.lightened(0.3), 8, 0.0, 1.0, k)
+		else:
+			# The job's name and BEAT HIM FOR, then what he drops, as loot: a tile each, popping in in turn.
+			_text("%s  ·  BEAT HIM FOR" % str(side.get("title", "")).to_upper(), Vector2(v.x / 2.0, button_top - 245.0), 36, Color.WHITE, 8, 0.0, 1.0, k)
+			var gap := minf(220.0, (v.x - 60.0) / loot.size())
+			for i in loot.size():
+				var at := Vector2(v.x / 2.0 + (i - (loot.size() - 1) / 2.0) * gap, button_top - 150.0)
+				_loot_tile(at, loot[i], _out((_t - STAMP_AT - 0.25 - i * 0.12) / 0.3), gap - 16.0)

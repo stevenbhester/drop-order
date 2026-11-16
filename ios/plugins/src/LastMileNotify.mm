@@ -5,6 +5,11 @@
 // notifications (ids starting "lm.") with the ones it lists. If the file says "ask": true and iOS hasn't
 // asked the player yet, it shows the permission prompt (while the app is in front).
 //
+// It also opens the iOS share sheet for the game (scripts/share_sheet.gd): the game writes
+// user://lastmile_share.json ({"text": "..."}); this sees it within a quarter of a second, deletes it, and
+// presents a UIActivityViewController with that text over the game (iOS puts the player's frequent chats
+// along the top). A file left over from an earlier run (more than a few seconds old) is thrown away unread.
+//
 // Godot's export calls last_mile_notify_init() at startup (see LastMileNotify.gdip).
 
 #import <Foundation/Foundation.h>
@@ -12,6 +17,7 @@
 #import <UserNotifications/UserNotifications.h>
 
 static NSString *const kFileName = @"lastmile_notify.json";
+static NSString *const kShareName = @"lastmile_share.json";
 static NSString *const kPrefix = @"lm.";
 
 @interface LMNotify : NSObject
@@ -20,6 +26,7 @@ static NSString *const kPrefix = @"lm.";
 @property(nonatomic, strong) NSDate *seen;      // modification date of the file last acted on
 @property(nonatomic, strong) NSDictionary *plan; // its contents
 @property(nonatomic) BOOL asking;
+@property(nonatomic, strong) NSTimer *shareTimer;
 @end
 
 @implementation LMNotify
@@ -39,8 +46,78 @@ static NSString *const kPrefix = @"lm.";
 			[nc addObserver:self selector:@selector(poke) name:n object:nil];
 		}
 		self.timer = [NSTimer scheduledTimerWithTimeInterval:2.0 target:self selector:@selector(tick) userInfo:nil repeats:YES];
+		self.shareTimer = [NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(shareTick) userInfo:nil repeats:YES];
 		[self tick];
 	});
+}
+
+// The share request, if the game's just written one: beside the schedule file, or in Documents.
+- (void)shareTick {
+	NSFileManager *fm = [NSFileManager defaultManager];
+	NSMutableArray<NSString *> *dirs = [NSMutableArray array];
+	if (self.path) {
+		[dirs addObject:[self.path stringByDeletingLastPathComponent]];
+	}
+	NSString *docs = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+	if (docs) {
+		[dirs addObject:docs];
+	}
+	for (NSString *d in dirs) {
+		NSString *p = [d stringByAppendingPathComponent:kShareName];
+		if (![fm fileExistsAtPath:p]) {
+			continue;
+		}
+		NSDate *mod = [fm attributesOfItemAtPath:p error:nil].fileModificationDate;
+		BOOL stale = mod && -mod.timeIntervalSinceNow > 8.0;
+		NSData *data = [NSData dataWithContentsOfFile:p];
+		id json = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+		if (![json isKindOfClass:[NSDictionary class]]) {
+			if (stale) {
+				[fm removeItemAtPath:p error:nil];
+			}
+			return; // half-written: try again next tick
+		}
+		[fm removeItemAtPath:p error:nil];
+		NSString *text = [json[@"text"] isKindOfClass:[NSString class]] ? json[@"text"] : nil;
+		if (stale || text.length == 0) {
+			return;
+		}
+		[self share:text];
+		return;
+	}
+}
+
+// The view controller on top of the game's window.
+- (UIViewController *)topController {
+	UIWindow *win = nil;
+	for (UIScene *sc in [UIApplication sharedApplication].connectedScenes) {
+		if (![sc isKindOfClass:[UIWindowScene class]]) {
+			continue;
+		}
+		for (UIWindow *w in ((UIWindowScene *)sc).windows) {
+			if (w.isKeyWindow || !win) {
+				win = w;
+			}
+		}
+	}
+	UIViewController *vc = win.rootViewController;
+	while (vc.presentedViewController) {
+		vc = vc.presentedViewController;
+	}
+	return vc;
+}
+
+- (void)share:(NSString *)text {
+	UIViewController *top = [self topController];
+	if (!top || [top isKindOfClass:[UIActivityViewController class]]) {
+		return;
+	}
+	UIActivityViewController *sheet = [[UIActivityViewController alloc] initWithActivityItems:@[ text ] applicationActivities:nil];
+	// (On an iPad it's a popover, and has to be told where from.)
+	sheet.popoverPresentationController.sourceView = top.view;
+	sheet.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(top.view.bounds), CGRectGetMaxY(top.view.bounds) - 80.0, 1.0, 1.0);
+	NSLog(@"[LastMileNotify] share sheet: %lu characters", (unsigned long)text.length);
+	[top presentViewController:sheet animated:YES completion:nil];
 }
 
 - (void)poke {

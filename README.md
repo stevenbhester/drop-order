@@ -42,7 +42,7 @@ side roads, and a speedrun mode.
 - **The OG 100** (an easter egg: its button isn't on the title screen at all until every one of the 100
   levels is beaten): the first hundred levels exactly as they were in 0.7 build 22, before the level engine
   redrew the road (`levels/og.json`, `scripts/og_screen.gd`). A plain grid of numbers; free to play, and
-  nothing there touches the real road (no gas, stars or keys; a tile just goes green once won). Its old keys
+  nothing there touches the real road (no gas or keys, though its packages count; a tile just goes green once won). Its old keys
   are taken off the maps; its presents stay. Nothing validates or tests these levels, on purpose: if a rule
   change breaks one, that's allowed. `-- --og` opens the list, `-- --og=47` an old level.
 - **Speedrun** (title screen; opens after level 18): three courses of small puzzles against the clock.
@@ -90,17 +90,42 @@ When TestFlight has a newer build, the title offers it once a launch, and the ba
 sticker and opens that offer instead.
 
 ### Daily puzzle, streak and sharing
-- Title → **Daily** shows today's puzzle, your streak (in fire) and the last week.
-- A day counts toward the streak if you solve it with **at most 1 redo** (two attempts). Leaving and
-  coming back counts as a redo too.
-- Once solved, **Share** shows a card and copies an emoji summary (delivery order as coloured squares,
-  time, stars, redos, streak) ending with an invite to ask you for a playtest. "Text it" opens Messages
+- **Unlocks after job 11** (`Daily.UNLOCK_AT`; anyone who's played one keeps it). Before that its buttons
+  and ribbon show a padlock. The first time back on the map after unlocking it, the ribbon gets a
+  spotlight and a card (`DailyIntro`): Try it, or Later.
+- **The ribbon** (`DailyRibbon`) sticks out from the right edge of the map under the options: a calendar
+  with a 3x3 of days, a race car on your streak's day and the days behind it burning. Bright, shifting and
+  with a red dot until you've opened today's; white once you have; pulled back to a green tab once it's
+  solved.
+- Title → **Daily** (or the ribbon, or the dock) shows today's puzzle, your streak (in fire) and the last
+  week. After a solve, the score card's **Get back to work** opens the map with the card up for the job
+  your van's at.
+- A day counts toward the streak if you solve it at all. There are **6 tries** a day (leaving and coming
+  back counts as one; Play and Retry show how many are left); out of them unsolved, today's is over and
+  the streak with it. No hints in the daily. The first daily explains all this (`DailyRules`).
+- **Score and badges** (`Daily.earn`, `DailyScore`): solving it deals out badges one at a time, each
+  adding to your score. Green ones carry points: Delivered! (100), First try (50), No undos (25),
+  Straight shot, the shortest route (30), Express under 20 s (40) / Speedy under 45 s (20) / Steady under
+  90 s (10), Scenic route, 6+ tiles longer than needed (10), Down to the wire, your last try (15), and
+  your streak (1 a day, up to 30). Gold ones are achievements: Perfect (first try, no undos, shortest
+  route), Personal best, Above your average. The day's record keeps them; the daily screen reopens it.
+- **How everyone did** (`DailyStats`): each result goes to the MusicGrid server (`DailyResults`, POST
+  /lm/daily, a random device id, nothing else) and Stats reads the day's totals back (GET
+  /lm/daily/stats): how it went (first try ... didn't finish), today's scores and the average, solve
+  times, and how rare each badge was. Your spot is marked YOU.
+- Once solved, **Share** shows a card and copies an emoji summary: one row per try, green as far as that
+  try got (💥 where it died, 📦 on the win), never the colours or the order, then time, score, your most
+  impressive badge if it's a good one (`Daily.SHOWOFF`), and streak, ending
+  with an invite to ask you for a playtest. Until it's been shared that day, a speech bubble over Share
+  begs a little (`Daily.BEGS`). "Text it" opens Messages
   with it filled in.
-- **Reminders** (iPhone, local notifications, nothing goes through a server): after your first daily
-  solve the game asks once for permission. Then each day's puzzle gets a reminder at about the time of
-  day you solved your last one (kept between 8am and 9pm), and, while a streak is alive, an evening
-  "last call" a few hours later (7:30pm, or 3 hours after the reminder, never after 9:30pm). Solving
-  today's clears today's. Rules: `scripts/notify.gd`; it writes `user://lastmile_notify.json`, which the
+- **Reminders** (iPhone, local notifications, nothing goes through a server): after a daily's results,
+  until they've chosen, "Real quick… what do you want to hear from us?" (`NotifyPrefs`): Save my streak,
+  New daily's here, Big news, all ticked to start. Saving asks iOS for permission (not if all are off).
+  Then at most one message a day: while a streak rides on the day, a streak saver late on (7:30pm, or 3
+  hours after their usual time, never after 9:30pm); otherwise "a new daily just landed" at about the
+  time of day they solved their last one (kept between 8am and 9pm). Solving today's clears today's.
+  Big news isn't scheduled by the game: it'd come from a server push, and only for updates Steven picks. Rules: `scripts/notify.gd`; it writes `user://lastmile_notify.json`, which the
   native plugin `ios/plugins/LastMileNotify` (source in `ios/plugins/src`, rebuilt by
   `tools/build_notify_plugin.sh`, which `tools/testflight.sh` runs) hands to iOS.
 
@@ -112,10 +137,19 @@ sticker and opens that offer instead.
 - **Keys:** some levels have a gold key on the road instead of a present (`"gift": {"at": [x, y], "item":
   "key"}`), picked up the same way (on a win). Each opens one **locked detour** for good: tap its padlocked
   sign on the map ("TAP TO USE A KEY"), or **Unlock detour** on the Next sheet. Keys today: levels 15, 33
-  and 43; locked: The Big Map (27), Fog Bank (33) and the boss, Hostile Takeover (45).
+  and 43; locked: The Big Map (27), Fog Bank (33) and the boss, Hostile Takeover (86).
   `tools/validate_levels.gd` checks every lock has had a key placed at or before its stop.
+- **Where presents are** (one per level, on a tile every winning route crosses): the friends' rides
+  come first, a couple of levels apart: Kuma's Monster Truck (6), Howard's Shark (9), Sheena's Eazy Van
+  (11), Zero the Steed (13), Tay's Dreamsicle (16), Cole's Classic (18), Twinkle's Lab (22), each on a
+  tile every win crosses, so nobody misses one. The rest are hidden the old way (off the plain route: the
+  extra mile) and spread out after: Racing Stripes (25), Drizzlet (34), Bonkle Ears (41), Duskwood (49),
+  Gloaming (56), Sprout & Orbit (64), Puffball (71), Mosaic Moth (78), Rivet (85), Deep Field (89). None
+  on boss levels (they have their own loot).
 - Finding one pops up a big **NEW RIDE / PAINT JOB / TOPPER!** card over the finish screen, with
-  **Wear it now** or **Keep my look**. Nothing is worn unless you pick it.
+  **Wear it now** or **Keep my look**. Nothing is worn unless you pick it. A new ride shows in its own
+  Classic paint; wearing another paint job, you choose: **Take it for a spin** (in your paint) or **Take
+  it in Classic**, each with a little van beside it showing the result.
 - Title → **Garage** to wear what you've found: 10 rides (**Kuma's Monster Truck** from level 6's
   present; Zippy Scooter, Mr. Frosty, Rocket Van and Hover Van from the side roads; the friends' rides
   from the treasure chests: **Sam's Race Car** at 30, **James' Evil Bassinet** at 50, **Tara's Hungry
@@ -129,15 +163,15 @@ sticker and opens that offer instead.
   **Packages & Buildings** (package shapes, building themes) and **Queue & Controls** (the package
   queue's container, button colours). A tab is greyed and padlocked until something in it is yours, so
   the late kinds stay out of a new player's way. The **looks** (`scripts/looks.gd`) unlock late, with
-  stars: roads **Cobblestones** (110 ★) and **Night Drive** (235); package shapes **Hatboxes** (135),
-  **Wooden Crates** (195), **Capsules** (270); buildings **Gingerbread Town** (155), **Castle Keeps** (255);
-  queues **Conveyor Belt** (120), **Neon Tube** (215); buttons **Midnight** (75), **Bubblegum** (165),
-  **Mint** (245). `-- --look=<id>` wears one for a run, `-- --tab=N` opens the garage on a tab.
+  packages delivered: roads **Cobblestones** (250) and **Night Drive** (600); package shapes **Hatboxes**
+  (325), **Wooden Crates** (475), **Capsules** (750); buildings **Gingerbread Town** (375), **Castle Keeps**
+  (725); queues **Conveyor Belt** (275), **Neon Tube** (525); buttons **Midnight** (175), **Bubblegum**
+  (400), **Mint** (625). `-- --look=<id>` wears one for a run, `-- --tab=N` opens the garage on a tab.
 - **Trails** (in Van & Road): what the road turns into behind the van. The torn-up road,
-  or, unlocked with stars, **River Run** (30 ★), **Mountain Range** (60), **Heart Trail** (100), **Meteor
-  Strikes** (140, they streak in and hit), **Lava Flow** (180) and **Zombie Horde** (220). Each still reads
+  or, unlocked with packages delivered, **River Run** (50), **Mountain Range** (125), **Heart Trail** (225),
+  **Meteor Strikes** (350, they streak in and hit), **Lava Flow** (450) and **Zombie Horde** (550). Each still reads
   as "you can't drive here again"; the hottest runs' flames burn on the torn road and on lava. Crossing a
-  star mark pops a NEW TRAIL card. **Money to Burn** (burning stacks of cash) is the first boss's prize.
+  threshold pops a NEW TRAIL card. **Money to Burn** (burning stacks of cash) is the first boss's prize.
   Trails have depth (each is cut into the road: a rim, a shadowed inner wall, a lit lip, heaved-up chunks
   of asphalt round it; peaks, zombies, hearts and cash stand up with shadows), a burst as each tile turns
   (droplets, splashes, rocks, sparks, confetti), and stay alive for a stretch behind the van: lava bubbles
@@ -164,8 +198,8 @@ sticker and opens that offer instead.
   boss). `-- --next=N` shows it arriving at level N.
 - **Redesigned levels:** each level's puzzle is fingerprinted (`LevelData.fingerprint`: map, load and
   rules; not the name, hint, present, or spacing), and the save keeps the one each level was beaten on. A
-  level redesigned since then shows a pale blue pin, hollow pulsing stars and an UPDATED tag until it's
-  beaten again (its stars start over). Levels beaten before this existed take the version they're first
+  level redesigned since then shows a pale blue ticket and an UPDATED tag until it's
+  beaten again (its packages stay counted). Levels beaten before this existed take the version they're first
   seen with. `--save=...,stale:N` fakes it for levels 1–N.
 
 ### Side roads and treasure chests
@@ -174,7 +208,7 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
   Each is a short level with a twist, free to play and retry, with no hints or undos; the top bar
   shows how the twist stands. Beat it to win its ride:
   - **Small Tank** (after 6, the Zippy Scooter): the tank holds just the shortest route.
-  - **Before It Melts** (after 17, Mr. Frosty): every delivery within 50 seconds.
+  - **Before It Melts** (after 21, where parcel shops are taught; Mr. Frosty): every delivery within 50 seconds.
   - **No Brakes** (after 24, the Rocket Van): plan the whole run, one drive, no stopping.
   - **Fog Bank** (after 33, the Hover Van): the load's shown for 6 seconds, then fog hides all but the
     next package.
@@ -195,7 +229,7 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
   laughs at you (HAW HAW HAW, synthesized) with a line of corporate trash talk, then BOSS FIGHT!
   (`scripts/boss_intro.gd`). Beat it and he panics, drops his money bag (it bursts into the prize) and
   runs for it, hat flying (`scripts/boss_outro.gd`). Art and lines: `scripts/boss.gd`. The first,
-  **Hostile Takeover** (after 45, locked, wins **Money to Burn**), is a placeholder map (level 99
+  **Hostile Takeover** (after 86, where warehouses are taught; locked, wins **Money to Burn**), is a placeholder map (level 99
   mirrored and recoloured) until the level redesign makes real ones. `-- --side=hostile_takeover`.
 - **Treasure chests** every ten levels (10–100): once that level's beaten, tap the chest to open
   it for gas and Dollaroos (a gas can that won't fit a full tank is cashed in), at 10 and 20 **+1 hint
@@ -211,11 +245,14 @@ Little spurs branch off the road-trip map (all in `scripts/side_roads.gd` and `l
 - With momentum the van leaves a trail of anime fire as it drives: bigger, longer-lasting and hotter
   the higher it gets (orange, then red-gold at ×3, blue at ×6, violet "supernova" at ×8).
 - Winning freezes the frame: focus lines, a slashed banner, the van punched in big, "DELIVERED!", then
-  panels for time, stars and momentum, with the van engulfed in flames to match.
+  panels for time, packages (+N the first time) and momentum, with the van engulfed in flames to match.
 
-### Stars, gas, Dollaroos and the "ad" (all pretend)
-- **Stars:** every win earns up to 3: one is lost for using a hint, one for using an undo. Best stars
-  show on the level select (gold tile = all three).
+### Packages delivered, gas, Dollaroos and the "ad" (all pretend)
+- **Packages delivered:** winning a job, detour, daily or OG level the first time adds its packages to
+  the total (`Progress.delivered()`, worked out from what's been won; a replay adds nothing). The total
+  opens zones (`Zones.need`: 80% of the packages on the road before the zone, rounded down to a five) and
+  unlocks trails and looks. Each job's ticket on the map shows its packages. There are no stars: hints
+  and undos cost gas and nothing else.
 - **Hint** (bottom row) shows your next move: a golden arrow from the van to the next turn of a winning
   route, or tells you there's no way through from where you are.
 - **Gas tanks:** starting a level you haven't beaten costs one, and beating it hands it back. Retry
@@ -369,11 +406,14 @@ as a little flame inside the Daily button.
 | `scripts/side_roads.gd`, `chest_card.gd` | Side roads (twist levels and mega routes from `levels/side.json`) and milestone chests; the chest opening |
 | `scripts/exit_zone.gd`, `convoy.gd` | A mega route part's (or speedrun zone's) exit: the road on off the map and its gate; the package trail (drones behind the van) |
 | `scripts/promo_ad.gd`, `promo_music.gd` | The pretend Last Mile ads (fun, bait, trash) that unlock unlimited hints, and the trash talk's synthesized music |
+| `scripts/checkpoint.gd` | Zone checkpoints: one pretend ad (+1 gas) the first time you play in a new zone; waved through if you watched an ad since the last; tester option "Full licence" skips them |
+| `scripts/baron_ad.gd`, `audio/corp_*.wav` | Hoardly Inc.'s thirteen pretend corporate spots, a third of the pretend ads (Options > Extras > Hoardly ads turns them off) |
 | `scripts/update_check.gd`, `update_card.gd` | "A new version is out!": reads `release/latest.json` from GitHub and offers a newer TestFlight build |
+| `scripts/rating.gd`, `rating_card.gd`, `rate_prompt.gd`, `level_stats.gd`, `tools/ratings.py` | Rate levels (an option, offered once after level 5): the card after each win, the counts kept while a level is played, the upload to the MusicGrid server's database (`POST /lm/ratings`, queued when offline), and the script that pulls the ratings and sets them beside what the level engine expected |
 | `scripts/feedback.gd`, `feedback_card.gd` | Feedback / Bug report: what a report carries (log, device, screenshot) and the card that sends it |
 | `scripts/speedrun.gd`, `speedrun_screen.gd`, `countdown.gd` | Speedrun mode: courses, the course list, 3-2-1-GO |
 | `scripts/roadworks.gd` | Roadworks on a road tile (counts down deliveries, then clears) |
-| `tools/make_plan.py`, `gen_levels.gd`, `level_metrics.gd`, `level_report.gd`, `assemble_levels.py`, `level_review.py`, `gen_all.sh`, `score_all.sh` | The level engine: the plan for all 100 levels, the generator, the scoring, the scorecard and the assembly (`design/level_engine.md`) |
+| `tools/engine/` (`lm.c`, `gen.c`, `plan.py`, `gen_all.py`, `assemble.py`, `review.py`, `crosscheck.sh`) | The level engine, in C: a mirror of the rules and solver, the two difficulty measures, the generator, the plan for all 100 levels and the scorecard (`design/level_engine.md`) |
 | `tools/generate.gd`, `twist_levels.gd`, `fix_ice.gd`, `make_mega.gd` | The older route-first generator and its helpers (still used for dailies, side roads and parted routes) |
 | `scripts/symbol_card.gd`, `tip_bubble.gd` | "What's this?" explainers for board symbols; one-time tips pointing at things |
 | `ads/playable/` | The playable ad (one MRAID 2.0 HTML file for Tapjoy and co.; see its README) |
@@ -383,12 +423,26 @@ as a little flame inside the Daily button.
 | `scripts/peek_bubble.gd` | The route preview chip (an option): the next three packages at the end of the route |
 | `scripts/replay_ghost.gd` | Replay ghost path (an option): the last try's route, faint and wobbling, with arrowheads at its turns |
 | `scripts/boss.gd`, `boss_intro.gd`, `boss_outro.gd` | The boss detours' villain (art, lines), his laughing entrance and his getaway |
+| `scripts/reward_pager.gd` | The boss's packages, opened one after another: each reward on its own gold-rimmed page that pans in, its present popping by itself; taps hurry everything (a tap anywhere on the boss screen starts it, leftmost package first) |
+| `scripts/lesson_card.gd` | Job 4's lesson ("Save the Road") when it's driven wrong: what was torn up, on a little map, and a free hint on offer (`Game._lesson_due`, `--autolesson --lesson` tests it) |
+| `scripts/debug_remote.gd`, `tools/playtest/lm.py`, `tools/playtest/BRIEF.md` | A remote control for playtests: the real game in its own window with its own save (`--remote=<dir> --profile=<name>`), driven by taps, drags and `drive UURRD` from the command line; it answers with the screen as text and, on request, a picture. Nothing is sent anywhere while it's on. The brief is what a simulated tester is given |
+| `scripts/undo_lesson.gd` | Job 7's lesson ("Dead End Drive"): the van drives itself into a dead end, then tips teach Undo, the free undos, a free tank and hold-to-spend, and where gas comes from. Follows the game's state, shown once (`--undo-lesson`, `--undo-lesson-demo` plays the player's part) |
+| `scripts/sim.gd` (delivery rule) | Two houses beside one tile that both want the package on top: the one it's the last chance for gets it (every other road tile beside it is already driven), else the first in reading order. `Sim.arrive(..., route)`; every caller that knows the route passes it |
+| Gas | Scarce by design: `MAX_RESERVE` 5 spare tanks, `AD_TANKS` 2 (an ad is a big ask), a tank per chest (two in the first), a tank the first time a "reserve" detour is won, +1 at each checkpoint; the gas station only offers an ad when the tank is empty |
+| Toppers | Shelved: none on the maps or in chests, `Progress.owns` says yes to all, the garage shows one taped-off bar (`UiTheme.draw_wip`), and only Violet's Tower wears one (a party hat, always: `Van._wear`) |
+| `scripts/exit_ribbon.gd` | The way out of a job, a ribbon end on the left edge (it replaced the levels button): pulled out, hold Give up to leave, or hold Jump jets (once you have them: they arrive the first time you're properly stuck, from job `Progress.JETS_FROM` on) to skip the job for a tank; taped off on boss jobs. `Game._jets_shown/_jets_down/_jump` |
+| `scripts/jets_card.gd` | "JUMP JETS!": what they do, shown once, when they arrive |
+| `scripts/focus_dim.gd`, `scripts/dead_end_sign.gd` | A light dim over everything but one rect, with a ring (job 7's Undo tips), and the DEAD END road sign a hint puts over the way out when there's no win left (`Game._dead_end_hint`) |
+| `scripts/close_x.gd` | The big red X for a card's corner (the daily score, the share card) |
+| `scripts/share_sheet.gd` | Asks the iOS plugin for the share sheet (writes `user://lastmile_share.json`; `ios/plugins/src/LastMileNotify.mm` presents it). False off iOS, and the caller falls back |
+| `tools/engine/dailies.py` | The 38 dailies, made by the level engine: `gen` (candidates), `write` (the best into `levels/daily.json`). One hazard kind at most per daily; spice 1-3 is a difficulty band |
+| `tools/engine/daily_sim.py`, `tools/sim_dailies.gd` | Thirty simulated drivers test-drive every daily (from the engine's model of each), scored by the game's own rules into `levels/daily_sim.json`; the stats page adds them to the real numbers (`DailyResults.with_sim`) |
 | `scripts/looks.gd` | The "looks" cosmetics: package shapes, building themes, the queue's container, road surfaces, button colours |
 | `tools/check_scripts.gd` | Shows scripts' parse errors quietly (`-- res://scripts/x.gd ...`) |
 | `tools/preview/trails.tscn`, `boss_outro.tscn` | Design previews: every trail at no momentum and hot; the boss running off |
 | `scripts/game.gd` | Input, segments, driving, undo, juice, win/stuck, in-level UI |
 | `scripts/main.gd`, `title_screen.gd`, `level_select.gd`, `road_map.gd` | Screen switching, title (with its little delivery loop), the road-trip level map |
-| `scripts/progress.gd` | The save: completed levels, stars, gas tanks and their refill clock, spare undos, Dollaroos |
+| `scripts/progress.gd` | The save: completed levels (and the packages delivered), gas tanks and their refill clock, spare undos, Dollaroos |
 | `scripts/gas_chip.gd`, `coin_chip.gd`, `gas_shop.gd` | Gas gauge, wallet, and the pretend gas station |
 | `scripts/fake_ad.gd`, `assets/ads/`, `audio/ad_chirp*.wav` | The made-up Frontiers Celestia ad (mark and chirps copied from that repo) |
 | `scripts/finish_screen.gd`, `anime_fire.gd` | The freeze-frame level finish, and cel-shaded fire (the momentum trail and aura) |
@@ -408,12 +462,14 @@ godot --headless --path . --script res://tools/validate_levels.gd -- --ablate
 # Play every level (or a range) with injected input in several modes; prints a summary
 tools/autotest_all.sh            # or: tools/autotest_all.sh 21 40 autoundo
 
-# The level engine (design/level_engine.md): plan, generate, assemble, score
-python3 tools/make_plan.py                       # tools/level_plan.json from the table in the script
-tools/gen_all.sh 120 1                           # 120 s per slot, seed 1 (add slot numbers to redo a few)
-python3 tools/assemble_levels.py                 # best candidate per slot -> levels/levels.json
-tools/score_all.sh > build/levelgen/scores.jsonl && python3 tools/level_review.py build/levelgen/scores.jsonl
-godot --headless --path . --script res://tools/level_report.gd -- --from=41 --to=47    # the scorecard
+# The level engine (design/level_engine.md): build, plan, generate, assemble, score
+tools/engine/build.sh                            # build/lm (needs clang)
+python3 tools/engine/plan.py                     # tools/level_plan.json from the table in the script
+python3 tools/engine/gen_all.py --seed 1         # about ten minutes (add slot numbers to redo a few)
+python3 tools/engine/assemble.py                 # best candidate per slot -> levels/levels.json
+python3 tools/engine/review.py                   # design/level_scores.md
+tools/engine/crosscheck.sh                       # the C solver agrees with the game's on every level
+python3 tools/engine/lv.py levels/levels.json | sed -n 23p | build/lm explain    # one level, junction by junction
 
 # The older generator (dailies, side roads; see levels/README.md for options)
 godot --headless --path . --script res://tools/generate.gd -- --w=6 --h=8 --n=5 --oneway=2

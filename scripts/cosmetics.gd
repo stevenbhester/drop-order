@@ -14,6 +14,23 @@ const ITEMS := {
 	"racing": {"kind": "paint", "name": "Racing Stripes", "from": "", "body": Color("ff5d5d"), "cab": Color("2b2f38"), "pattern": "stripes"},
 	"blueprint": {"kind": "paint", "name": "Blueprint", "from": "", "body": Color("2f6fd6"), "cab": Color("1b3f80"), "pattern": "grid"},
 	"gold_rush": {"kind": "paint", "name": "Gold Rush", "from": "", "body": Color("ffcf4d"), "cab": Color("8a5a12"), "pattern": "sparkle"},
+	# Hoardly Inc.'s fleet liveries: one won off the Baron at every boss on the main road (Boss.LOOT).
+	"hq_grey": {"kind": "paint", "name": "Hoardly Grey", "from": "", "body": Color("9aa0ab"), "cab": Color("3a3f4b"), "pattern": "monogram"},
+	"hq_pinstripe": {"kind": "paint", "name": "Pinstripe Suit", "from": "", "body": Color("27345c"), "cab": Color("141b33"), "pattern": "pinstripe"},
+	"hq_boardroom": {"kind": "paint", "name": "Boardroom Mahogany", "from": "", "body": Color("7a3b24"), "cab": Color("3d1c10"), "pattern": "pinstripe"},
+	"hq_gold_card": {"kind": "paint", "name": "Gold Card", "from": "", "body": Color("1f1d24"), "cab": Color("c9a227"), "pattern": "sparkle"},
+	"hq_funny_money": {"kind": "paint", "name": "Funny Money", "from": "", "body": Color("5fae6e"), "cab": Color("245c34"), "pattern": "cash"},
+	"hq_velvet": {"kind": "paint", "name": "Velvet Rope", "from": "", "body": Color("b3223f"), "cab": Color("5c0f22"), "pattern": "argyle"},
+	"hq_penthouse": {"kind": "paint", "name": "Penthouse", "from": "", "body": Color("f3ead6"), "cab": Color("b08d3c"), "pattern": "monogram"},
+	"hq_parachute": {"kind": "paint", "name": "Golden Parachute", "from": "", "body": Color("f0b93a"), "cab": Color("8a5a12"), "pattern": "dusk"},
+	"hq_shareholder": {"kind": "paint", "name": "Shareholder Blue", "from": "", "body": Color("3f7fd9"), "cab": Color("1c3c73"), "pattern": "chart"},
+	"hq_offshore": {"kind": "paint", "name": "Offshore Account", "from": "", "body": Color("38c2b8"), "cab": Color("176b66"), "pattern": "cash"},
+	"hq_ticker": {"kind": "paint", "name": "Ticker Tape", "from": "", "body": Color("f7f7f2"), "cab": Color("23242b"), "pattern": "chart"},
+	"hq_bull": {"kind": "paint", "name": "Bull Market", "from": "", "body": Color("b8742f"), "cab": Color("5a3412"), "pattern": "chart"},
+	"hq_monocle": {"kind": "paint", "name": "Monocle Silver", "from": "", "body": Color("cfd4dc"), "cab": Color("6b7280"), "pattern": "monogram"},
+	"hq_corner": {"kind": "paint", "name": "Corner Office", "from": "", "body": Color("5b4f8a"), "cab": Color("2c2550"), "pattern": "pinstripe"},
+	"hq_buyout": {"kind": "paint", "name": "Leveraged Buyout", "from": "", "body": Color("ff7a33"), "cab": Color("7a2f0a"), "pattern": "argyle"},
+	"hq_baron": {"kind": "paint", "name": "The Baron's Own", "from": "", "body": Color("2a1f3d"), "cab": Color("d4a72c"), "pattern": "baron"},
 	"monster_truck": {"kind": "ride", "name": "Kuma's Monster Truck", "from": "", "body": Color("e8473c"), "cab": Color("23222b")},
 	"scooter": {"kind": "ride", "name": "Zippy Scooter", "from": "", "body": Color("3fc7a6"), "cab": Color("2b2f38")},
 	"ice_cream": {"kind": "ride", "name": "Mr. Frosty", "from": "", "body": Color("fff4f8"), "cab": Color("ff7aa8")},
@@ -24,32 +41,38 @@ const ITEMS := {
 	"caterpillar": {"kind": "ride", "name": "Tara's Hungry Caterpillar", "from": "", "body": Color("6cc04a"), "cab": Color("c6e85a")},
 	"minivan": {"kind": "ride", "name": "Orin's Green Car", "from": "", "body": Color("2f6b45"), "cab": Color("1f2a24")},
 	"pillow_tower": {"kind": "ride", "name": "Violet's Tower", "from": "", "body": Color("c8a8ff"), "cab": Color("8a5cf5")},
-	"wreck": {"kind": "trail", "name": "Torn-Up Road", "from": "", "stars": 0},
-	"river": {"kind": "trail", "name": "River Run", "from": "", "stars": 30},
-	"mountains": {"kind": "trail", "name": "Mountain Range", "from": "", "stars": 60},
-	"hearts": {"kind": "trail", "name": "Heart Trail", "from": "", "stars": 100},
-	"meteors": {"kind": "trail", "name": "Meteor Strikes", "from": "", "stars": 140},
-	"lava": {"kind": "trail", "name": "Lava Flow", "from": "", "stars": 180},
-	"zombies": {"kind": "trail", "name": "Zombie Horde", "from": "", "stars": 220},
-	"money": {"kind": "trail", "name": "Money to Burn", "from": "", "stars": -1},
-	# Looks (Looks): the game's own styling. The first of each kind is free; the rest unlock late, with stars.
-	"pkg_box": {"kind": "package", "name": "Cardboard Box", "from": "", "stars": 0},
-	"pkg_hatbox": {"kind": "package", "name": "Hatboxes", "from": "", "stars": 135},
-	"pkg_crate": {"kind": "package", "name": "Wooden Crates", "from": "", "stars": 195},
-	"pkg_capsule": {"kind": "package", "name": "Capsules", "from": "", "stars": 270},
-	"bld_classic": {"kind": "building", "name": "Main Street", "from": "", "stars": 0},
-	"bld_gingerbread": {"kind": "building", "name": "Gingerbread Town", "from": "", "stars": 155},
-	"bld_castle": {"kind": "building", "name": "Castle Keeps", "from": "", "stars": 255},
-	"q_chute": {"kind": "queue", "name": "The Chute", "from": "", "stars": 0},
-	"q_conveyor": {"kind": "queue", "name": "Conveyor Belt", "from": "", "stars": 120},
-	"q_neon": {"kind": "queue", "name": "Neon Tube", "from": "", "stars": 215},
-	"road_asphalt": {"kind": "road", "name": "Asphalt", "from": "", "stars": 0},
-	"road_cobbles": {"kind": "road", "name": "Cobblestones", "from": "", "stars": 110},
-	"road_neon": {"kind": "road", "name": "Night Drive", "from": "", "stars": 235},
-	"ui_classic": {"kind": "controls", "name": "Classic Buttons", "from": "", "stars": 0},
-	"ui_midnight": {"kind": "controls", "name": "Midnight Buttons", "from": "", "stars": 75},
-	"ui_bubblegum": {"kind": "controls", "name": "Bubblegum Buttons", "from": "", "stars": 165},
-	"ui_mint": {"kind": "controls", "name": "Mint Buttons", "from": "", "stars": 245},
+	"shark": {"kind": "ride", "name": "Howard's Shark", "from": "", "body": Color("7f95ab"), "cab": Color("e9eef3")},
+	"eazy_van": {"kind": "ride", "name": "Sheena's Eazy Van", "from": "", "body": Color("2fa8de"), "cab": Color("f4ecd8")},
+	"dreamsicle": {"kind": "ride", "name": "Tay's Dreamsicle", "from": "", "body": Color("ff9a3c"), "cab": Color("ffe0a8")},
+	"classic_car": {"kind": "ride", "name": "Cole's Classic", "from": "", "body": Color("c9ced6"), "cab": Color("2b2f38")},
+	"lab": {"kind": "ride", "name": "Twinkle's Lab", "from": "", "body": Color("b07a4c"), "cab": Color("a78bfa")},
+	"zero": {"kind": "ride", "name": "Zero the Steed", "from": "", "body": Color("1f1d24"), "cab": Color("f4f1ea")},
+	"wreck": {"kind": "trail", "name": "Torn-Up Road", "from": "", "need": 0},
+	"river": {"kind": "trail", "name": "River Run", "from": "", "need": 70},
+	"mountains": {"kind": "trail", "name": "Mountain Range", "from": "", "need": 150},
+	"hearts": {"kind": "trail", "name": "Heart Trail", "from": "", "need": 225},
+	"meteors": {"kind": "trail", "name": "Meteor Strikes", "from": "", "need": 350},
+	"lava": {"kind": "trail", "name": "Lava Flow", "from": "", "need": 450},
+	"zombies": {"kind": "trail", "name": "Zombie Horde", "from": "", "need": 550},
+	"money": {"kind": "trail", "name": "Money to Burn", "from": "", "need": -1},
+	# Looks (Looks): the game's own styling. The first of each kind is free; the rest unlock late, with packages delivered.
+	"pkg_box": {"kind": "package", "name": "Cardboard Box", "from": "", "need": 0},
+	"pkg_hatbox": {"kind": "package", "name": "Hatboxes", "from": "", "need": 325},
+	"pkg_crate": {"kind": "package", "name": "Wooden Crates", "from": "", "need": 475},
+	"pkg_capsule": {"kind": "package", "name": "Capsules", "from": "", "need": 750},
+	"bld_classic": {"kind": "building", "name": "Main Street", "from": "", "need": 0},
+	"bld_gingerbread": {"kind": "building", "name": "Gingerbread Town", "from": "", "need": 375},
+	"bld_castle": {"kind": "building", "name": "Castle Keeps", "from": "", "need": 725},
+	"q_chute": {"kind": "queue", "name": "The Chute", "from": "", "need": 0},
+	"q_conveyor": {"kind": "queue", "name": "Conveyor Belt", "from": "", "need": 275},
+	"q_neon": {"kind": "queue", "name": "Neon Tube", "from": "", "need": 525},
+	"road_asphalt": {"kind": "road", "name": "Asphalt", "from": "", "need": 0},
+	"road_cobbles": {"kind": "road", "name": "Cobblestones", "from": "", "need": 250},
+	"road_neon": {"kind": "road", "name": "Night Drive", "from": "", "need": 600},
+	"ui_classic": {"kind": "controls", "name": "Classic Buttons", "from": "", "need": 0},
+	"ui_midnight": {"kind": "controls", "name": "Midnight Buttons", "from": "", "need": 210},
+	"ui_bubblegum": {"kind": "controls", "name": "Bubblegum Buttons", "from": "", "need": 400},
+	"ui_mint": {"kind": "controls", "name": "Mint Buttons", "from": "", "need": 625},
 	"party_hat": {"kind": "topper", "name": "Party Hat", "from": ""},
 	"hard_hat": {"kind": "topper", "name": "Hard Hat", "from": ""},
 	"crown": {"kind": "topper", "name": "Gold Crown", "from": ""},
@@ -62,9 +85,11 @@ const ITEMS := {
 	"soup_bowl": {"kind": "topper", "name": "Door Bowl", "from": "Door Bowl"},
 }
 ## Garage order.
-const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_van",
+const ORDER := ["monster_truck", "scooter", "shark", "eazy_van", "dreamsicle", "classic_car", "lab", "zero", "ice_cream", "rocket_van", "hover_van",
 	"race_car", "bassinet", "caterpillar", "minivan", "pillow_tower",
 	"classic", "deep_field", "gloaming", "duskwood", "mosaic_moth", "racing", "blueprint", "gold_rush",
+	"hq_grey", "hq_pinstripe", "hq_boardroom", "hq_gold_card", "hq_funny_money", "hq_velvet", "hq_penthouse", "hq_parachute",
+	"hq_shareholder", "hq_offshore", "hq_ticker", "hq_bull", "hq_monocle", "hq_corner", "hq_buyout", "hq_baron",
 	"party_hat", "hard_hat", "cone_hat", "crown", "drizzlet", "bonkle", "sprout", "rivet", "puffball", "soup_bowl",
 	"wreck", "river", "mountains", "hearts", "meteors", "lava", "zombies", "money",
 	"road_asphalt", "road_cobbles", "road_neon",
@@ -75,17 +100,17 @@ const ORDER := ["monster_truck", "scooter", "ice_cream", "rocket_van", "hover_va
 const TABS := [
 	{"name": "Van & Road", "kinds": ["ride", "paint", "topper", "trail", "road"]},
 	{"name": "Packages & Buildings", "kinds": ["package", "building"]},
-	{"name": "Queue & Controls", "kinds": ["queue", "controls"]},
+	{"name": "Line & Controls", "kinds": ["queue", "controls"]},
 ]
 const KIND_TITLES := {"ride": "Rides", "paint": "Paint jobs", "topper": "Toppers",
 	"trail": "Trails  ·  what the road turns into behind you", "road": "Roads  ·  the street surface",
 	"package": "Package shapes", "building": "Buildings  ·  every colour, rebuilt",
-	"queue": "Package queue  ·  the container your load waits in", "controls": "Controls  ·  button colours"}
+	"queue": "Package line  ·  what your packages wait in", "controls": "Controls  ·  button colours"}
 const BANNERS := {"ride": "NEW RIDE!", "paint": "NEW PAINT JOB!", "topper": "NEW TOPPER!", "trail": "NEW TRAIL!",
 	"road": "NEW ROAD!", "package": "NEW PACKAGES!", "building": "NEW BUILDINGS!", "queue": "NEW QUEUE!", "controls": "NEW CONTROLS!"}
 ## Rides that move (they're redrawn every frame in the garage).
 const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van", "hover_van", "party_hat",
-	"bassinet", "caterpillar", "pillow_tower"]
+	"bassinet", "caterpillar", "pillow_tower", "shark", "eazy_van", "dreamsicle", "classic_car", "lab", "zero"]
 
 
 static func name_of(id: String) -> String:
@@ -96,15 +121,15 @@ static func kind_of(id: String) -> String:
 	return ITEMS.get(id, {}).get("kind", "")
 
 
-## Kinds that unlock with stars (trails and the looks) rather than being found.
-static func by_stars(id: String) -> bool:
+## Kinds that unlock with packages delivered (trails and the looks) rather than being found.
+static func by_count(id: String) -> bool:
 	return kind_of(id) == "trail" or Looks.is_look(kind_of(id))
 
 
-## Trails (what the road turns into behind the van) unlock with stars: how many this one needs (-1: not
-## with stars; it's won, from a boss).
-static func stars_for(id: String) -> int:
-	return int(ITEMS.get(id, {}).get("stars", 0))
+## Trails (what the road turns into behind the van) and looks unlock with packages delivered
+## (Progress.delivered): how many this one needs (-1: not that way; it's won, from a boss).
+static func need_for(id: String) -> int:
+	return int(ITEMS.get(id, {}).get("need", 0))
 
 
 ## A colour that stands for the item (for gift sparkles and garage tiles).
@@ -155,6 +180,8 @@ static func cab_color(paint: String) -> Color:
 static func draw_pattern(ci: CanvasItem, paint: String, r: Rect2) -> void:
 	var p: String = ITEMS.get(paint, {}).get("pattern", "")
 	var s := r.size.y
+	# The fleet liveries' marks: white, or dark on a light body.
+	var ink := Color(0.12, 0.12, 0.16) if body_color(paint).get_luminance() > 0.75 else Color.WHITE
 	match p:
 		"stars":
 			var pts := [Vector2(0.12, 0.2), Vector2(0.35, 0.72), Vector2(0.55, 0.3), Vector2(0.8, 0.78), Vector2(0.88, 0.18), Vector2(0.25, 0.48)]
@@ -194,9 +221,64 @@ static func draw_pattern(ci: CanvasItem, paint: String, r: Rect2) -> void:
 				r.position + Vector2(r.size.x * 0.22, r.size.y), r.position + Vector2(r.size.x * 0.04, r.size.y)]), Color(1, 1, 1, 0.35))
 			for g in [Vector2(0.6, 0.3), Vector2(0.82, 0.7), Vector2(0.45, 0.75)]:
 				Icons.star(ci, r.position + g * r.size, s * 0.09, Color(1, 1, 1, 0.9))
+		"pinstripe":
+			# A suit's pinstripes.
+			var n := 9
+			for k in range(1, n):
+				var x := r.position.x + r.size.x * k / n
+				ci.draw_line(Vector2(x, r.position.y), Vector2(x, r.end.y), Color(ink, 0.38), s * 0.025)
+		"monogram":
+			# Hoardly Inc.'s crest: a gold ring with an H in it.
+			_crest(ci, r.get_center(), s * 0.26)
+		"cash":
+			# Dollar signs, scattered.
+			var f := UiTheme.font()
+			var px := int(s * 0.34)
+			for g in [Vector2(0.18, 0.32), Vector2(0.5, 0.7), Vector2(0.8, 0.3)]:
+				var at: Vector2 = r.position + g * r.size
+				ci.draw_string(f, at + Vector2(-px * 0.3, px * 0.35), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color(ink, 0.6))
+		"argyle":
+			# Diamonds in a row, with a thin cross-hatch.
+			var n := 4
+			for k in n:
+				var c := r.position + Vector2(r.size.x * (k + 0.5) / n, r.size.y * 0.5)
+				var hw := r.size.x / n * 0.42
+				var hh := r.size.y * 0.36
+				ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -hh), c + Vector2(hw, 0), c + Vector2(0, hh), c + Vector2(-hw, 0)]),
+						Color(ink, 0.22 if k % 2 == 0 else 0.1))
+		"chart":
+			# A stock chart, going up (for him).
+			var pts := PackedVector2Array()
+			for k in 7:
+				var x := r.position.x + r.size.x * (0.08 + k * 0.14)
+				var up := k / 6.0
+				var y := r.end.y - r.size.y * (0.22 + 0.55 * up) + (s * 0.08 if k % 2 == 1 else 0.0)
+				pts.append(Vector2(x, y))
+			ci.draw_polyline(pts, Color(ink, 0.75), s * 0.05, true)
+			var tip: Vector2 = pts[pts.size() - 1]
+			ci.draw_colored_polygon(PackedVector2Array([tip + Vector2(s * 0.08, -s * 0.06), tip + Vector2(-s * 0.06, -s * 0.07), tip + Vector2(0, s * 0.06)]),
+					Color(ink, 0.75))
+		"baron":
+			# His own: pinstripes and his crest.
+			for k in range(1, 9):
+				var x := r.position.x + r.size.x * k / 9.0
+				ci.draw_line(Vector2(x, r.position.y), Vector2(x, r.end.y), Color("d4a72c", 0.35), s * 0.025)
+			_crest(ci, r.get_center(), s * 0.28)
 		"stripes":
 			for sy in [-0.12, 0.12]:
 				ci.draw_rect(Rect2(r.position + Vector2(0, r.size.y * (0.5 + sy) - s * 0.05), Vector2(r.size.x, s * 0.1)), Color.WHITE)
+
+
+## Hoardly Inc.'s crest: a gold ring with an H.
+static func _crest(ci: CanvasItem, c: Vector2, rad: float) -> void:
+	ci.draw_circle(c, rad, Color("d4a72c"))
+	ci.draw_circle(c, rad * 0.78, Color("2a1f3d", 0.85))
+	var w := rad * 0.42
+	var h := rad * 0.5
+	var col := Color("f5d76e")
+	ci.draw_line(c + Vector2(-w, -h), c + Vector2(-w, h), col, rad * 0.18)
+	ci.draw_line(c + Vector2(w, -h), c + Vector2(w, h), col, rad * 0.18)
+	ci.draw_line(c + Vector2(-w, 0), c + Vector2(w, 0), col, rad * 0.16)
 
 
 static func _ellipse(c: Vector2, rx: float, ry: float, rot: float) -> PackedVector2Array:
@@ -295,9 +377,11 @@ static func draw_topper(ci: CanvasItem, id: String, c: Vector2, s: float, t := 0
 ## the topper goes. `cargo` is the top package's colour (or null for an empty bed). `paint` recolours it
 ## (and puts the paint's pattern on its sides); Classic Cream leaves its own colours. `win` is seconds into
 ## its win celebration (RideWins), or -1; `up` is screen-up in its own space (for the pillow tower).
-static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0, paint := "classic", win := -1.0, up := Vector2.UP) -> Vector2:
-	if id in ["race_car", "bassinet", "caterpillar", "minivan", "pillow_tower"]:
-		return FriendRides.draw(ci, id, L, W, cargo, t, paint, win, up)
+## `base`: the transform the caller has set on `ci` with draw_set_transform, if any (a ride that turns
+## its own parts, like the pillow tower, has to draw within it).
+static func draw_ride(ci: CanvasItem, id: String, L: float, W: float, cargo: Variant, t := 0.0, paint := "classic", win := -1.0, up := Vector2.UP, base := Transform2D.IDENTITY) -> Vector2:
+	if id in ["race_car", "bassinet", "caterpillar", "minivan", "pillow_tower", "shark", "eazy_van", "dreamsicle", "classic_car", "lab", "zero"]:
+		return FriendRides.draw(ci, id, L, W, cargo, t, paint, win, up, base)
 	match id:
 		"monster_truck":
 			return _monster_truck(ci, L, W, cargo, t, paint)

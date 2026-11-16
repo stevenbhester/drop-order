@@ -1,11 +1,11 @@
 {
-	"build": 23,
+	"build": 27,
 	"name": "The Long Road",
 	"notes": [
-		"Every level from 5 to 100 is new. The towns are open now: lots of ways to drive, and the packages decide which one wins.",
-		"Each level asks something a little different from the one before it. Some are easy on purpose.",
-		"Levels you'd already beaten show UPDATED on the map, with hollow stars, until you beat the new one."
+		"Headlights: you can only plan a short way ahead of the van now, and it follows your finger. Beat the Baron for brighter lights. (The old way is in Options, Testers.)",
+		"Dollaroos are gone for now (nothing to spend them on). The gas station gives gas for watching a (pretend) ad.",
+		"Playing and retrying jobs is free. Gas pays for extra help: on a job, one tank makes undos and hints both unlimited for the rest of the level. Tanks refill one an hour. Out of gas? A (pretend) ad gives you two."
 	],
-	"ready_at": 1794689103,
+	"ready_at": 1794790658,
 	"version": "0.7"
 }

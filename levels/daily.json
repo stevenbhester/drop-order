@@ -6,14 +6,14 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "b . . . .",
-        "# # # # .",
-        "S . . # b",
-        "# # # # .",
-        "# b y # r",
-        "# # # # ."
+        "# b # . .",
+        "# # # # #",
+        ". # b g #",
+        "b # # # #",
+        "g # . . #",
+        "# # # S #"
       ],
-      "stack": ["yellow", "blue", "red", "blue", "blue"]
+      "stack": ["blue", "green", "blue", "blue", "green"]
     },
     {
       "title": "Lost Mittens",
@@ -21,46 +21,46 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "# # # < #",
-        "# . S . #",
-        "# . # b #",
-        "# # # # #",
-        "# . b r #",
-        "# b . r #",
-        "# # # # #"
+        "# S # # # #",
+        "# . r # . #",
+        ". # # # # #",
+        "# v r # b #",
+        "r # # # # #",
+        "# # . b . #"
       ],
-      "stack": ["red", "red", "blue", "blue", "blue"]
+      "stack": ["red", "red", "red", "blue", "blue"]
     },
     {
       "title": "Snow Day",
-      "hint": "Ice ahead. No turning on it!",
+      "hint": "The roads are clear. Is your plan?",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# # # # #",
-        "# y # r #",
-        "# . # y #",
-        "~ S # # #",
-        "# . # y #",
-        "# # < # #",
-        ". . . . y"
+        "# # # # # #",
+        "# . b g b #",
+        "# # # # # #",
+        "# . r # g #",
+        "# S # # # #",
+        "# . # b . #",
+        "# # # # # #"
       ],
-      "stack": ["yellow", "red", "yellow", "yellow", "yellow"]
+      "stack": ["green", "blue", "red", "blue", "blue", "green"]
     },
     {
       "title": "Two Doors Down",
-      "spice": 2,
       "hint": "Small map. Big ideas. Watch what you pass.",
+      "spice": 2,
       "no_revisit": true,
       "map": [
-        "y r . b R",
-        "# # # # #",
-        "# r # b #",
-        "# # # # #",
-        "# . S . #",
-        "# # # # #"
+        ". # g . .",
+        "# S # # #",
+        "# . # b #",
+        "# # # g #",
+        "# r # # #",
+        "# # # g #",
+        "# b # # #"
       ],
-      "stack": ["red", "yellow", "blue", "blue"]
+      "stack": ["green", "blue", "blue", "green", "red", "green"]
     },
     {
       "title": "Sock Drawer",
@@ -68,82 +68,80 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". b . p . g",
         "# # # # # #",
-        "# . . . y #",
-        "# b . # # #",
-        "# . b # . #",
-        "# # # # # #",
-        "S . . # . @",
-        "# # # > # #"
+        "# r # b # b",
+        "# # # # # g",
+        "# r # g # .",
+        "# # # # @ .",
+        "# . # b # .",
+        "# S # # # ."
       ],
-      "stack": ["yellow", "green", "purple", "blue", "blue", "blue"]
+      "stack": ["blue", "blue", "green", "green", "blue", "red", "red"]
     },
     {
       "title": "Library Run",
-      "hint": "Return the books, then park back at the pit stop.",
+      "hint": "Return the books, then park back at the depot.",
       "spice": 2,
       "return": true,
       "no_revisit": true,
       "map": [
-        ". # # # # #",
-        ". b . # . #",
-        ". # # # # #",
-        "p # . # . #",
-        "p # y # S #",
-        ". # p # . #",
-        ". # # # # #"
+        "# # # r g",
+        "# b # # #",
+        "# . S . #",
+        "# # # # #",
+        "# r # b #",
+        "# # # # #",
+        "g . . # ."
       ],
-      "stack": ["yellow", "blue", "purple", "purple", "purple"]
+      "stack": ["green", "red", "blue", "green", "red", "blue"]
     },
     {
       "title": "Night Market",
-      "hint": "A locker takes anything. Use it wisely.",
+      "hint": "Pick up at the stalls. It lands on top.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". # S # # #",
-        ". # . # w #",
-        ". # # # B #",
-        ". # p . b #",
-        ". # # # # #",
-        ". # b # y #",
-        "y # =b # # #"
+        "# # # # # .",
+        "# . g r # B",
+        "# # # # # #",
+        "S . # b # R",
+        "# # # # # #",
+        "# g # g # r",
+        "# # # # # ."
       ],
-      "stack": ["yellow", "blue", "yellow", "purple", "yellow"]
+      "stack": ["green", "red", "green", "green"]
     },
     {
       "title": "Switchbacks",
+      "hint": "The first turn decides the last one.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # y # # #",
-        "# b # . # . #",
-        "# . # # # # #",
-        "# . # p p r #",
-        "# < + # # # #",
-        ". . # . # . #",
-        "# # # # ^ # #",
-        "# . # . # y #",
-        "S . # p # . #",
-        "# # # # # # #"
+        ". . . # r #",
+        ". # # # # #",
+        "# # b # g #",
+        "g # # # # S",
+        "# # . # . #",
+        "g # # # # #",
+        ". # b # b #",
+        ". # # # # #"
       ],
-      "stack": ["purple", "purple", "yellow", "blue", "purple", "red", "yellow"]
+      "stack": ["green", "red", "green", "blue", "green", "blue", "blue"]
     },
     {
       "title": "Pothole Patrol",
-      "hint": "Roadworks open once enough is delivered.",
+      "hint": "Mind the holes you leave behind.",
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". . b . .",
-        "# # # # .",
-        "# p y # r",
-        "~ # # c2 .",
-        "# b . S .",
-        "# # # # ."
+        ". # # # .",
+        ". # . # g",
+        "# S . # #",
+        "r # # # g",
+        "# # g # .",
+        "r # # # ."
       ],
-      "stack": ["blue", "yellow", "red", "blue", "purple"]
+      "stack": ["green", "red", "red", "green", "green"]
     },
     {
       "title": "Bakery Dash",
@@ -151,47 +149,48 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "p # # # S #",
-        ". # b # . #",
-        ". =p b # # #",
-        "P # r # . #",
-        ". # # # # #",
-        ". # p # . b",
-        ". # # # # #"
+        "# # # # #",
+        "S . g # .",
+        "# # # # g",
+        "# . r # #",
+        "# # # # G",
+        "B # b # g",
+        "# # # # b"
       ],
-      "stack": ["red", "blue", "blue", "purple", "blue"]
+      "stack": ["blue", "red", "green", "green"]
     },
     {
       "title": "Rubber Ducks",
-      "hint": "Roadworks, a spinner, and a lot of ducks.",
+      "hint": "Somebody ordered a lot of ducks.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "S # # # @ .",
-        "# . # p # p",
-        "# # # # v b",
-        "# . # . # .",
-        "# # # # # .",
-        "# p # . # .",
-        "c5 . # b # .",
-        "# # # y # ."
+        "#  #  #  #  S  #",
+        "#  g2 #  r  .  #",
+        "#  #  #  #  #  #",
+        "#  g  #  .  .  #",
+        "#  r3 #  g  .  #",
+        "#  #  #  #  #  #",
+        "g  b  #  .  .  ."
       ],
-      "stack": ["purple", "yellow", "blue", "purple", "blue", "purple"]
+      "stack": ["blue", "red", "green", "red", "green", "red", "green", "green", "green", "red"]
     },
     {
       "title": "Red Tape",
+      "hint": "A coloured gate opens for its colour on top.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ".  #  #  #  #  #",
-        ".  #  .  S  .  #",
-        ".  #  #  #  #  #",
-        "r  #  y  #  r  #",
-        ".  =r .  #  R  #",
-        ".  #  #  #  #  #",
-        ".  y  r  .  r  ."
+        ".  r  .  #  .  .",
+        "#  #  S  #  #  #",
+        "#  .  #  .  r  #",
+        "#  #  #  #  #  #",
+        "#  g  #  g  #  .",
+        "#  #  #  #  #  #",
+        "#  .  r  g  #  b",
+        "#  #  #  =g #  #"
       ],
-      "stack": ["red", "red", "yellow", "red", "yellow"]
+      "stack": ["red", "blue", "green", "red", "green", "green", "red"]
     },
     {
       "title": "Rainy Tuesday",
@@ -199,14 +198,14 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "# S # # r",
-        "# . b # .",
-        "# # # # .",
-        "# . y # .",
-        "# # # # b",
-        ". p . . ."
+        ". . b r .",
+        "# # # # #",
+        "# . b # g",
+        "# # # # #",
+        "# b # . #",
+        "# # # S #"
       ],
-      "stack": ["yellow", "purple", "blue", "blue", "red"]
+      "stack": ["green", "blue", "red", "blue", "blue"]
     },
     {
       "title": "Birthday Rush",
@@ -214,15 +213,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # .",
-        "# . S . # y",
-        "# # + # # b2",
-        "# y2 # p # .",
-        "# # # # # .",
-        "# . # b # .",
-        "# # # # # y"
+        "#  #  #  #  #  .",
+        "#  .  #  .  #  .",
+        "#  b  #  .  S  .",
+        "#  #  #  #  #  b",
+        "#  .  #  g  #  .",
+        "#  .  #  r3 #  #",
+        "#  #  #  #  #  .",
+        "#  g  b  #  g  ."
       ],
-      "stack": ["purple", "blue", "blue", "yellow", "yellow", "yellow", "yellow", "blue"]
+      "stack": ["green", "red", "red", "blue", "green", "red", "blue", "green", "blue"]
     },
     {
       "title": "Llama Drama",
@@ -230,117 +230,113 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". p . . .",
-        "# # > # #",
-        "# r # . #",
-        "# # # S #",
-        "# b # . #",
-        "# p # b #",
-        "# # # # #"
+        "# # # # # #",
+        "# . S . # g",
+        "# . # . v #",
+        "# # # # # b",
+        "# r # g # .",
+        "# # # # # .",
+        ". g b . # ."
       ],
-      "stack": ["blue", "purple", "red", "purple", "blue"]
+      "stack": ["green", "blue", "green", "blue", "green", "red"]
     },
     {
       "title": "The Big Map",
+      "hint": "Lots of packages, one way through. Take your time.",
       "spice": 3,
-      "hint": "Nine packages, one way through. Take your time.",
       "no_revisit": true,
       "map": [
-        "r r . P . . p p .",
-        "# # # # # # # # #",
-        "S . . y # . # p #",
-        "# . . g # . # y #",
-        "# # # # # # # # #",
-        "# . # . # y # y #",
-        "# # # . # # > # ^",
-        "# . . . # . # . #",
-        "# # # # # # # # #",
-        "# . # . # . # . #",
-        "# # # # # # # . #"
+        ". . # # # .",
+        ". b # . # .",
+        "# # # S # .",
+        "# b # . # .",
+        "# # # # # .",
+        "# g # b # #",
+        "# # # # # g",
+        ". r g # . ."
       ],
-      "stack": ["yellow", "green", "yellow", "yellow", "yellow", "purple", "purple", "red", "red"]
+      "stack": ["green", "red", "green", "blue", "green", "blue", "blue"]
     },
     {
       "title": "Lunchbox Shuffle",
-      "hint": "Lockers eat whatever's on top. Pack carefully.",
+      "hint": "Packed in the wrong order. Naturally.",
       "spice": 2,
-      "return": true,
       "no_revisit": true,
       "map": [
-        "# . # # # #",
-        "# . # . . S",
-        "# # # # # #",
-        ". w # y r #",
-        "# # # # # #",
-        "# r # . y #",
+        ". # # # S #",
+        ". # b # . #",
+        ". # g # # #",
+        "g # # # r #",
+        "# # r # # #",
+        ". # . . r #",
         "# # # # # #"
       ],
-      "stack": ["yellow", "purple", "red", "yellow", "red"]
+      "stack": ["blue", "red", "green", "green", "red", "red"]
     },
     {
       "title": "Kite Festival",
-      "hint": "Loop round. Strings attached.",
+      "hint": "Over the bridge and round again. Strings attached.",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# # < # # #",
-        "# . # r b #",
-        "# g # # # #",
-        "# . # . . S",
-        "# # # # # #",
-        "# b y . . #",
-        "# # # @ # #",
-        ". . . . . p"
+        ". b . # .",
+        "# # # # S",
+        "# g # . #",
+        "# # + # #",
+        "# r # r #",
+        "# # # # #",
+        "b . g # ."
       ],
-      "stack": ["blue", "red", "green", "yellow", "blue", "purple"]
+      "stack": ["blue", "red", "green", "red", "blue", "green"]
     },
     {
       "title": "Hot Cocoa Run",
-      "hint": "Slide straight across the ice.",
+      "hint": "Warm cup, cold one-way streets.",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# # # S #",
-        "# p b . #",
-        "^ # # # #",
-        "# p # . #",
-        "~ # # # #",
-        "# y y . #",
-        "# # # # #"
+        ". . # b . .",
+        "# # # # # #",
+        "# r b # . #",
+        "# # # # g #",
+        ". # b # # #",
+        ". ^ . # . #",
+        "r # # # S #"
       ],
-      "stack": ["purple", "yellow", "yellow", "purple", "blue"]
+      "stack": ["red", "red", "blue", "blue", "blue", "green"]
     },
     {
       "title": "Cul-de-Sac",
+      "hint": "Not every street goes somewhere.",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# # > > #",
-        "# y # r #",
         "# # # # #",
-        "# b # . #",
-        "S . # r #",
+        "S . # g #",
+        "# g # . #",
         "# # # # #",
-        ". y . . b"
+        "# b # g #",
+        "# # # # #",
+        "r . b . ."
       ],
-      "stack": ["red", "yellow", "blue", "red", "blue", "yellow"]
+      "stack": ["red", "green", "blue", "blue", "green", "green"]
     },
     {
       "title": "Moving Day",
-      "hint": "Everything out, then back to the pit stop.",
+      "hint": "Everything out, then back to the depot.",
       "spice": 2,
       "return": true,
       "no_revisit": true,
       "map": [
-        "# # # # # #",
-        "# . . # r #",
-        "# # # # y #",
-        "# r . # . #",
-        "S . . # b #",
-        "# . y # . #",
-        "# # # # # #"
+        "# # # # # g",
+        "# b # r # .",
+        "# g # # # .",
+        "S . # r # #",
+        "# . # b # .",
+        "# # # # # .",
+        ". . . . # #"
       ],
-      "stack": ["yellow", "blue", "red", "yellow", "red"]
+      "stack": ["green", "blue", "red", "green", "red", "blue"]
     },
     {
       "title": "Garden Gnomes",
@@ -348,131 +344,127 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "r p . p y",
-        "# # # # #",
-        "# . # . #",
-        "# r # S #",
-        "# . # . #",
-        "# # # # #"
+        ". . # r # #",
+        ". # # # # g",
+        ". g # b # g",
+        ". # # # # .",
+        "# # . . # .",
+        ". # # # S ."
       ],
-      "stack": ["purple", "yellow", "red", "red", "purple"]
+      "stack": ["red", "green", "green", "blue", "green"]
     },
     {
       "title": "Science Fair",
-      "hint": "Gates, lockers and a volcano project.",
+      "hint": "Coloured gates. Bring the right project.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # #",
-        "# . b # B #",
-        "# . w =b b #",
-        "# . r # . #",
-        "# # # # # #",
-        "# p y . . #",
-        "S # # # # #"
+        ".  .  .  #  #  #",
+        "b  .  r  #  .  #",
+        "#  #  #  #  S  #",
+        "#  g  =b r  .  #",
+        "#  #  #  #  #  #",
+        "#  r  #  b  .  =r",
+        "#  #  #  #  #  #"
       ],
-      "stack": ["purple", "yellow", "blue", "blue", "red"]
+      "stack": ["green", "red", "blue", "red", "blue", "red"]
     },
     {
       "title": "Sort It Out",
+      "hint": "One spinner. Use it at the right moment.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # @ # # # #",
-        "# y # . v y #",
-        "# # # # # # #",
-        "@ . S . # p #",
-        "# . # P # b #",
-        "# # # # # # #",
-        "# . # . # . p",
-        "# # > # # # #",
-        "b . p . . . ."
+        ". # . # # @",
+        "# # # # . #",
+        "# . . @ # #",
+        "# g . S . #",
+        "# # # # # #",
+        "# r # b r #",
+        "# # # # # #",
+        "# r . g g #"
       ],
-      "stack": ["purple", "blue", "yellow", "blue", "yellow", "purple"]
+      "stack": ["blue", "red", "green", "green", "red", "green", "red"]
     },
     {
       "title": "Fridge Raid",
-      "hint": "Grab, gate, go.",
+      "hint": "Grab it on the way. It lands on top.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "S # # # # .",
-        ". . # . # .",
-        "# # # # # y",
-        "# . # p # r",
-        "# # # # # p",
-        "# r # R # r",
-        "# # # =p # ."
+        "# r # # # b",
+        "# # # b # B",
+        "# g # # # #",
+        "# # # r # g",
+        "# . # # # g",
+        "# . S . # #",
+        "# # # # # G"
       ],
-      "stack": ["red", "purple", "red", "purple", "yellow"]
+      "stack": ["red", "blue", "green", "red", "green"]
     },
     {
       "title": "Laundry Day",
-      "hint": "Ice and roadworks: fold it right.",
+      "hint": "Fold it right the first time.",
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". . . . .",
-        "b # # # S",
-        "r # p . #",
-        ". ~ # # #",
-        "b # . b #",
-        ". c3 # # #"
+        ". # # # S #",
+        "b # b # . #",
+        "r # # # # #",
+        ". # g . b #",
+        "# # # # # #",
+        "# . . . . ."
       ],
-      "stack": ["purple", "blue", "blue", "red", "blue"]
+      "stack": ["green", "blue", "red", "blue", "blue"]
     },
     {
       "title": "Pet Parade",
-      "hint": "Swap, loop, wave at the dogs.",
+      "hint": "Over the bridge. Wave at the dogs.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". p . . . .",
         "# # # # # #",
-        "# g . # y #",
+        "# . r # . S",
         "# # # # # #",
-        "# b r # b #",
-        "# . . # # ^",
-        "# . . S . @",
-        "# # # # # #"
+        "# g r # g #",
+        "# # # + # #",
+        ". # r # b #",
+        ". # b # # #"
       ],
-      "stack": ["blue", "blue", "green", "purple", "yellow", "red"]
+      "stack": ["red", "red", "green", "blue", "blue", "green", "red"]
     },
     {
       "title": "The Scenic Route",
+      "hint": "The long way round is the only way round.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # # #",
-        ". . # . S . #",
-        "# # # # # # #",
-        "# b # . # y #",
-        "# . # # # p ^",
-        ". . # b # . #",
-        ". . # b # . #",
-        "# # # # + # #",
-        "# . r . # y v",
-        "# # # # # # #"
+        ". # b # r .",
+        "# # # # # #",
+        "# . g b b #",
+        "# # # # # #",
+        "# . . # r #",
+        "# # # # # #",
+        "# . r # . #",
+        "# S # # # #"
       ],
-      "gift": {"at": [1, 7], "item": "soup_bowl"},
-      "stack": ["red", "blue", "yellow", "purple", "yellow", "blue", "blue"]
+      "stack": ["blue", "blue", "red", "green", "blue", "red", "red"]
     },
     {
       "title": "Cheese Wheel",
-      "hint": "Wait for the roadworks to clear.",
+      "hint": "A whole wheel for one house.",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". # # < # #",
-        ". . . # . #",
-        "r # # # # #",
-        ". # b # y c2",
-        ". # g # r #",
-        ". # # # # #",
-        "g # . # . @",
-        ". # S # # #"
+        ".  #  #  #  #  #",
+        ".  #  b  #  .  #",
+        "r  #  #  #  .  #",
+        "#  #  r2 #  #  #",
+        ".  #  g  #  g3 #",
+        ".  #  #  #  #  S",
+        ".  .  #  b  #  ."
       ],
-      "stack": ["green", "red", "blue", "red", "yellow", "green"]
+      "stack": ["red", "green", "green", "blue", "green", "red", "red", "blue", "green"]
     },
     {
       "title": "Owl Post",
@@ -481,46 +473,47 @@
       "no_revisit": true,
       "map": [
         "# # # # #",
-        "# p # y #",
-        "# . # b #",
-        "# # # # #",
-        "# p # . #",
-        "# . # p #",
-        "# # < # S"
+        "# g # r #",
+        "# r # > #",
+        "# b # . g",
+        "# < # # #",
+        "# r # . #",
+        "# # # # S"
       ],
-      "stack": ["purple", "purple", "purple", "yellow", "blue"]
+      "stack": ["blue", "red", "green", "red", "green", "red"]
     },
     {
       "title": "Garage Sale",
-      "hint": "Lockers, a round trip, a lot of junk.",
+      "hint": "Sell the lot, then back to the depot.",
       "spice": 2,
       "return": true,
       "no_revisit": true,
       "map": [
-        "# # # # # p",
-        "# . # y # p",
-        "# # # # # .",
-        "# . # . S .",
-        "# . # w # .",
-        "# # # # # .",
-        "r . . . . ."
+        "S # # # # #",
+        "# . # r . #",
+        "# g # . g #",
+        "# # # # # #",
+        "# r b # . #",
+        "# g . # . #",
+        "# # # # # #"
       ],
-      "stack": ["purple", "red", "yellow", "purple", "purple"]
+      "stack": ["green", "red", "green", "blue", "green", "red"]
     },
     {
       "title": "Short Cut",
+      "hint": "There isn't one.",
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# < # # #",
-        "v r # . #",
-        "# y # . #",
-        "# r # S #",
-        "# b # . #",
+        ". b # # #",
+        "# # # . #",
+        "# . # S #",
+        "# . # . #",
+        "# g # r #",
         "# # # # #",
-        ". . . y y"
+        "r b # . b"
       ],
-      "stack": ["blue", "red", "red", "yellow", "yellow", "yellow"]
+      "stack": ["green", "red", "blue", "blue", "red", "blue"]
     },
     {
       "title": "Postcard Season",
@@ -529,15 +522,14 @@
       "return": true,
       "no_revisit": true,
       "map": [
-        ". . . . . .",
-        ". # # # # #",
-        ". # . # p #",
-        ". # . S . #",
-        "p # # # . #",
-        ". # p # r #",
-        "y # # # # #"
+        ". . r r .",
+        "# # # # #",
+        "# r # b #",
+        "# # # # #",
+        "# b . . #",
+        "# # S # #"
       ],
-      "stack": ["purple", "red", "yellow", "purple", "purple"]
+      "stack": ["blue", "blue", "red", "red", "red"]
     },
     {
       "title": "Bubble Wrap",
@@ -545,15 +537,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "r2 # # # S #",
-        ". # b # . #",
-        ". # # + # #",
-        ". # r2 # r y2",
-        ". # # # # #",
-        ". # p # . #",
-        ". # # # # #"
+        ".  .  .  .  .  .",
+        "#  #  #  #  #  #",
+        "#  .  .  S  .  #",
+        "#  #  #  #  g  #",
+        "#  r  b2 #  .  #",
+        "#  #  #  #  #  #",
+        "#  g  b3 #  r  #",
+        "#  #  #  #  g  ."
       ],
-      "stack": ["yellow", "yellow", "purple", "red", "red", "blue", "red", "red", "red"]
+      "stack": ["green", "blue", "blue", "red", "blue", "green", "blue", "blue", "green", "red"]
     },
     {
       "title": "Tooth Fairy",
@@ -561,65 +554,65 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        "# # # # S #",
-        "# y . # . #",
+        ". b g . # g",
+        ". # # # # #",
+        "r # . # r #",
         "# # # # # #",
-        "=r r r # . #",
-        "# . . # p #",
+        "# . S . b #",
         "# # # # # #",
-        "y . y R . ."
+        ". # . . # R"
       ],
-      "stack": ["yellow", "yellow", "red", "yellow", "purple"]
+      "stack": ["blue", "green", "green", "blue", "red"]
     },
     {
       "title": "Toll Booth",
+      "hint": "Pay in the right colour.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ".  #  #  #  =r #",
-        ".  #  y  #  b  #",
-        ".  #  #  #  #  <",
-        ".  #  y  #  r  #",
-        "R  #  #  #  #  #",
-        "y  #  r  #  .  #",
-        ".  #  #  #  S  #"
+        "#  #  #  #  #  #",
+        "#  .  S  .  #  .",
+        "#  r  #  #  #  #",
+        "#  r  #  b  #  .",
+        "#  #  #  #  #  b",
+        "#  b  #  g  #  .",
+        "#  #  #  =r #  r",
+        "#  .  .  .  #  #"
       ],
-      "stack": ["red", "blue", "yellow", "yellow", "yellow"]
+      "stack": ["green", "red", "blue", "red", "red", "blue", "blue"]
     },
     {
       "title": "Thunderstorm",
-      "hint": "Ice, lockers, roadworks, gates. Hold on.",
+      "hint": "One-way streets in a storm. Hold on.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # ~ # # .",
-        "# . S . # y",
-        "# . # . # .",
-        "# # # # # g",
-        "# y # . =g w",
-        "# # # # c5 r",
-        "# y ^ . # y",
-        "# # # # # ."
+        "r # . . . .",
+        "# # < # # #",
+        "# b g # . S",
+        "# # # # # #",
+        "# r . # b #",
+        "# g . # r #",
+        "# # # # # #"
       ],
-      "stack": ["yellow", "red", "green", "green", "yellow", "yellow", "yellow"]
+      "stack": ["green", "red", "blue", "red", "green", "red", "blue"]
     },
     {
       "title": "Ring Road",
+      "hint": "Round and round. Once.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # # #",
-        "# r # . # b #",
-        "# # v # # p #",
-        "# . # . # . #",
-        "# S # # # # #",
-        "# . # . v . #",
-        "# # # # + # #",
-        ". p # . # b #",
-        ". . # r # . #",
-        "# # # b # # #"
+        ". . . # S #",
+        ". # . # . #",
+        "r # # # # #",
+        ". # . # r #",
+        ". # # # # #",
+        ". # b # b #",
+        "b # # # # #",
+        "# # g r # ."
       ],
-      "stack": ["purple", "red", "blue", "purple", "blue", "blue", "red"]
+      "stack": ["red", "green", "blue", "blue", "red", "blue", "red"]
     }
   ]
 }

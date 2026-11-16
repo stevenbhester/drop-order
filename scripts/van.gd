@@ -35,7 +35,7 @@ func _ready() -> void:
 	_fx_under = Node2D.new()
 	_fx_under.draw.connect(func():
 		if _win_t >= 0.0:
-			RideWins.overlay(_fx_under, _win_ride, _win_t, size, global_rotation, true))
+			RideWins.overlay(_fx_under, _win_ride, _win_t, size, global_rotation, true, topper != ""))
 	add_child(_fx_under)
 	body = Node2D.new()
 	add_child(body)
@@ -43,7 +43,7 @@ func _ready() -> void:
 	_fx = Node2D.new()
 	_fx.draw.connect(func():
 		if _win_t >= 0.0:
-			RideWins.overlay(_fx, _win_ride, _win_t, size, global_rotation))
+			RideWins.overlay(_fx, _win_ride, _win_t, size, global_rotation, false, topper != ""))
 	add_child(_fx)
 	rotation = target_rotation
 	if follow_progress:
@@ -53,8 +53,10 @@ func _ready() -> void:
 
 func _wear() -> void:
 	paint = Progress.paint
-	topper = Progress.topper
 	ride = Progress.ride
+	# Toppers are shelved for now (the garage's are taped off: WIP), so nothing's worn; except Violet's
+	# Tower, whose win needs something on top to dive off, so it always wears a party hat.
+	topper = "party_hat" if ride == "pillow_tower" else ""
 	if body:
 		body.queue_redraw()
 
@@ -85,6 +87,15 @@ func _process(delta: float) -> void:
 func celebrate() -> void:
 	_win_ride = ride
 	_win_t = 0.0
+	if ride == "race_car" and get_parent():
+		# Rubber on the road: it stays on the board after the van's done.
+		var marks := RideWins.TyreMarks.new()
+		marks.size = size
+		marks.position = position
+		marks.rotation = rotation
+		marks.z_index = z_index
+		get_parent().add_child(marks)
+		get_parent().move_child(marks, get_index())
 	for tw in [_scale_tw, _pos_tw]:
 		if tw and tw.is_valid():
 			tw.kill()
@@ -161,7 +172,21 @@ func _draw_body() -> void:
 	if ride != "":
 		var up := Vector2.UP.rotated(-(global_rotation + b.rotation))
 		var at := Cosmetics.draw_ride(b, ride, L, W, _top_color if _has_top else null, _t, paint if paint != "" else "classic", _win_t if _win_ride == ride else -1.0, up)
-		if topper != "":
+		if topper != "" and ride == "pillow_tower" and _win_ride == ride and _win_t >= 0.0:
+			# The tower's win: whatever's riding on top dives off into the puddle (RideWins draws the
+			# splash), and is back up on the stack once the water's settled.
+			var pool := FriendRides.puddle_at(L, W, up)
+			if _win_t < 0.15:
+				Cosmetics.draw_topper(b, topper, at - up * W * 0.08 * sin(_win_t / 0.15 * PI), W, _t)     # a little crouch
+			elif _win_t < 0.95:
+				var u := (_win_t - 0.15) / 0.8
+				b.draw_set_transform(at.lerp(pool, u) + up * W * 1.2 * sin(PI * u), u * TAU, Vector2.ONE * (1.0 - 0.25 * u * u))
+				Cosmetics.draw_topper(b, topper, Vector2.ZERO, W, _t)
+				b.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			elif _win_t >= 1.3:
+				var k := clampf((_win_t - 1.3) / 0.25, 0.0, 1.0)
+				Cosmetics.draw_topper(b, topper, at, W * (k + 0.3 * sin(PI * k)), _t)
+		elif topper != "":
 			Cosmetics.draw_topper(b, topper, at, W, _t)
 		return
 	DrawUtil.rrect(b, Rect2(-L / 2 - 4, -W / 2 - 2, L + 8, W + 12), Color(0, 0, 0, 0.2), W * 0.32)

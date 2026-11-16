@@ -2,6 +2,8 @@ class_name Gift
 extends Node2D
 ## A cosmetic lying on the road: a little ribboned present that bobs and twinkles. Drive over it to pick it up
 ## (it's yours once you finish the level). With item "key": a gold key instead, that opens a locked side road.
+## With "headlights" (the van's first, on job 2): a gold present like any other; what's in it is a surprise
+## until it's opened after the win (BuffCard, wrapped).
 
 var item := ""
 var tile := 100.0
@@ -21,7 +23,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var s := tile * 0.36
 	var bob := sin(_t * 3.0) * tile * 0.04
-	var col := Cosmetics.tint(item)
+	var col := Color("ffc53d") if item == "headlights" else Cosmetics.tint(item)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.35))
 	draw_circle(Vector2(0, tile * 0.5), s * 0.62, Color(0, 0, 0, 0.18))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

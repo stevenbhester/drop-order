@@ -58,7 +58,7 @@ func setup(level: LevelData, tile_size: float) -> void:
 	wreck = Wreckage.new()
 	wreck.L = L
 	wreck.tile = tile
-	wreck.momentum = Progress.momentum
+	wreck.momentum = Progress.heat()
 	wreck.style = Progress.wake
 	if L.return_depot:
 		wreck.sturdy = L.start
@@ -72,7 +72,7 @@ func setup(level: LevelData, tile_size: float) -> void:
 		add_child(exit_zone)
 	fire = AnimeFire.new()
 	fire.tile = tile
-	fire.momentum = Progress.momentum
+	fire.momentum = Progress.heat()
 	add_child(fire)
 	path_line = RouteLine.new()
 	path_line.board = self

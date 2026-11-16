@@ -1,14 +1,17 @@
 class_name OptionsMenu
 extends CanvasLayer
-## The options card: how you steer (draw or D-pad), which hand the D-pad is for, where the package chute
-## goes (left, right, top or bottom), the route preview chip, colorblind mode (aka Paul mode), night mode, horizontal play, sound volume and
-## haptic strength, then Feedback / Bug report and a link to the privacy policy. Every change is saved straight away (Progress.set_option) and
+## The options card. The front page has sound, haptics, night mode and colorblind mode (aka Paul mode), then
+## three pages to open: Controls (steering, D-pad hand, where the package chute goes, sideways play), Extras
+## (package trail, route preview, replay ghost path) and Testers (rate levels, unlimited hints); then
+## Feedback / Bug report and a link to the privacy policy. Every change is saved straight away (Progress.set_option) and
 ## takes effect live: Main re-themes for night mode and turns the screen for horizontal play, the game
 ## re-lays its controls out for the D-pad and the hand.
 
 signal closed
 ## Feedback / Bug report was picked (the card closes; Main takes a screenshot and opens the report).
 signal feedback_pressed
+## Testers > Reset progress, confirmed: Main wipes the save and starts over.
+signal reset_pressed
 
 ## The game's privacy policy, on the Last Mile site.
 const PRIVACY_URL := "https://www.stevenhester.com/last-mile/privacy/"
@@ -19,6 +22,7 @@ var _root: Control
 var _card: PanelContainer
 var _rows: VBoxContainer
 var _t := 0.0
+var _page := ""       # "" is the front page; else a key of PAGES
 
 
 func _ready() -> void:
@@ -44,6 +48,9 @@ func _ready() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 10)
 	_card.add_child(_rows)
+	for arg in OS.get_cmdline_user_args():      # debug: open on a page (for screenshots)
+		if arg.begins_with("--options-page="):
+			_page = arg.trim_prefix("--options-page=")
 	_build()
 	Progress.settings_changed.connect(_on_changed)
 	_card.pivot_offset = _card.size / 2.0
@@ -74,11 +81,23 @@ func _style_card() -> void:
 	_card.add_theme_stylebox_override("panel", sb)
 
 
+## What's on each page. The front page keeps what people reach for (sound, haptics, night, colorblind) and
+## opens the rest: Controls, Extras (things on trial) and Testers (for people helping test).
+const PAGES := {"controls": "Controls", "extras": "Extras", "testers": "Testers"}
+
+
 func _build() -> void:
 	for c in _rows.get_children():
 		c.queue_free()
 	var head := HBoxContainer.new()
-	var title := _label("Options", 76, Palette.TEXT)
+	head.add_theme_constant_override("separation", 14)
+	if _page != "":
+		var back := JuicyButton.new()
+		back.icon_name = "undo"
+		back.custom_minimum_size = Vector2(110, 104)
+		back.pressed.connect(_go.bind(""))
+		head.add_child(back)
+	var title := _label(PAGES.get(_page, "Options"), 76, Palette.TEXT)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	head.add_child(title)
@@ -92,19 +111,36 @@ func _build() -> void:
 	head.add_child(done)
 	_rows.add_child(head)
 	_gap(8)
-	_rows.add_child(_choice("Steering", "drive_mode", [["draw", "Draw", "finger"], ["dpad", "D-pad", "dpad"]]))
-	_rows.add_child(_choice("D-pad hand", "left_hand", [[false, "Right", "right"], [true, "Left", "left"]]))
-	_rows.add_child(_sides())
-	_rows.add_child(_toggle("Package trail", "trail", "trail", "your next packages follow the van on drones"))
-	_rows.add_child(_toggle("Route preview", "peek", "peek"))
-	_rows.add_child(_toggle("Replay ghost path", "ghost_path", "ghost", "after a restart, your last try shows faintly"))
-	_rows.add_child(_toggle("Unlimited hints", "unlimited_hints", "bulb", "no ads needed (a hint still costs a star)"))
-	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
-	_rows.add_child(_toggle("Night mode", "night", "moon"))
-	_rows.add_child(_toggle("Play sideways", "landscape", "turn"))
-	_gap(6)
+	match _page:
+		"controls":
+			_rows.add_child(_choice("Steering", "drive_mode", [["draw", "Draw", "finger"], ["dpad", "D-pad", "dpad"]]))
+			_rows.add_child(_choice("D-pad hand", "left_hand", [[false, "Right", "right"], [true, "Left", "left"]]))
+			_rows.add_child(_sides())
+			_rows.add_child(_toggle("Play sideways", "landscape", "turn"))
+			return
+		"extras":
+			_rows.add_child(_toggle("Package trail", "trail", "trail", "your next packages follow the van on drones"))
+			_rows.add_child(_toggle("Replay ghost path", "ghost_path", "ghost", "after a restart, your last try shows faintly"))
+			_rows.add_child(_toggle("Hoardly ads", "hoardly_ads", "ad", "the Baron's commercials, in with the other pretend ads"))
+			return
+		"testers":
+			_rows.add_child(_toggle("Rate jobs", "rate_levels", "star", "a quick card after each win; goes to Steven"))
+			_rows.add_child(_toggle("Unlimited gas", "unlimited_hints", "gas", "extra hints and undos are free"))
+			_rows.add_child(_toggle("Open every zone", "all_open", "key", "play any job, however many packages you've delivered"))
+			_rows.add_child(_toggle("Full license", "licensed", "key", "pretend premium: no zone checkpoints"))
+			_rows.add_child(_foresight())
+			_gap(10)
+			_rows.add_child(_unlock_button())
+			_rows.add_child(_reset_button())
+			return
 	_rows.add_child(_slider("Sound", "volume", "sound", ["Off", "Loud"]))
 	_rows.add_child(_slider("Haptics", "haptics", "buzz", ["None", "Max"]))
+	_rows.add_child(_toggle("Night mode", "night", "moon"))
+	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
+	_gap(6)
+	_rows.add_child(_page_link("controls", "steer", "steering, hand, chute, sideways"))
+	_rows.add_child(_page_link("extras", "trail", "trail, route preview, ghost path"))
+	_rows.add_child(_page_link("testers", "star", "ratings, hints, unlock all, reset"))
 	_gap(10)
 	var fb := JuicyButton.new()
 	fb.label = "Feedback / Bug report"
@@ -130,10 +166,108 @@ func _build() -> void:
 	privacy.focus_mode = Control.FOCUS_NONE
 	privacy.pressed.connect(func():
 		Sfx.play("click")
-		OS.shell_open(PRIVACY_URL))
+		if not DebugRemote.on():
+			OS.shell_open(PRIVACY_URL))
 	foot.add_child(privacy)
 	foot.add_child(_label("v%s (build %d)" % [Version.NUMBER, Version.BUILD], 30, Palette.TEXT_SOFT))
 	_rows.add_child(foot)
+
+
+## Unlock all cosmetics: every ride, paint, topper, trail and look goes in the garage (nothing is put on).
+func _unlock_button() -> JuicyButton:
+	var b := JuicyButton.new()
+	b.label = "Unlock all cosmetics"
+	b.icon_name = "paint"
+	b.font_px = 38
+	b.custom_minimum_size = Vector2(0, 110)
+	b.pressed.connect(func():
+		var n := Progress.unlock_all_cosmetics()
+		Sfx.play("kaching", 1.1, -4.0)
+		b.label = "All yours! (%d new)" % n if n > 0 else "You have them all"
+		b.bg = Palette.GOOD
+		b.fg = Color.WHITE
+		b.restyle())
+	return b
+
+
+## Reset progress: a first tap arms it (it goes red and asks again), a second within a few seconds wipes
+## every level, star, present, key and Dollaroo. Settings stay.
+func _reset_button() -> JuicyButton:
+	var b := JuicyButton.new()
+	b.label = "Reset progress"
+	b.icon_name = "retry"
+	b.font_px = 38
+	b.custom_minimum_size = Vector2(0, 110)
+	var armed := [false]
+	b.pressed.connect(func():
+		if not armed[0]:
+			armed[0] = true
+			Sfx.play("bonk", 1.1, -6.0)
+			b.label = "Tap again: wipe everything"
+			b.bg = Palette.CRASH
+			b.fg = Color.WHITE
+			b.restyle()
+			get_tree().create_timer(4.0).timeout.connect(func():
+				if is_instance_valid(b) and armed[0]:
+					armed[0] = false
+					b.label = "Reset progress"
+					b.bg = Color(0, 0, 0, 0)
+					b.fg = Color(0, 0, 0, 0)
+					b.restyle())
+			return
+		Sfx.play("whoosh", 0.8, -4.0)
+		reset_pressed.emit()
+		_close())
+	return b
+
+
+## A row that opens another page of options: the whole row is one chunky button (icon, name, what's in it,
+## and a chevron), so it reads as something to tap.
+func _page_link(page: String, icon: String, sub: String) -> Control:
+	var b := JuicyButton.new()
+	b.custom_minimum_size = Vector2(0, 124)
+	b.pressed.connect(_go.bind(page))
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 22
+	row.offset_right = -22
+	row.offset_bottom = -8
+	row.add_theme_constant_override("separation", 18)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ic := Control.new()
+	ic.custom_minimum_size = Vector2(64, 0)
+	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ic.draw.connect(func(): Icons.draw(ic, icon, Vector2(32, ic.size.y / 2.0), 52.0, Palette.TEXT))
+	row.add_child(ic)
+	var names := VBoxContainer.new()
+	names.alignment = BoxContainer.ALIGNMENT_CENTER
+	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	names.add_theme_constant_override("separation", -6)
+	names.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var l := _label(PAGES[page], 44, Palette.TEXT)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	names.add_child(l)
+	var s2 := _label(sub, 28, Palette.TEXT_SOFT)
+	s2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	names.add_child(s2)
+	row.add_child(names)
+	var chev := Control.new()
+	chev.custom_minimum_size = Vector2(56, 0)
+	chev.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chev.draw.connect(func():
+		var c := Vector2(28, chev.size.y / 2.0)
+		DrawUtil.rrect(chev, Rect2(c - Vector2(26, 26), Vector2(52, 52)), Palette.ACCENT, 26)
+		chev.draw_polyline(PackedVector2Array([c + Vector2(-6, -12), c + Vector2(7, 0), c + Vector2(-6, 12)]), Color.WHITE, 6.0, true))
+	row.add_child(chev)
+	b.add_child(row)
+	return b
+
+
+func _go(page: String) -> void:
+	Sfx.play("click")
+	_page = page
+	_build()
+	_refit.call_deferred()
 
 
 func _gap(h: float) -> void:
@@ -245,6 +379,49 @@ func _sides() -> VBoxContainer:
 	return col
 
 
+## Headlights (an experiment): how far ahead of the van a route can be planned. Off is the game as it's
+## always been (plan the whole route, then send it); Earned is as bright as bosses beaten have made them;
+## a number fixes it, for trying things out.
+func _foresight() -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	var row := _row("Headlights", "peek")
+	var says := "off: plan the whole route, then drive (old way)"
+	if Progress.foresight < 0 and Progress.headlights() == 0:
+		says = "dark until you finish job 1"
+	elif Progress.foresight < 0:
+		says = "%s: plan %d ahead, the van follows" % [Progress.light_name(Progress.headlights()), Progress.headlights()]
+	elif Progress.foresight > 0:
+		says = "fixed: plan %d ahead, the van follows" % Progress.foresight
+	var note := _label(says, 26, Palette.TEXT_SOFT)
+	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(note)
+	col.add_child(row)
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	col.add_child(box)
+	for o in [[0, "Off"], [-1, "Earned"], [1, "1"], [2, "2"], [3, "3"], [5, "5"]]:
+		var on: bool = Progress.foresight == o[0]
+		var b := JuicyButton.new()
+		b.label = o[1]
+		b.font_px = 30
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.size_flags_stretch_ratio = 2.0 if str(o[1]).length() > 1 else 1.0
+		b.custom_minimum_size = Vector2(0, 96)
+		b.bg = Palette.ACCENT if on else Color(0, 0, 0, 0)
+		b.fg = Color.WHITE if on else Color(0, 0, 0, 0)
+		var value: int = o[0]
+		b.pressed.connect(func():
+			if Progress.foresight == value:
+				return
+			Sfx.play("click")
+			Sfx.haptic(12, 0.6)
+			Progress.set_option("foresight", value))
+		box.add_child(b)
+	return col
+
+
 ## A big switch: a pill with a knob that slides across.
 func _toggle(name: String, key: String, icon: String, sub := "") -> HBoxContainer:
 	var row := _row(name, icon, sub)
@@ -302,7 +479,9 @@ func _on_changed() -> void:
 	_refit.call_deferred()
 
 
+## The card is a different height on each page: keep it centred and inside the screen.
 func _refit() -> void:
+	_card.reset_size()
 	_card.pivot_offset = _card.size / 2.0
 	_card.scale = Vector2.ONE * _fit_k()
 

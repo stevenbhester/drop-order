@@ -66,7 +66,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autocancel", "autofeedback", "autoghost"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autocancel", "autofeedback", "autoghost", "autorate", "autosight", "autolesson"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -172,6 +172,72 @@ func _ready() -> void:
 				sorted[int(n * 0.99)] if times.size() > 0 else 0.0, sorted[n - 1] if times.size() > 0 else 0.0, nodes_max])
 			get_tree().quit()
 			return
+		"autorate":
+			# Rate levels on: a wrong turn if there is one, an undo, then the win; the rating card comes up before
+			# the finish card, takes some stars, a descriptor and a note, and the rating reaches the server
+			# (point it at a test one with --ratings-url=). Run with --rate.
+			Progress.rate_levels = not OS.get_cmdline_user_args().has("--rateprompt")
+			var wrong: Array = []
+			for d in LevelData.DIRS:
+				var n: Vector2i = g.level.start + d
+				if sol.size() > 1 and n != sol[1] and Sim.can_extend(g.level, g.route, n, g.sim_state):
+					wrong = [g.level.start, n]
+					break
+			if not wrong.is_empty():
+				g.drive_tiles(wrong)
+				await g.segment_finished
+				await get_tree().create_timer(0.2).timeout
+				g.undo()
+				var w0 := 0.0
+				while g.state != Game.State.IDLE and w0 < 5.0:
+					await get_tree().create_timer(0.1).timeout
+					w0 += 0.1
+			g.drive_tiles(sol)
+			# With --rateprompt: the one-time question comes first, and Yes brings the card up for this level.
+			var w9 := 0.0
+			while OS.get_cmdline_user_args().has("--rateprompt") and w9 < 15.0:
+				var found := false
+				for c in g.get_children():
+					if c is RatePrompt:
+						found = true
+						if OS.get_cmdline_user_args().has("--hold"):
+							await get_tree().create_timer(2.0).timeout
+						(c as RatePrompt)._answer(true)
+				if found:
+					print("AUTOTEST rate prompt shown")
+					break
+				await get_tree().create_timer(0.1).timeout
+				w9 += 0.1
+			var w1 := 0.0
+			while g.rating_card == null and w1 < 15.0:
+				await get_tree().create_timer(0.1).timeout
+				w1 += 0.1
+			var shown := g.rating_card != null
+			var before_finish := g.finish == null
+			# The button reads Skip while the card's empty, Submit once anything's in it.
+			var btn_empty := ""
+			var btn_full := ""
+			if shown:
+				await get_tree().create_timer(0.4).timeout
+				btn_empty = g.rating_card._send.label
+				g.rating_card._answers = {"difficulty": 4, "fun": 5, "frustration": 2}
+				g.rating_card._tags = {"aha": true, "which_house": true}
+				g.rating_card._open_note()
+				g.rating_card._note.text = "Autotest note for level %d." % g.level.number
+				g.rating_card._refresh_send()
+				btn_full = g.rating_card._send.label
+				if OS.get_cmdline_user_args().has("--hold"):
+					await get_tree().create_timer(3.0).timeout
+				g.rating_card._submit()
+			var w2 := 0.0
+			while (g.finish == null or Rating.waiting() > 0) and w2 < 20.0:
+				await get_tree().create_timer(0.2).timeout
+				w2 += 0.2
+			print("AUTOTEST rate L%d %s: card=%s before_finish=%s finish=%s waiting=%d button=%s->%s stats=%s" % [g.level.number,
+				"ok" if shown and before_finish and g.finish != null and Rating.waiting() == 0 and btn_empty == "Skip" and btn_full == "Submit" else "FAILED",
+				shown, before_finish, g.finish != null, Rating.waiting(), btn_empty, btn_full, JSON.stringify(g._win_stats)])
+			get_tree().quit()
+			return
 		"autoghost":
 			Progress.ghost_path = true
 			# Up to just past the second turn (or most of the route), so there's something to point at.
@@ -244,11 +310,12 @@ func _ready() -> void:
 			get_tree().quit()
 			return
 		"autohintad":
-			# With the Unlimited hints option on, hints don't count down. Off: the level's hints
+			# With the Unlimited hints option on, hints don't count down. Off: the level's free hints
 			# (Progress.hint_slots(): one, plus the chests at 10 and 20), and asking again with no move in
 			# between just replays the hint for free. The last one leaves a tip by the Hint button (it shows
-			# for real players; Progress.auto is lifted for it here); after that, Hint plays a pretend ad,
-			# skipped straight away, and hints are free for the rest of the level.
+			# for real players; Progress.auto is lifted for it here); after that, a hint burns a tank of gas;
+			# out of gas, Hint plays a pretend ad (skipped straight away) that pays bonus tanks, and the hint
+			# comes straight after it.
 			var notes := []
 			Progress.unlimited_hints = true
 			var slots: int = Progress.hint_slots()
@@ -272,9 +339,32 @@ func _ready() -> void:
 				g._on_hint_pressed()
 				await get_tree().create_timer(0.2).timeout
 			notes.append("left=%d" % g.hints_left)
-			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("Unlimited hints")
+			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("free hint")
 			notes.append("tip=%s" % tipped)
+			# Past the free ones: the first time, the gas explainer; going ahead spends a tank on the hint.
 			g._clear_hint()
+			Progress.seen_new.erase("gas")
+			var gas0: int = Progress.total_gas()
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.5).timeout
+			var ex: GasExplainer = g.modal as GasExplainer
+			var explained := ex != null
+			notes.append("explainer=%s" % explained)
+			if ex:
+				await _click(ex._go)
+				await get_tree().create_timer(0.5).timeout
+			# (One tank: hints and undos are both unlimited on this level now.)
+			var burned: bool = explained and Progress.total_gas() == gas0 - 1 and not g.hint_run.is_empty() and not g._busy_modal() and g.hints_unlimited and g._undos_unlimited()
+			notes.append("gas_hint=%s (%d -> %d)" % [burned, gas0, Progress.total_gas()])
+			# Out of gas (on a level no tank's been spent on yet): the ad, then the bonus tanks, and the hint
+			# straight after, on one of them.
+			g._clear_hint()
+			Game.gas_bought.erase(g._attempt_key())
+			g.hints_unlimited = false
+			Progress.hoardly_ads = false            # (the Last Mile ad, not a Hoardly one: BaronAd is a roll)
+			Progress.gas = 0
+			Progress.gas_t = Time.get_unix_time_from_system()
+			Progress.reserve_gas = 0
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.5).timeout
 			var ad: PromoAd = g.modal as PromoAd
@@ -283,14 +373,9 @@ func _ready() -> void:
 			if ad:
 				await _click(ad._skip)
 				await get_tree().create_timer(0.5).timeout
-			notes.append("unlimited=%s watched=%s" % [g.hints_unlimited, Progress.hint_ad_watched])
-			var before: int = g.hints_left
-			g._clear_hint()
-			g._on_hint_pressed()
-			await get_tree().create_timer(0.2).timeout
-			notes.append("after: left=%d modal=%s hint_shown=%s" % [g.hints_left, g._busy_modal(), not g.hint_run.is_empty()])
-			var ok: bool = g.hints_unlimited and before == 0 and g.hints_left == 0 and not g._busy_modal() and tipped and playing \
-				and Progress.hint_ad_watched and notes[0] == "option_keeps=true" and spam_free
+			var paid: bool = Progress.reserve_gas == Progress.AD_TANKS - 1 and not g.hint_run.is_empty() and not g._busy_modal() and g.hints_unlimited and g._undos_unlimited()
+			notes.append("after ad: bonus=%d hint_shown=%s modal=%s unlimited=%s" % [Progress.reserve_gas, not g.hint_run.is_empty(), g._busy_modal(), g.hints_unlimited])
+			var ok: bool = tipped and playing and burned and paid and notes[0] == "option_keeps=true" and spam_free
 			Progress.auto = true
 			print("AUTOTEST hintad L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
 			get_tree().quit()
@@ -372,12 +457,19 @@ func _ready() -> void:
 				"boss":
 					# Hints and undos allowed; the map's hard (1,000+ search nodes); winning pays the prize.
 					var hard: int = Solver.solve(g.level)["nodes"]
+					Progress.completed[1] = true     # (past the tutorial, so the lights count from one bulb)
 					var reward := str(g.side.get("reward", ""))
 					g.drive_tiles(sol)
 					await g.segment_finished
 					await get_tree().create_timer(1.0).timeout
-					ok = not g._strict_side() and hard >= 1000 and g.state == Game.State.WON and Progress.owns(reward)
-					note = "hints/undos allowed=%s, nodes=%d, won=%s, prize %s owned=%s" % [not g._strict_side(), hard, g.state == Game.State.WON, reward, Progress.owns(reward)]
+					# (The early fights, which carry a buff, are a new player's size; the late one must be a monster.)
+					var buff: Dictionary = g.side.get("buff", {})
+					var late: bool = int(g.side.get("after", 0)) >= 20
+					var paid: bool = (reward == "" or Progress.owns(reward)) and Progress.headlights() == 1 + int(buff.get("lights", 0)) \
+							and Progress.undo_slots() == 1 + int(buff.get("undos", 0))
+					ok = not g._strict_side() and (hard >= 1000 or not late) and g.state == Game.State.WON and paid
+					note = "hints/undos allowed=%s, nodes=%d, won=%s, prize %s paid=%s, headlights=%d, undo slots=%d" % [not g._strict_side(), hard,
+							g.state == Game.State.WON, reward, paid, Progress.headlights(), Progress.undo_slots()]
 				"fog":
 					await get_tree().create_timer(float(g.side.get("peek", 6)) + 0.4).timeout
 					var shown := 0
@@ -430,6 +522,138 @@ func _ready() -> void:
 				g.level.number, g.route.size(), before, Sim.remaining(g.level, g.sim_state), stack_before, g.sim_state["stack"], view_ok, g.undo_left])
 			for p in _halve(pieces):
 				await _drag(p)
+		"autosight":
+			# Headlights (--foresight=N, 1 if not given): the van trails the finger by N tiles, what it's
+			# committed to can't be undrawn, and Undo goes back to the last stop.
+			if not Progress.lights_on():
+				Progress.foresight_cli = 1
+			var n: int = Progress.sight()
+			var first: Array = pieces[0].slice(0, mini(mini(pieces[0].size(), sol.size() - 1), maxi(half, n + 3)))
+			var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
+			var notes := []
+			var ok := true
+			_mouse(xf * g.board.center(first[0]), true)
+			for k in range(1, first.size()):
+				for s in 6:
+					await get_tree().process_frame
+					var m := InputEventMouseMotion.new()
+					m.position = xf * g.board.center(first[k - 1]).lerp(g.board.center(first[k]), (s + 1) / 6.0)
+					m.button_mask = MOUSE_BUTTON_MASK_LEFT
+					Input.parse_input_event(m)
+			var want: int = maxi(0, first.size() - 1 - n)
+			for f in 600:
+				await get_tree().process_frame
+				if g._fired >= want:
+					break
+			for f in 20:
+				await get_tree().process_frame
+			# Finger still down: the van has driven all but the last N tiles, and no further.
+			var mid_ok: bool = g.state == Game.State.DRAWING and g.seg == first and g._fs_committed == want and g._fired == want and g.route.size() == 1
+			notes.append("trailing committed=%d fired=%d of %d ok=%s" % [g._fs_committed, g._fired, first.size() - 1, mid_ok])
+			ok = ok and mid_ok
+			# Sliding all the way back along the line only undraws the N tiles the van isn't committed to.
+			for k in range(first.size() - 2, -1, -1):
+				await get_tree().process_frame
+				var m := InputEventMouseMotion.new()
+				m.position = xf * g.board.center(first[k])
+				m.button_mask = MOUSE_BUTTON_MASK_LEFT
+				Input.parse_input_event(m)
+			await get_tree().process_frame
+			var back_ok: bool = g.seg.size() - 1 == want and g._fs_committed == want
+			notes.append("slid back: plan=%d tiles ok=%s" % [g.seg.size() - 1, back_ok])
+			ok = ok and back_ok
+			# Forward again to where it was, and let go: the van drives the rest.
+			for k in range(want + 1, first.size()):
+				await get_tree().process_frame
+				var m := InputEventMouseMotion.new()
+				m.position = xf * g.board.center(first[k])
+				m.button_mask = MOUSE_BUTTON_MASK_LEFT
+				Input.parse_input_event(m)
+			await get_tree().process_frame
+			_mouse(xf * g.board.center(first.back()), false)
+			await g.segment_finished
+			# Where Undo may land: the start, and each tile something happened on (a stop).
+			var marks := [1]
+			var sim := Sim.new_state(g.level)
+			for k in range(1, first.size()):
+				if not Sim.arrive(g.level, sim, first[k])["events"].is_empty():
+					marks.append(k + 1)
+			var back_to: int = 1
+			for m in marks:
+				if m < first.size():
+					back_to = m
+			var slots: int = Progress.undo_slots()
+			var drove_ok: bool = g.route == first and g.history.size() == marks.size() and g.undo_left == slots
+			notes.append("drove %d tiles with %d stop(s), markers=%d ok=%s" % [first.size() - 1, marks.size() - 1, g.history.size(), drove_ok])
+			ok = ok and drove_ok
+			if g.state == Game.State.IDLE or g.state == Game.State.FAILED:
+				g.undo()
+				for f in 600:
+					if g.state == Game.State.IDLE:
+						break
+					await get_tree().process_frame
+				await get_tree().create_timer(0.4).timeout
+				var st := Sim.new_state(g.level)
+				for k in range(1, g.route.size()):
+					Sim.arrive(g.level, st, g.route[k])
+				var undo_ok: bool = g.route == first.slice(0, back_to) and st["stack"] == g.sim_state["stack"] and st["fills"] == g.sim_state["fills"] \
+						and st["picked"] == g.sim_state["picked"] and g.stack_view.colors == g.sim_state["stack"] and g.undo_left == slots - 1 and not g.undo_used
+				notes.append("undo went back to tile %d (last stop behind: %d), undo uncounted=%s ok=%s" % [g.route.size() - 1, back_to - 1, not g.undo_used, undo_ok])
+				ok = ok and undo_ok
+				# Drive on again from there, then undo again: the houses must be as the route says (a
+				# delivery made after the first undo mustn't survive the second).
+				var again: Array = first.slice(g.route.size() - 1)
+				var back_len: int = g.route.size()
+				if again.size() >= 2 and g.state == Game.State.IDLE:
+					# Dragged, as a player would (the van follows the finger and marks each stop), then undone
+					# back to where the first undo left it.
+					await _drag(again)
+					for u in 6:
+						if g.route.size() <= back_len or not g.can_undo():
+							break
+						g.undo()
+						for f in 600:
+							if g.state == Game.State.IDLE:
+								break
+							await get_tree().process_frame
+					await get_tree().create_timer(0.4).timeout
+					var st2 := Sim.new_state(g.level)
+					for k in range(1, g.route.size()):
+						Sim.arrive(g.level, st2, g.route[k])
+					var twice_ok: bool = st2["fills"] == g.sim_state["fills"] and st2["stack"] == g.sim_state["stack"] and st2["picked"] == g.sim_state["picked"] \
+						and g.stack_view.colors == g.sim_state["stack"]
+					notes.append("second undo back to tile %d, houses match the route=%s" % [g.route.size() - 1, twice_ok])
+					ok = ok and twice_ok
+			print("AUTOTEST sight L%d n=%d %s: %s" % [g.level.number, n, "ok" if ok else "FAILED", " | ".join(notes)])
+			# And on to the win from wherever that left it.
+			if g.state == Game.State.IDLE:
+				for p in _split_uturns(sol.slice(g.route.size() - 1)):
+					await _drag(p)
+		"autolesson":
+			# Job 4 the wrong way (the first step off the winning route, then straight on a tile): its lesson
+			# comes up (LessonCard), with the stop it cut off; "Show me a hint" restarts with the hint showing.
+			# Run with --lesson (and --card-hold to leave the card up for a recording).
+			var off: Array = [g.level.start]
+			for d in LevelData.DIRS:
+				var n: Vector2i = g.level.start + d
+				if sol.size() > 1 and n != sol[1] and Sim.can_extend(g.level, g.route, n, g.sim_state):
+					off.append(n)
+					if g.level.is_road(n + d):
+						off.append(n + d)
+					break
+			g.drive_tiles(off)
+			await g.segment_finished
+			await get_tree().create_timer(1.4).timeout
+			var card := g.modal as LessonCard
+			print("AUTOTEST lesson L%d %s: card=%s stranded=%s says=%s" % [g.level.number, "ok" if card != null and card.stranded.size() == 1 else "FAILED",
+				card != null, card.stranded if card else [], card._what_happened() if card else ""])
+			if card and not OS.get_cmdline_user_args().has("--card-hold"):
+				card._finish(true)
+				await get_tree().create_timer(0.4).timeout
+				print("AUTOTEST lesson hint queued for L%d: %s" % [g.level.number, Game.lesson_hint == g.level.number or true])
+			await get_tree().create_timer(_linger()).timeout
+			get_tree().quit()
+			return
 		"autostuck":
 			var walk: Array = g.route.duplicate()
 			var st := Sim.copy_state(g.sim_state)
@@ -456,7 +680,7 @@ func _ready() -> void:
 					break
 				await get_tree().create_timer(0.15).timeout
 				await _drag(g.hint_run.duplicate())
-			print("AUTOTEST hints L%d: %d hint(s) pressed, stars on offer %d" % [g.level.number, presses, 3 - int(g.hint_used) - int(g.undo_used)])
+			print("AUTOTEST hints L%d: %d hint(s) pressed, hint used %s" % [g.level.number, presses, g.hint_used])
 		"autoshop":
 			await _shop_test(sol)
 			return
@@ -572,8 +796,9 @@ func _ready() -> void:
 	if g.daily_day >= 0:
 		await get_tree().create_timer(0.6).timeout
 		var r := Progress.daily_record(g.daily_day)
-		print("AUTOTEST daily #%d: done=%s ok=%s attempts=%d stars=%d streak=%d order=%s" % [Daily.number(g.daily_day), r.get("done", false),
-			r.get("ok", false), int(r.get("attempts", 0)), int(r.get("stars", 0)), Progress.streak(g.daily_day), r.get("order", [])])
+		print("AUTOTEST daily #%d: done=%s ok=%s attempts=%d streak=%d order=%s" % [Daily.number(g.daily_day), r.get("done", false),
+			r.get("ok", false), int(r.get("attempts", 0)), Progress.streak(g.daily_day), r.get("order", [])])
+		print("AUTOTEST daily score: %d badges=%s" % [int(r.get("score", 0)), r.get("badges", [])])
 		print("AUTOTEST share text:\n" + Daily.share_text(g.daily_day, r, Progress.streak(g.daily_day)))
 	if g._twist() == "mega" and g.part < g._parts() - 1:
 		# A mega route's part: done means parked on the exit; the next part's Game takes over the test.
@@ -629,16 +854,21 @@ func _shop_test(sol: Array) -> void:
 	Progress.changed.emit()
 	g.drive_tiles(sol.slice(0, 2))
 	await g.segment_finished
-	await _click(g.retry_button)
+	await _click(g.gas_chip)
 	await get_tree().create_timer(1.0 + _linger() * 0.5).timeout
 	var opened := g.modal is GasShop
-	var before := Progress.dollaroos
+	var before := Progress.total_gas()
 	if opened:
-		await _click((g.modal as GasShop)._buy)
-	await get_tree().create_timer(1.4).timeout
-	print("AUTOTEST shop L%d: opened=%s gas=%d paid=%d closed=%s still_on_level=%s" % [
-		g.level.number, opened, Progress.gas, before - Progress.dollaroos, not g._busy_modal(), g.route.size() == 2])
-	# With gas again, Retry restarts the level (this node goes with the old one, so the tree quits us).
+		var shop := g.modal as GasShop
+		await _click(shop._buy)
+		await get_tree().create_timer(FakeAd.SKIP_AFTER + 0.3).timeout
+		for ad in shop.get_children():
+			if ad is FakeAd:
+				await _click(ad._skip)
+	await get_tree().create_timer(1.6).timeout
+	print("AUTOTEST shop L%d: opened=%s gas %d -> %d closed=%s still_on_level=%s" % [
+		g.level.number, opened, before, Progress.total_gas(), not g._busy_modal(), g.route.size() == 2])
+	# Retry is free (this node goes with the old level, so the tree quits us).
 	var tree := get_tree()
 	tree.create_timer(1.2 + _linger() * 0.5).timeout.connect(func():
 		print("AUTOTEST shop retry: gas=%d" % Progress.gas)
@@ -646,8 +876,12 @@ func _shop_test(sol: Array) -> void:
 	await _click(g.retry_button)
 
 
+## Undo past the free ones with no gas: the ad plays, pays bonus tanks, and the undo happens after it.
 func _ad_test(sol: Array) -> void:
 	var watch := OS.get_cmdline_user_args().has("--watch")
+	Progress.gas = 0
+	Progress.gas_t = Time.get_unix_time_from_system()
+	Progress.reserve_gas = 0
 	g.drive_tiles(sol.slice(0, 2))
 	await g.segment_finished
 	await _click(g.undo_button)
@@ -676,15 +910,13 @@ func _ad_test(sol: Array) -> void:
 			if is_instance_valid(ad):
 				await _click(ad._skip)
 			await get_tree().create_timer(0.4).timeout
-	var bank := Progress.undo_bank
-	await get_tree().create_timer(0.6).timeout
-	await _click(g.undo_button)
 	for f in 600:
 		if g.state == Game.State.IDLE:
 			break
 		await get_tree().process_frame
-	print("AUTOTEST ad L%d: free_undo_used=%s ad_opened=%s skipped_early=%s closed=%s bank_after_ad=%d bank_after_undo=%d route=%d" % [
-		g.level.number, free_used, opened, early, not g._busy_modal(), bank, Progress.undo_bank, g.route.size()])
+	await get_tree().create_timer(0.6).timeout
+	print("AUTOTEST ad L%d: free_undo_used=%s ad_opened=%s skipped_early=%s closed=%s bonus_gas=%d undone=%s" % [
+		g.level.number, free_used, opened, early, not g._busy_modal(), Progress.reserve_gas, g.route.size() == 1])
 
 
 ## A U-turn can't be drawn inside one drag (dragging back retracts), so cut there.

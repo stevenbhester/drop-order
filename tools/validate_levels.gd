@@ -44,7 +44,10 @@ func _init() -> void:
 				var kind := "on the route" if Sim.is_won(L, Sim.run(L, gr), gr) and gr.back() != L.gift else "extra mile"
 				feats.append("gift %s, %s" % [L.gift_item, kind])
 				# Hints follow the plain (shortest) route, so a present on it would be handed out by the hints.
-				if r["count"] > 0 and (r["shortest"] as Array).has(L.gift):
+				# (Except the friends' rides: those sit on a tile every win crosses, on purpose, so nobody
+				# misses one.)
+				if r["count"] > 0 and (r["shortest"] as Array).has(L.gift) and Cosmetics.kind_of(L.gift_item) != "ride" \
+						and L.gift_item != "headlights":
 					bad = true
 					ok = false
 					L.errors.append("the present (%s) is on the plain winning route (the hints would walk you to it)" % L.gift_item)

@@ -184,3 +184,27 @@ static func parcel(ci: CanvasItem, c: Vector2, size: Vector2, col: Color, shadow
 		mark(ci, kind, fc, m * (1.0 if bold else 0.7), ink, col, bold)
 	# Shine on the corner.
 	rrect(ci, Rect2(r.position + Vector2(m * 0.1, m * 0.08), Vector2(m * 0.14, m * 0.08)), Color(1, 1, 1, 0.4 * col.a), m * 0.04)
+
+
+## A cartoon hand pointing at `tip` with its index finger, coming up from the bottom right.
+static func hand(ci: CanvasItem, tip: Vector2, s: float, alpha: float) -> void:
+	var skin := Color("ffdcc2", alpha)
+	var line := Color(0.12, 0.08, 0.15, 0.85 * alpha)
+	var xf := Transform2D(-0.45, tip)
+	ci.draw_set_transform_matrix(xf)
+	for pass_i in 2:
+		var g := 4.0 if pass_i == 0 else 0.0           # the outline: the same shapes, a little bigger, first
+		var col := line if pass_i == 0 else skin
+		# Index finger, from the tip down to the palm.
+		DrawUtil.rrect(ci, Rect2(Vector2(-0.11 * s - g, -0.02 * s - g), Vector2(0.22 * s + g * 2, 0.7 * s + g * 2)), col, 0.11 * s + g)
+		# The palm, with the other fingers curled under.
+		DrawUtil.rrect(ci, Rect2(Vector2(-0.16 * s - g, 0.5 * s - g), Vector2(0.58 * s + g * 2, 0.55 * s + g * 2)), col, 0.2 * s + g)
+		for k in 3:
+			ci.draw_circle(Vector2((0.17 + k * 0.1) * s, 0.55 * s), 0.08 * s + g, col)
+		# The thumb, along the side.
+		ci.draw_set_transform_matrix(xf * Transform2D(0.5, Vector2(-0.16 * s, 0.62 * s)))
+		DrawUtil.rrect(ci, Rect2(Vector2(-0.08 * s - g, -0.26 * s - g), Vector2(0.16 * s + g * 2, 0.36 * s + g * 2)), col, 0.08 * s + g)
+		ci.draw_set_transform_matrix(xf)
+	# The nail.
+	DrawUtil.rrect(ci, Rect2(Vector2(-0.07 * s, 0.02 * s), Vector2(0.14 * s, 0.13 * s)), Color(1, 1, 1, 0.55 * alpha), 0.06 * s)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

@@ -59,17 +59,21 @@ func _ready() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.theme = UiTheme.theme()
 	_root.draw.connect(_draw_ad)
+	# A tap on the ad points at Skip (it doesn't skip).
+	_root.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			FakeAd.nudge(_skip))
 	add_child(_root)
 	for i in 70:
 		_stars.append(Vector3(randf(), randf() * 0.8, randf() * TAU))
 
 	_skip = JuicyButton.new()
-	_skip.font_px = 36
+	_skip.font_px = 46
 	_skip.bg = Color(1, 1, 1, 0.16)
 	_skip.dim_bg = Color(1, 1, 1, 0.07)
 	_skip.fg = CREAM
-	_skip.custom_minimum_size = Vector2(250, 92)
-	_skip.size = Vector2(250, 92)
+	_skip.custom_minimum_size = Vector2(320, 128)
+	_skip.size = Vector2(320, 128)
 	_skip.pressed.connect(_on_skip)
 	_root.add_child(_skip)
 
@@ -89,9 +93,22 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_layout)
 
 
+## "Over here": the Skip button hops and flashes (a tap anywhere else on an ad). Every pretend ad uses it.
+static func nudge(skip: JuicyButton) -> void:
+	if skip == null or not skip.visible:
+		return
+	skip.pop()
+	Sfx.play("tick", 1.3, -8.0)
+	Sfx.haptic(8, 0.4)
+	skip.modulate = Color(2.2, 2.2, 2.2)
+	skip.create_tween().tween_property(skip, "modulate", Color.WHITE, 0.45)
+
+
 func _layout() -> void:
 	var size := _root.get_viewport_rect().size
-	_skip.position = Vector2(size.x - _skip.size.x - 36.0, 40.0 + _top)
+	# Bottom corner under the thumb (the left one in left-hand mode): skipping should take no effort.
+	var bottom := UiTheme.insets(get_viewport()).y
+	_skip.position = Vector2(36.0 if Progress.left_hand else size.x - _skip.size.x - 36.0, size.y - bottom - _skip.size.y - 56.0)
 	_cta.position = Vector2((size.x - _cta.size.x) / 2.0, size.y * 0.6)
 	_cta.pivot_offset = _cta.size / 2.0
 
@@ -152,7 +169,8 @@ func _on_cta() -> void:
 	Sfx.play("ad_chirp1")
 	_toast_at = _t
 	_cta.breathe(false)
-	OS.shell_open(PAGE)
+	if not DebugRemote.on():
+		OS.shell_open(PAGE)
 
 
 func _close() -> void:
@@ -408,4 +426,4 @@ func _draw_end_card(w: float, h: float) -> void:
 		var box := Rect2(w / 2.0 - 440.0 * k, _cta.position.y + _cta.size.y + 130.0, 880.0 * k, 190.0)
 		DrawUtil.rrect(r, box, CREAM, 44)
 		_text("Opening its page in your browser.", box.get_center() + Vector2(0, -36), 40, SKY_BOTTOM, box.size.x - 50.0)
-		_text("Your undos are waiting back here.", box.get_center() + Vector2(0, 30), 40, SKY_BOTTOM, box.size.x - 50.0)
+		_text("Your gas is waiting back here.", box.get_center() + Vector2(0, 30), 40, SKY_BOTTOM, box.size.x - 50.0)

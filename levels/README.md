@@ -1,8 +1,9 @@
 # Level format
 
-Levels 1–100 are made by the level engine: plan in `tools/make_plan.py`, generator `tools/gen_levels.gd`,
-scores in `design/level_scores.md`. See `design/level_engine.md` before editing them by hand; a hand edit
-is fine, but run the scorecard after (`tools/level_report.gd`).
+Levels 1–100 are made by the level engine (`tools/engine/`): plan in `tools/engine/plan.py`, scores in
+`design/level_scores.md`. See `design/level_engine.md` before editing them by hand; a hand edit is fine,
+but score it after (`python3 tools/engine/lv.py levels/levels.json | build/lm score`). `og.json` is the
+pre-engine set, kept as the OG 100 easter egg: it isn't validated or tested.
 
 All levels live in `levels.json` as `{"levels": [ ... ]}`. Order in the file = level number.
 
@@ -85,7 +86,7 @@ each day, repeating (see `scripts/daily.gd`). The validator checks them too.
   `scripts/cosmetics.gd`). It isn't part of the rules; the validator checks it can be picked up on the way
   to a win (on some winning route, or by driving past the last delivery in the same drag).
   `tools/place_gifts.gd` lists good spots.
-- `flavor`: what kind of puzzle the level is (`fork`, `decoy`, `sorter`, `twodoor`...). Written by the level
+- `flavor`: what kind of puzzle the level is (`decoy`, `twodoor`, `sorter`, `melter`...). Written by the level
   engine (`design/level_engine.md`) and used only by the tools: the game ignores it, players never see it,
   and it isn't part of the "redesigned since you beat it" fingerprint.
 - `preview`: `true` marks a sneak-peek level (shown with a PEEK tag).

@@ -2,6 +2,7 @@
 # Builds Last Mile and installs it on an iPhone plugged in by cable, then launches it.
 #   tools/install_ios.sh            # the first connected iPhone
 #   tools/install_ios.sh <UDID>     # a particular device (xcrun devicectl list devices)
+#   tools/install_ios.sh <UDID> --no-launch   # install the update but leave the game closed
 # Needs: Xcode signed in to team 7FR35W6Q64, the phone in Developer Mode and trusting this Mac,
 # and Godot's iOS export templates. Signing uses the "iOS" preset in export_presets.cfg.
 set -e
@@ -10,6 +11,8 @@ GODOT=${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}
 BUNDLE=com.stevenhester.lastmile
 
 DEVICE=$1
+LAUNCH=1
+[[ "$2" == "--no-launch" ]] && LAUNCH=0
 if [[ -z $DEVICE ]]; then
 	DEVICE=$(xcrun devicectl list devices 2>/dev/null | awk '/connected/ && /iPhone/ { for (i = 1; i <= NF; i++) if ($i ~ /^[0-9A-F]{8}-[0-9A-F]{16}$/) { print $i; exit } }')
 fi
@@ -32,6 +35,10 @@ xcodebuild -project build/ios/LastMile.xcodeproj -scheme LastMile -configuration
 APP=build/ios/dd/Build/Products/Release-iphoneos/LastMile.app
 echo "==> Installing"
 xcrun devicectl device install app --device "$DEVICE" "$APP"
+if (( ! LAUNCH )); then
+	echo "==> Installed (not launched)"
+	exit 0
+fi
 echo "==> Launching"
 xcrun devicectl device process launch --device "$DEVICE" --terminate-existing $BUNDLE || \
 	echo "Installed. If it didn't open, the phone may be locked: open Last Mile from the home screen."

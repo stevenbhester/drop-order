@@ -51,18 +51,18 @@ func line() -> String:
 		"bridge": return "Bridge: drive straight across. Over once, under once."
 		"gate": return "Gate: opens only when your top package is %s." % n
 		"hub": return "Spinner: swaps your top two packages."
-		"pickup": return "Pickup! Adds a %s package on TOP of your load." % n
-		"warehouse": return "Warehouse: adds +%d %s packages on top, all at once." % [count, n]
-		"house": return "Wants a %s package. Bring it when it's on top!" % n
-		"houses": return "Wants %d %s packages, one at a time, each on top." % [count, n]
+		"pickup": return "Pick-up! Loads a %s package on TOP of your load." % n
+		"warehouse": return "Big pick-up: loads +%d %s packages on top, all at once." % [count, n]
+		"house": return "Drop-off: wants a %s package. Bring it when it's on top!" % n
+		"houses": return "Drop-off: wants %d %s packages, one at a time, each on top." % [count, n]
 		"house_done": return "Delivered! All done here."
 		"pickup_done": return "Picked up! Nothing left here."
 		"exit": return "The road on! Deliver everything to open the gate, then finish here."
-		"pitstop": return "Finish here: park back at the pit stop."
+		"pitstop": return "Finish here: park back at the depot."
 		"gift": return "A present! Drive over it to keep it."
 		"key": return "A key! Pick it up and win: it opens a locked detour."
 		"ice": return "Ice! No turning on it: slide straight across."
-		"locker": return "Locker: takes whatever package is on top." if count <= 1 else "Locker: takes the next %d packages, whatever they are." % count
+		"locker": return "Locker: a drop-off that takes whatever's on top." if count <= 1 else "Locker: a drop-off for the next %d packages, whatever they are." % count
 		"works": return "Roadworks: opens after %d more deliver%s." % [count, "y" if count == 1 else "ies"] if count > 0 else "Roadworks: open now!"
 		"wreck": return "Torn-up road. You can't drive here again."
 	return ""

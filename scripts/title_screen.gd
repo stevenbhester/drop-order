@@ -100,7 +100,7 @@ func _ready() -> void:
 	_title.add_theme_color_override("font_shadow_color", Color(0.23, 0.2, 0.27, 0.16))
 	_title.add_theme_constant_override("shadow_offset_y", 12)
 	_title.add_theme_constant_override("shadow_offset_x", 0)
-	_tagline = _label("Draw the route. Mind the stack.", 46, Palette.TEXT_SOFT)
+	_tagline = _label("Draw the route. Mind the order.", 46, Palette.TEXT_SOFT)
 
 	_play = Button.new()
 	_play.text = "Play"
@@ -116,16 +116,26 @@ func _ready() -> void:
 	_row = HBoxContainer.new()
 	_row.add_theme_constant_override("separation", 22)
 	add_child(_row)
-	_row.add_child(_small("grid", "Levels", _on_levels))
-	var daily := _small("calendar", "Daily", func():
+	_row.add_child(_small("grid", "Jobs", _on_levels))
+	var daily: JuicyButton
+	daily = _small("calendar", "Daily", func():
+		if not Daily.unlocked():
+			Sfx.play("bonk", 1.1, -6.0)
+			daily.pop()
+			return
 		Sfx.play("click")
 		daily_pressed.emit())
 	var today := Daily.today()
 	var streak := Progress.streak(today)
-	# The streak burns inside the button; if today's is still to do, the button breathes.
+	# The streak burns inside the button; if today's is still to do, the button breathes. Locked until
+	# job Daily.UNLOCK_AT: a padlock, greyed.
 	daily.flame = streak
 	_row.add_child(daily)
-	if not Progress.daily_record(today).get("done", false):
+	if not Daily.unlocked():
+		daily.icon_name = "lock"
+		daily.flame = 0
+		daily.dim = true
+	elif not Progress.daily_record(today).get("done", false):
 		daily.ready.connect(daily.breathe.bind(true), CONNECT_DEFERRED)
 	_row.add_child(_small("paint", "Garage", func():
 		Sfx.play("click")
@@ -135,7 +145,7 @@ func _ready() -> void:
 	_speed = JuicyButton.new()
 	var open := Progress.is_complete(Speedrun.UNLOCK_LEVEL)
 	_speed.icon_name = "next" if open else ""
-	_speed.label = "Speedrun" if open else "Speedrun · beat level %d" % Speedrun.UNLOCK_LEVEL
+	_speed.label = "Speedrun" if open else "Speedrun · beat job %d" % Speedrun.UNLOCK_LEVEL
 	_speed.font_px = 40
 	_speed.dim = not open
 	_speed.custom_minimum_size = Vector2(600, 110)
@@ -240,8 +250,8 @@ func _next_text() -> String:
 		return ""
 	if done == _levels.size():
 		return "All %d delivered!" % done
-	var L: LevelData = _levels[Progress.first_incomplete(_levels.size())]
-	return "Level %d · %s" % [L.number, L.title]
+	var L: LevelData = _levels[maxi(Zones.frontier(_levels), 0)]
+	return "Job %d · %s" % [L.number, L.title]
 
 
 ## Lays everything out for the screen's height (taller phones spread it out).

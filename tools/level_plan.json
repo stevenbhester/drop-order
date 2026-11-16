@@ -2,4240 +2,5115 @@
  "slots": [
   {
    "n": 1,
-   "w": 5,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "keep",
    "title": "First Drop",
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 0,
    "keep": true
   },
   {
    "n": 2,
-   "w": 5,
-   "h": 7,
+   "title": "Next In Line",
+   "flavor": "intro",
    "tier": "easy",
-   "flavor": "keep",
-   "title": "Top Goes First",
+   "who": 0,
    "keep": true
   },
   {
    "n": 3,
-   "w": 5,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "keep",
    "title": "Burning Rubber",
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 0,
    "keep": true
   },
   {
    "n": 4,
-   "w": 5,
-   "h": 7,
+   "title": "Save the Road",
+   "flavor": "intro",
    "tier": "easy",
-   "flavor": "keep",
-   "title": "One Pass",
+   "who": 0,
    "keep": true
   },
   {
    "n": 5,
-   "w": 5,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "decoy",
-   "title": "Rush Hour",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "need": [],
-   "challenge": true,
-   "gift": "racing"
+   "title": "Warm-Up Lap",
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 0,
+   "keep": true
   },
   {
    "n": 6,
-   "w": 5,
-   "h": 7,
+   "title": "Rush Hour",
+   "flavor": "decoy",
    "tier": "easy",
-   "flavor": "freerun",
-   "title": "Side Streets",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    0.8,
-    2.8
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
+   "who": 0,
+   "challenge": true,
+   "gift": "racing",
+   "mech": [],
    "need": [],
-   "gift": "monster_truck"
+   "band": [
+    0.8,
+    1.8
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "w": 5,
+    "h": 6,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 1.8,
+    "pnmin": 9,
+    "pfmax": 0.5,
+    "ehi": 2.2,
+    "flavor": "decoy",
+    "gift": 1
+   }
   },
   {
    "n": 7,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
+   "title": "Dead End Drive",
    "flavor": "intro",
-   "title": "Double Order",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "need": [],
-   "intro": "multi"
+   "tier": "easy",
+   "who": 0,
+   "gift": "monster_truck",
+   "keep": true
   },
   {
    "n": 8,
-   "w": 5,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "twin",
-   "title": "Bulk Buyer",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "overlap_max": 0.7,
-   "multi": [
-    1,
-    3
-   ],
-   "need": [],
-   "gift": "drizzlet"
+   "title": "Wrong Turn Lane",
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 0,
+   "keep": true,
+   "gift": "dreamsicle"
   },
   {
    "n": 9,
-   "w": 5,
-   "h": 5,
-   "tier": "easy",
+   "title": "Double Order",
    "flavor": "intro",
-   "title": "One Way",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "oneway": [
-    1,
-    2
+   "tier": "easy",
+   "who": 0,
+   "mech": [
+    "xN"
    ],
    "need": [
-    "oneway"
+    "multi"
    ],
-   "intro": "oneway"
+   "band": [
+    0.5,
+    1.5
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 7,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "maxorder": 3,
+    "w": 5,
+    "h": 6,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.5,
+    "pehi": 1.5,
+    "pnmin": 7,
+    "pfmax": 0.6,
+    "ehi": 1.8,
+    "need": "multi"
+   }
   },
   {
    "n": 10,
-   "w": 5,
-   "h": 8,
+   "title": "Seconds, Please",
+   "flavor": "intro",
    "tier": "easy",
-   "flavor": "fork",
-   "title": "Against Traffic",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    0.8,
-    2.8
-   ],
-   "late": 0.1,
-   "oneway": [
-    1,
-    2
-   ],
-   "need": [
-    "oneway"
-   ]
+   "who": 0,
+   "keep": true,
+   "gift": "classic_car"
   },
   {
    "n": 11,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
+   "title": "Bulk Buyer",
    "flavor": "twodoor",
-   "title": "Downtown",
-   "houses": [
-    4,
-    6
+   "tier": "medium",
+   "who": 0,
+   "gift": "drizzlet",
+   "mech": [
+    "xN"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
+   "need": [
+    "multi"
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
+   "band": [
+    1.5,
+    2.6
    ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "need": []
+   "w": 6,
+   "h": 7,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 2,
+    "secs": 45,
+    "maxorder": 3,
+    "w": 6,
+    "h": 7,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.5,
+    "pehi": 2.6,
+    "pnmin": 16,
+    "pfmax": 0.3,
+    "ehi": 3.4,
+    "flavor": "twodoor",
+    "need": "multi",
+    "gift": 1
+   }
   },
   {
    "n": 12,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "knot",
-   "title": "Long Haul",
-   "houses": [
-    4,
-    6
+   "title": "One Way",
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 0,
+   "mech": [
+    "1w"
    ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
+   "need": [
+    "oneway"
    ],
-   "nodes_max": 3000,
-   "loops": [
-    30,
-    65
+   "band": [
+    0.5,
+    1.5
    ],
-   "len_min": 10,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "need": []
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "amax": 2,
+    "w": 5,
+    "h": 6,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.5,
+    "pehi": 1.5,
+    "pnmin": 7,
+    "pfmax": 0.6,
+    "ehi": 1.8,
+    "need": "oneway"
+   }
   },
   {
    "n": 13,
+   "title": "Second Thoughts",
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 0,
+   "mech": [
+    "1w"
+   ],
+   "need": [
+    "oneway"
+   ],
+   "band": [
+    2.6,
+    4.2
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 6,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 5,
+    "pkmax": 6,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "open_end": 0,
+    "pickmin": 2,
+    "melter": 1,
+    "secs": 80,
+    "amax": 2,
+    "w": 6,
+    "h": 7,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 2.6,
+    "pehi": 4.2,
+    "pnmin": 26,
+    "pfmax": 0.12,
+    "ehi": 5.0,
+    "d1min": 1,
+    "flavor": "decoy",
+    "need": "oneway"
+   }
+  },
+  {
+   "n": 14,
+   "title": "Downtown",
+   "flavor": "longcon",
+   "tier": "medium",
+   "who": 0,
+   "mech": [
+    "1w",
+    "xN"
+   ],
+   "need": [],
+   "band": [
+    1.5,
+    2.6
+   ],
    "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "intro",
+   "h": 7,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 2,
+    "secs": 45,
+    "amax": 2,
+    "maxorder": 3,
+    "w": 5,
+    "h": 7,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.5,
+    "pehi": 2.6,
+    "pnmin": 16,
+    "pfmax": 0.3,
+    "ehi": 3.4,
+    "flavor": "longcon"
+   }
+  },
+  {
+   "n": 15,
    "title": "Overpass",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "bridge": [
-    1,
-    1
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "gift": "bonkle",
+   "mech": [
+    "br"
    ],
    "need": [
     "bridge"
    ],
-   "gift": "bonkle",
-   "intro": "bridge"
-  },
-  {
-   "n": 14,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "longcon",
-   "title": "Flyover",
-   "houses": [
-    5,
-    7
+   "band": [
+    0.6,
+    1.8
    ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    4.6,
-    6.2
-   ],
-   "doom_min": 7,
-   "bridge": [
-    1,
-    1
-   ],
-   "need": [],
-   "challenge": true,
-   "gift": "duskwood"
-  },
-  {
-   "n": 15,
-   "w": 6,
-   "h": 8,
-   "tier": "easy",
-   "flavor": "freerun",
-   "title": "Spaghetti Junction",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    0.8,
-    2.8
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "need": [],
-   "gift": "key"
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "bmax": 1,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.6,
+    "pehi": 1.8,
+    "pnmin": 8,
+    "pfmax": 0.6,
+    "ehi": 2.5,
+    "need": "bridge",
+    "gift": 1
+   }
   },
   {
    "n": 16,
+   "title": "Flyover",
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "gift": "duskwood",
+   "mech": [
+    "br"
+   ],
+   "need": [
+    "bridge"
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
    "w": 6,
-   "h": 9,
-   "tier": "medium",
-   "flavor": "twin",
-   "title": "Suburbs",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "overlap_max": 0.7,
-   "multi": [
-    1,
-    3
-   ],
-   "need": [],
-   "gift": "gloaming"
+   "h": 8,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "bmax": 1,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 45,
+    "pfmax": 0.05,
+    "ehi": 11.0,
+    "flavor": "gauntlet",
+    "need": "bridge",
+    "gift": 1
+   }
   },
   {
    "n": 17,
-   "w": 7,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "decoy",
-   "title": "Rainbow Row",
-   "houses": [
-    4,
-    6
+   "title": "Spaghetti Junction",
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 1,
+   "gift": "key",
+   "mech": [
+    "1w",
+    "br"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
+   "need": [],
+   "band": [
+    1.3,
+    2.5
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "need": []
+   "w": 5,
+   "h": 6,
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "amax": 2,
+    "bmax": 1,
+    "rmin": 2,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.3,
+    "pehi": 2.5,
+    "pnmin": 13,
+    "pfmax": 0.4,
+    "ehi": 3.5,
+    "flavor": "breather",
+    "gift": 1
+   }
   },
   {
    "n": 18,
-   "w": 7,
-   "h": 9,
-   "tier": "medium",
-   "flavor": "twodoor",
-   "title": "Crosstown",
-   "houses": [
-    4,
-    6
+   "title": "Rainbow Row",
+   "flavor": "longcon",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "1w"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
+   "need": [],
+   "band": [
+    4.5,
+    7.0
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    2.8,
-    4.6
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "bridge": [
-    1,
-    1
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "need": []
+   "w": 6,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "amax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.5,
+    "pehi": 7.0,
+    "pnmin": 40,
+    "pfmax": 0.05,
+    "ehi": 10.0,
+    "flavor": "longcon"
+   }
   },
   {
    "n": 19,
-   "w": 7,
-   "h": 9,
-   "tier": "easy",
-   "flavor": "fork",
-   "title": "Gridlock",
-   "houses": [
-    3,
-    5
+   "title": "Long Haul",
+   "flavor": "knot",
+   "tier": "medium",
+   "who": 0,
+   "mech": [],
+   "need": [],
+   "band": [
+    1.5,
+    2.6
    ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    0.8,
-    2.8
-   ],
-   "late": 0.1,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "need": []
+   "w": 6,
+   "h": 7,
+   "asks": "One long winding drive; don't box yourself in",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.78,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 2,
+    "secs": 45,
+    "w": 6,
+    "h": 7,
+    "who": 0,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.5,
+    "pehi": 2.6,
+    "pnmin": 16,
+    "pfmax": 0.3,
+    "ehi": 3.4,
+    "flavor": "knot"
+   }
   },
   {
    "n": 20,
-   "w": 7,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "knot",
    "title": "Last Mile",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    30,
-    65
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    4.6,
-    6.2
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "multi": [
-    1,
-    3
+   "flavor": "knot",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "br",
+    "xN"
    ],
    "need": [],
-   "challenge": true
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "One long winding drive; don't box yourself in",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 12,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.78,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "bmax": 1,
+    "maxorder": 3,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 45,
+    "pfmax": 0.05,
+    "ehi": 11.0,
+    "flavor": "knot"
+   }
   },
   {
    "n": 21,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Return to Sender",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "shops": [
-    1,
-    2
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "gift": "sprout",
+   "mech": [
+    "pick"
    ],
    "need": [
     "pickup"
    ],
-   "gift": "sprout",
-   "intro": "pickup"
+   "band": [
+    0.8,
+    2.0
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "smax": 2,
+    "smin": 1,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.0,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.0,
+    "need": "pickup",
+    "gift": 1
+   }
   },
   {
    "n": 22,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "restock",
    "title": "Pick Up, Drop Off",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "shops": [
-    1,
-    2
+   "flavor": "restock",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "pick"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    3.8,
+    5.8
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "restock",
+    "need": "pickup"
+   }
   },
   {
    "n": 23,
-   "w": 6,
-   "h": 8,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Corner Shops",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    1.8,
-    3.4
-   ],
-   "late": 0.1,
-   "oneway": [
-    0,
-    2
-   ],
-   "shops": [
-    1,
-    2
+   "flavor": "twodoor",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "pick"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    5.5,
+    9.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.5,
+    "pehi": 9.0,
+    "pnmin": 50,
+    "pfmax": 0.03,
+    "ehi": 19.0,
+    "flavor": "twodoor",
+    "need": "pickup"
+   }
   },
   {
    "n": 24,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "sorter",
    "title": "High Street",
-   "houses": [
-    4,
-    6
+   "flavor": "decoy",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "1w",
+    "pick"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
+   "need": [],
+   "band": [
+    1.7,
+    3.0
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "need": [
-    "pickup"
-   ]
+   "w": 6,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "amax": 2,
+    "smax": 2,
+    "smin": 0,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.7,
+    "pehi": 3.0,
+    "pnmin": 16,
+    "pfmax": 0.35,
+    "ehi": 4.2,
+    "flavor": "decoy"
+   }
   },
   {
    "n": 25,
-   "w": 5,
-   "h": 8,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Checkpoint",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "gate": [
-    1,
-    2
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "gate"
    ],
    "need": [
     "gate"
    ],
-   "intro": "gate"
+   "band": [
+    0.8,
+    2.0
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "gmax": 2,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.0,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.0,
+    "need": "gate"
+   }
   },
   {
    "n": 26,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "twin",
    "title": "Toll Road",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "overlap_max": 0.7,
-   "oneway": [
-    0,
-    2
-   ],
-   "gate": [
-    1,
-    2
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 1,
+   "gift": "puffball",
+   "mech": [
+    "1w",
+    "gate"
    ],
    "need": [
     "gate"
    ],
-   "gift": "puffball"
+   "band": [
+    3.8,
+    5.8
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "gmax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "twodoor",
+    "need": "gate",
+    "gift": 1
+   }
   },
   {
    "n": 27,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
+   "title": "Colour Coded",
    "flavor": "restock",
-   "title": "Key Delivery",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    1,
-    2
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "gate",
+    "pick"
    ],
    "need": [
-    "gate",
     "pickup"
-   ]
+   ],
+   "band": [
+    3.8,
+    5.8
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "gmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "restock",
+    "need": "pickup"
+   }
   },
   {
    "n": 28,
-   "w": 7,
-   "h": 9,
-   "tier": "hard",
-   "flavor": "districts",
    "title": "Border Control",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    5.6,
-    7.0
-   ],
-   "districts": 2,
-   "doors": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "gate": [
-    1,
-    2
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "gate",
+    "xN"
    ],
    "need": [
     "gate"
    ],
-   "challenge": true
+   "band": [
+    7.5,
+    11.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 12,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "maxorder": 3,
+    "gmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.5,
+    "pehi": 11.0,
+    "pnmin": 75,
+    "pfmax": 0.04,
+    "ehi": 20.0,
+    "flavor": "gauntlet",
+    "need": "gate"
+   }
   },
   {
    "n": 29,
-   "w": 5,
-   "h": 5,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Clocking Off",
-   "houses": [
-    2,
-    4
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "R"
    ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "ret": true,
    "need": [],
-   "intro": "return"
+   "band": [
+    0.8,
+    2.0
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "ret": 1,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.0,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.0
+   }
   },
   {
    "n": 30,
-   "w": 6,
-   "h": 8,
-   "tier": "easy",
-   "flavor": "freerun",
    "title": "Round Trip",
-   "houses": [
-    3,
-    5
+   "flavor": "twodoor",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "R"
    ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
+   "need": [
+    "return"
    ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
+   "band": [
+    1.7,
+    3.0
    ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    1.8,
-    3.4
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "ret": true,
-   "need": []
+   "w": 6,
+   "h": 7,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "ret": 1,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.7,
+    "pehi": 3.0,
+    "pnmin": 16,
+    "pfmax": 0.35,
+    "ehi": 4.2,
+    "flavor": "twodoor",
+    "need": "return"
+   }
   },
   {
    "n": 31,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "decoy",
    "title": "Overtime",
-   "houses": [
-    4,
-    6
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "pick",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
+   "need": [],
+   "band": [
+    5.5,
+    9.0
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "ret": true,
-   "need": [
-    "pickup"
-   ]
+   "w": 7,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.5,
+    "pehi": 9.0,
+    "pnmin": 50,
+    "pfmax": 0.03,
+    "ehi": 19.0,
+    "flavor": "decoy"
+   }
   },
   {
    "n": 32,
-   "w": 7,
-   "h": 9,
-   "tier": "hard",
-   "flavor": "longcon",
    "title": "Night Shift",
-   "houses": [
-    5,
-    7
+   "flavor": "longcon",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    5.6,
-    7.0
-   ],
-   "doom_min": 7,
-   "oneway": [
-    0,
-    2
-   ],
-   "ret": true,
    "need": [],
-   "challenge": true
+   "band": [
+    7.5,
+    11.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.5,
+    "pehi": 11.0,
+    "pnmin": 75,
+    "pfmax": 0.04,
+    "ehi": 20.0,
+    "flavor": "longcon"
+   }
   },
   {
    "n": 33,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Turntable",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "hub": [
-    1,
-    2
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "gift": "key",
+   "mech": [
+    "hub"
    ],
    "need": [
     "hub"
    ],
-   "gift": "key",
-   "intro": "hub"
+   "band": [
+    0.8,
+    2.0
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "umax": 2,
+    "w": 5,
+    "h": 6,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.0,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.0,
+    "need": "hub",
+    "gift": 1
+   }
   },
   {
    "n": 34,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "sorter",
    "title": "Mix-Up",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "hub": [
-    1,
-    2
+   "flavor": "sorter",
+   "tier": "medium",
+   "who": 1,
+   "gift": "mosaic_moth",
+   "mech": [
+    "hub"
    ],
    "need": [
     "hub"
    ],
-   "gift": "mosaic_moth"
+   "band": [
+    3.8,
+    5.8
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The hub decides the order: choose when to cross it",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "umax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "sorter",
+    "need": "hub",
+    "gift": 1
+   }
   },
   {
    "n": 35,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "twodoor",
    "title": "Shuffle",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "shops": [
-    1,
-    2
-   ],
-   "hub": [
-    0,
-    2
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "hub",
+    "pick"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    3.8,
+    5.8
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "umax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "twodoor",
+    "need": "pickup"
+   }
   },
   {
    "n": 36,
-   "w": 7,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "sorter",
    "title": "Sorting Office",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    5.6,
-    7.0
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    1,
-    2
+   "flavor": "sorter",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "gate",
+    "hub"
    ],
    "need": [
     "hub"
    ],
-   "challenge": true
+   "band": [
+    7.5,
+    11.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "The hub decides the order: choose when to cross it",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "gmax": 2,
+    "umax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.5,
+    "pehi": 11.0,
+    "pnmin": 75,
+    "pfmax": 0.04,
+    "ehi": 20.0,
+    "flavor": "sorter",
+    "need": "hub"
+   }
   },
   {
    "n": 37,
-   "w": 7,
-   "h": 9,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Rush Order",
-   "houses": [
-    3,
-    5
+   "flavor": "decoy",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "gate",
+    "pick",
+    "R"
    ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
+   "need": [],
+   "band": [
+    1.7,
+    3.0
    ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    1.8,
-    3.4
-   ],
-   "late": 0.1,
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "ret": true,
-   "need": [
-    "pickup"
-   ]
+   "w": 5,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "ret": 1,
+    "w": 5,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.7,
+    "pehi": 3.0,
+    "pnmin": 16,
+    "pfmax": 0.35,
+    "ehi": 4.2,
+    "flavor": "decoy"
+   }
   },
   {
    "n": 38,
-   "w": 6,
-   "h": 9,
-   "tier": "medium",
-   "flavor": "twin",
    "title": "Mixed Bag",
-   "houses": [
-    4,
-    6
+   "flavor": "twin",
+   "tier": "medium",
+   "who": 1,
+   "gift": "rivet",
+   "mech": [
+    "br",
+    "hub",
+    "pick"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
+   "need": [],
+   "band": [
+    3.8,
+    5.8
    ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    3.6,
-    5.4
-   ],
-   "overlap_max": 0.7,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "need": [
-    "pickup"
-   ],
-   "gift": "rivet"
+   "w": 6,
+   "h": 8,
+   "asks": "Two different answers",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 4,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 0,
+    "umax": 2,
+    "rmin": 2,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 3.8,
+    "pehi": 5.8,
+    "pnmin": 36,
+    "pfmax": 0.15,
+    "ehi": 12.0,
+    "flavor": "twin",
+    "gift": 1
+   }
   },
   {
    "n": 39,
-   "w": 7,
-   "h": 9,
-   "tier": "hard",
-   "flavor": "restock",
    "title": "Black Friday",
-   "houses": [
-    5,
-    7
+   "flavor": "twodoor",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "pick"
    ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
+   "need": [],
+   "band": [
+    5.5,
+    9.0
    ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    5.6,
-    7.0
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "need": [
-    "pickup"
-   ]
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.5,
+    "pehi": 9.0,
+    "pnmin": 50,
+    "pfmax": 0.03,
+    "ehi": 19.0,
+    "flavor": "twodoor"
+   }
   },
   {
    "n": 40,
-   "w": 6,
-   "h": 9,
-   "tier": "hard",
-   "flavor": "districts",
    "title": "Christmas Eve",
-   "houses": [
-    5,
-    7
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 1,
+   "mech": [
+    "gate",
+    "hub",
+    "pick",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
+   "need": [],
+   "band": [
+    7.5,
+    11.0
    ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    5.6,
-    7.0
-   ],
-   "districts": 2,
-   "doors": 2,
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    1,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "ret": true,
-   "need": [
-    "gate"
-   ]
+   "w": 7,
+   "h": 8,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "umax": 2,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.5,
+    "pehi": 11.0,
+    "pnmin": 75,
+    "pfmax": 0.04,
+    "ehi": 20.0,
+    "flavor": "gauntlet"
+   }
   },
   {
    "n": 41,
-   "w": 6,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "First Frost",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "1w",
+    "ice"
    ],
    "need": [
     "ice"
    ],
-   "intro": "ice"
+   "band": [
+    0.8,
+    2.2
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "amax": 2,
+    "imax": 3,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.2,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.5,
+    "need": "ice"
+   }
   },
   {
    "n": 42,
-   "w": 6,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Black Ice",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "late": 0.1,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "decoy",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "1w",
+    "ice",
+    "xN"
    ],
    "need": [
     "ice"
-   ]
+   ],
+   "band": [
+    1.9,
+    3.3
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 8,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "amax": 2,
+    "maxorder": 3,
+    "imax": 3,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "decoy",
+    "need": "ice"
+   }
   },
   {
    "n": 43,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "twodoor",
    "title": "Snowplough",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 1,
+   "gift": "key",
+   "mech": [
+    "1w",
+    "ice",
+    "xN"
    ],
    "need": [
     "ice"
    ],
-   "gift": "key"
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "maxorder": 3,
+    "imax": 3,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "twodoor",
+    "need": "ice",
+    "gift": 1
+   }
   },
   {
    "n": 44,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "knot",
    "title": "Avalanche",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    30,
-    65
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "longcon",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "ice",
+    "pick"
    ],
    "need": [
     "ice"
-   ]
+   ],
+   "band": [
+    7.0,
+    11.0
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "imax": 3,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.0,
+    "pehi": 11.0,
+    "pnmin": 70,
+    "pfmax": 0.03,
+    "ehi": 21.0,
+    "flavor": "longcon",
+    "need": "ice"
+   }
   },
   {
    "n": 45,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "freerun",
    "title": "Hot Chocolate",
-   "houses": [
-    3,
-    5
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "ice",
+    "xN"
    ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
+   "need": [
+    "ice"
    ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
+   "band": [
+    1.9,
+    3.3
    ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    0,
-    3
-   ],
-   "need": [],
-   "theme": "ice",
-   "theme_n": 3
+   "w": 5,
+   "h": 7,
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 8,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "maxorder": 3,
+    "imax": 3,
+    "rmin": 2,
+    "w": 5,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "breather",
+    "need": "ice"
+   }
   },
   {
    "n": 46,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "decoy",
    "title": "Unmarked",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "decoy",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "1w",
+    "ice",
+    "xN"
    ],
    "need": [
     "ice"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "maxorder": 3,
+    "imax": 3,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "decoy",
+    "need": "ice"
+   }
   },
   {
    "n": 47,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "longcon",
    "title": "Whiteout",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.2,
-    7.8
-   ],
-   "doom_min": 7,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "longcon",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "ice",
+    "xN"
    ],
    "need": [
     "ice"
    ],
-   "challenge": true
+   "band": [
+    8.5,
+    12.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 12,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "maxorder": 3,
+    "imax": 3,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.5,
+    "pehi": 12.5,
+    "pnmin": 90,
+    "pfmax": 0.03,
+    "ehi": 22.0,
+    "flavor": "longcon",
+    "need": "ice"
+   }
   },
   {
    "n": 48,
-   "w": 5,
-   "h": 6,
-   "tier": "medium",
-   "flavor": "restock",
    "title": "Low Tide",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    1,
-    3
+   "flavor": "restock",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "ice",
+    "pick"
    ],
    "need": [
     "ice",
     "pickup"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "imax": 3,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "restock",
+    "need": "ice,pickup"
+   }
   },
   {
    "n": 49,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "twin",
    "title": "Fish Market",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "overlap_max": 0.7,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    0,
-    3
+   "flavor": "twodoor",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "br",
+    "ice",
+    "pick"
    ],
    "need": [
-    "pickup"
-   ]
+    "ice"
+   ],
+   "band": [
+    1.9,
+    3.3
+   ],
+   "w": 5,
+   "h": 7,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 0,
+    "imax": 3,
+    "w": 5,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "twodoor",
+    "need": "ice"
+   }
   },
   {
    "n": 50,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "sorter",
    "title": "Lighthouse Keeper",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    0,
-    3
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "ice",
+    "pick"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    7.0,
+    11.0
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 1,
+    "imax": 3,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.0,
+    "pehi": 11.0,
+    "pnmin": 70,
+    "pfmax": 0.03,
+    "ehi": 21.0,
+    "flavor": "decoy",
+    "need": "pickup"
+   }
   },
   {
    "n": 51,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Seagulls",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "late": 0.1,
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    0,
-    3
-   ],
-   "need": [
-    "pickup"
-   ]
-  },
-  {
-   "n": 52,
-   "w": 6,
-   "h": 7,
+   "flavor": "longcon",
    "tier": "medium",
-   "flavor": "twodoor",
-   "title": "Ferry Crossing",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    0,
-    3
-   ],
-   "need": [
-    "pickup"
-   ]
-  },
-  {
-   "n": 53,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "knot",
-   "title": "Storm Surge",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    30,
-    65
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.2,
-    7.8
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    1,
-    3
+   "who": 1,
+   "mech": [
+    "ice",
+    "pick"
    ],
    "need": [
     "ice",
     "pickup"
    ],
-   "challenge": true
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "imax": 3,
+    "w": 6,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "longcon",
+    "need": "ice,pickup"
+   }
   },
   {
-   "n": 54,
-   "w": 6,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "freerun",
-   "title": "Same Street, Again",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "ice": [
-    0,
-    3
+   "n": 52,
+   "title": "Ferry Crossing",
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "br",
+    "ice",
+    "pick"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 1,
+    "imax": 3,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "twodoor",
+    "need": "pickup"
+   }
+  },
+  {
+   "n": 53,
+   "title": "Same Street, Again",
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "br",
+    "ice",
+    "pick"
+   ],
+   "need": [
+    "ice"
+   ],
+   "band": [
+    1.9,
+    3.3
+   ],
+   "w": 5,
+   "h": 7,
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 0,
+    "imax": 3,
+    "rmin": 2,
+    "w": 5,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "breather",
+    "need": "ice"
+   }
+  },
+  {
+   "n": 54,
+   "title": "Storm Surge",
+   "flavor": "knot",
+   "tier": "hard",
+   "who": 1,
+   "challenge": true,
+   "mech": [
+    "br",
+    "ice",
+    "pick"
+   ],
+   "need": [
+    "ice",
+    "pickup"
+   ],
+   "band": [
+    8.5,
+    12.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "One long winding drive; don't box yourself in",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.78,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 1,
+    "imax": 3,
+    "w": 7,
+    "h": 9,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.5,
+    "pehi": 12.5,
+    "pnmin": 90,
+    "pfmax": 0.03,
+    "ehi": 22.0,
+    "flavor": "knot",
+    "need": "ice,pickup"
+   }
   },
   {
    "n": 55,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Any Colour",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "1w",
+    "lock"
    ],
    "need": [
     "locker"
    ],
-   "intro": "locker"
+   "band": [
+    0.8,
+    2.2
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "amax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 0.8,
+    "pehi": 2.2,
+    "pnmin": 10,
+    "pfmax": 0.55,
+    "ehi": 3.5,
+    "need": "locker"
+   }
   },
   {
    "n": 56,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "dump",
    "title": "Arcade",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
+   "flavor": "dump",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "gate",
+    "lock"
    ],
    "need": [
     "locker"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "A locker takes a package a house wanted: choose which",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "gmax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "dump",
+    "need": "locker"
+   }
   },
   {
    "n": 57,
-   "w": 6,
-   "h": 8,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Night Owls",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "late": 0.1,
-   "oneway": [
-    0,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
+   "flavor": "twodoor",
+   "tier": "melter",
+   "who": 1,
+   "mech": [
+    "lock"
    ],
    "need": [
     "locker"
-   ]
+   ],
+   "band": [
+    7.0,
+    11.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.0,
+    "pehi": 11.0,
+    "pnmin": 70,
+    "pfmax": 0.03,
+    "ehi": 21.0,
+    "flavor": "twodoor",
+    "need": "locker"
+   }
   },
   {
    "n": 58,
-   "w": 6,
+   "title": "Last Train",
+   "flavor": "dump",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "1w",
+    "gate",
+    "lock"
+   ],
+   "need": [
+    "locker"
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
    "h": 8,
-   "tier": "hard",
-   "flavor": "districts",
+   "asks": "A locker takes a package a house wanted: choose which",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "gmax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 7,
+    "h": 8,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "dump",
+    "need": "locker"
+   }
+  },
+  {
+   "n": 59,
+   "title": "Vending Machine",
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 1,
+   "mech": [
+    "gate",
+    "lock"
+   ],
+   "need": [
+    "locker"
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "gmax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "twodoor",
+    "need": "locker"
+   }
+  },
+  {
+   "n": 60,
+   "title": "Karaoke",
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 1,
+   "mech": [
+    "1w",
+    "gate",
+    "lock"
+   ],
+   "need": [
+    "locker"
+   ],
+   "band": [
+    1.9,
+    3.3
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "amax": 2,
+    "gmax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "rmin": 2,
+    "w": 6,
+    "h": 7,
+    "who": 1,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "breather",
+    "need": "locker"
+   }
+  },
+  {
+   "n": 61,
    "title": "Neon Nightmare",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.2,
-    7.8
-   ],
-   "districts": 2,
-   "doors": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "gate": [
-    1,
-    2
-   ],
-   "lockers": [
-    1,
-    2
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "gate",
+    "lock"
    ],
    "need": [
     "gate",
     "locker"
    ],
-   "challenge": true
-  },
-  {
-   "n": 59,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "twodoor",
-   "title": "Vending Machine",
-   "houses": [
-    4,
-    6
+   "band": [
+    8.5,
+    12.5
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "gate": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 60,
-   "w": 6,
+   "w": 7,
    "h": 8,
-   "tier": "easy",
-   "flavor": "freerun",
-   "title": "Karaoke",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "oneway": [
-    0,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 61,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "dump",
-   "title": "Last Train",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.2,
-    7.8
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "gmax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.5,
+    "pehi": 12.5,
+    "pnmin": 90,
+    "pfmax": 0.03,
+    "ehi": 22.0,
+    "flavor": "gauntlet",
+    "need": "gate,locker"
+   }
   },
   {
    "n": 62,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "decoy",
    "title": "Apple Cart",
-   "houses": [
-    4,
-    6
+   "flavor": "decoy",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "lock",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
    "need": [
     "locker"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "lmax": 2,
+    "lmin": 1,
+    "ret": 1,
+    "w": 6,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "decoy",
+    "need": "locker"
+   }
   },
   {
    "n": 63,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "sorter",
    "title": "Cider Run",
-   "houses": [
-    4,
-    6
+   "flavor": "restock",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "pick",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    7.0,
+    11.0
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 1,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 7.0,
+    "pehi": 11.0,
+    "pnmin": 70,
+    "pfmax": 0.03,
+    "ehi": 21.0,
+    "flavor": "restock",
+    "need": "pickup"
+   }
   },
   {
    "n": 64,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "twin",
    "title": "Scarecrow",
-   "houses": [
-    4,
-    6
+   "flavor": "twin",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "lock",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "overlap_max": 0.7,
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
    "need": [
     "locker"
-   ]
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Two different answers",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 4,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "lmax": 2,
+    "lmin": 1,
+    "ret": 1,
+    "rmin": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "twin",
+    "need": "locker"
+   }
   },
   {
    "n": 65,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Hay Bales",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.4,
-    3.8
-   ],
-   "late": 0.1,
-   "shops": [
-    1,
-    2
-   ],
-   "lockers": [
-    1,
-    2
+   "flavor": "decoy",
+   "tier": "easy",
+   "who": 2,
+   "mech": [
+    "lock",
+    "pick"
    ],
    "need": [
-    "pickup"
-   ]
+    "locker"
+   ],
+   "band": [
+    1.9,
+    3.3
+   ],
+   "w": 5,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "smax": 2,
+    "smin": 0,
+    "lmax": 2,
+    "lmin": 1,
+    "w": 5,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.9,
+    "pehi": 3.3,
+    "pnmin": 18,
+    "pfmax": 0.33,
+    "ehi": 4.6,
+    "flavor": "decoy",
+    "need": "locker"
+   }
   },
   {
    "n": 66,
+   "title": "Pumpkin Patch",
+   "flavor": "restock",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "lock",
+    "pick",
+    "R"
+   ],
+   "need": [
+    "locker",
+    "pickup"
+   ],
+   "band": [
+    4.4,
+    6.6
+   ],
    "w": 6,
    "h": 8,
-   "tier": "medium",
-   "flavor": "restock",
-   "title": "Pumpkin Patch",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
-   "need": [
-    "pickup"
-   ]
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "lmax": 2,
+    "lmin": 1,
+    "ret": 1,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "restock",
+    "need": "locker,pickup"
+   }
   },
   {
    "n": 67,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "dump",
-   "title": "Harvest Moon",
-   "houses": [
-    5,
-    7
+   "title": "No Return Address",
+   "flavor": "knot",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "lock",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.2,
-    7.8
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
    "need": [
     "locker"
    ],
-   "challenge": true
+   "band": [
+    4.4,
+    6.6
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "One long winding drive; don't box yourself in",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.78,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "lmax": 2,
+    "lmin": 1,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 4.4,
+    "pehi": 6.6,
+    "pnmin": 44,
+    "pfmax": 0.12,
+    "ehi": 13.0,
+    "flavor": "knot",
+    "need": "locker"
+   }
   },
   {
    "n": 68,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "knot",
-   "title": "No Return Address",
-   "houses": [
-    4,
-    6
+   "title": "Harvest Moon",
+   "flavor": "dump",
+   "tier": "hard",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "lock",
+    "pick",
+    "R"
    ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    30,
-    65
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.2,
-    6.0
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "lockers": [
-    1,
-    2
-   ],
-   "ret": true,
    "need": [
     "locker"
-   ]
+   ],
+   "band": [
+    8.5,
+    12.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "A locker takes a package a house wanted: choose which",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "lmax": 2,
+    "lmin": 1,
+    "ret": 1,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.5,
+    "pehi": 12.5,
+    "pnmin": 90,
+    "pfmax": 0.03,
+    "ehi": 22.0,
+    "flavor": "dump",
+    "need": "locker"
+   }
   },
   {
    "n": 69,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "intro",
    "title": "Men at Work",
-   "houses": [
-    2,
-    4
-   ],
-   "colors": 3,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 800,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 8,
-   "cover_min": 0.45,
-   "diff": [
-    0.5,
-    3.6
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "flavor": "intro",
+   "tier": "easy",
+   "who": 2,
+   "mech": [
+    "1w",
+    "works"
    ],
    "need": [
     "works"
    ],
-   "intro": "works"
+   "band": [
+    1.0,
+    2.4
+   ],
+   "w": 5,
+   "h": 6,
+   "asks": "Introduces a rule, gently",
+   "args": {
+    "hmin": 3,
+    "hmax": 4,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 3,
+    "pkmax": 5,
+    "rmax": 2,
+    "len_min": 9,
+    "cover_min": 0.6,
+    "nodes_max": 1200,
+    "qmax": 7,
+    "secs": 12,
+    "amax": 2,
+    "wmax": 2,
+    "w": 5,
+    "h": 6,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 1.0,
+    "pehi": 2.4,
+    "pnmin": 12,
+    "pfmax": 0.5,
+    "ehi": 3.5,
+    "need": "works"
+   }
   },
   {
    "n": 70,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "districts",
    "title": "Diversion",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "districts": 2,
-   "doors": 1,
-   "hub": [
-    0,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "flavor": "longcon",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "hub",
+    "works"
    ],
    "need": [
     "works"
-   ]
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "umax": 2,
+    "wmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "longcon",
+    "need": "works"
+   }
   },
   {
    "n": 71,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "sorter",
    "title": "Rush Hour, Again",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "hub": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "works"
    ],
    "need": [
-    "hub"
-   ]
+    "works"
+   ],
+   "band": [
+    8.0,
+    12.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "wmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.0,
+    "pehi": 12.5,
+    "pnmin": 85,
+    "pfmax": 0.02,
+    "ehi": 23.0,
+    "flavor": "decoy",
+    "need": "works"
+   }
   },
   {
    "n": 72,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "decoy",
    "title": "Traffic Cone",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "flavor": "sorter",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "1w",
+    "hub",
+    "works"
    ],
    "need": [
+    "hub",
     "works"
-   ]
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The hub decides the order: choose when to cross it",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "umax": 2,
+    "wmax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "sorter",
+    "need": "hub,works"
+   }
   },
   {
    "n": 73,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "longcon",
-   "title": "Gridlock Deluxe",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.6,
-    8.2
-   ],
-   "doom_min": 7,
-   "oneway": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "title": "The Other Van",
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "1w",
+    "hub",
+    "works"
    ],
    "need": [
     "works"
    ],
-   "challenge": true
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "amax": 2,
+    "umax": 2,
+    "wmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "twodoor",
+    "need": "works"
+   }
   },
   {
    "n": 74,
+   "title": "Lunch Break",
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 2,
+   "mech": [
+    "hub",
+    "works"
+   ],
+   "need": [
+    "works"
+   ],
+   "band": [
+    2.1,
+    3.6
+   ],
    "w": 6,
    "h": 7,
-   "tier": "easy",
-   "flavor": "freerun",
-   "title": "Lunch Break",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.6,
-    4.0
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "hub": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": []
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "umax": 2,
+    "wmax": 2,
+    "rmin": 2,
+    "w": 6,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 2.1,
+    "pehi": 3.6,
+    "pnmin": 20,
+    "pfmax": 0.3,
+    "ehi": 5.0,
+    "flavor": "breather",
+    "need": "works"
+   }
   },
   {
    "n": 75,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "twodoor",
-   "title": "The Other Van",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "title": "Gridlock Deluxe",
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "hub",
+    "works"
    ],
    "need": [
     "works"
-   ]
+   ],
+   "band": [
+    9.5,
+    14.0
+   ],
+   "w": 8,
+   "h": 9,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "amax": 2,
+    "umax": 2,
+    "wmax": 2,
+    "w": 8,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 9.5,
+    "pehi": 14.0,
+    "pnmin": 110,
+    "pfmax": 0.03,
+    "ehi": 24.0,
+    "flavor": "gauntlet",
+    "need": "works"
+   }
   },
   {
    "n": 76,
-   "w": 5,
-   "h": 6,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Dust Devil",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.6,
-    4.0
-   ],
-   "late": 0.1,
-   "ice": [
-    1,
-    3
-   ],
-   "works": [
-    1,
-    2
-   ],
-   "need": [
-    "ice",
-    "works"
-   ]
-  },
-  {
-   "n": 77,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "dump",
-   "title": "Flash Flood",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "ice": [
-    0,
-    3
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 78,
-   "w": 5,
-   "h": 6,
-   "tier": "medium",
-   "flavor": "twin",
-   "title": "Tumbleweed",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "overlap_max": 0.7,
-   "works": [
-    1,
-    2
-   ],
-   "need": [
-    "works"
-   ]
-  },
-  {
-   "n": 79,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "districts",
-   "title": "Cactus Mail",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "districts": 2,
-   "doors": 2,
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    1,
-    2
-   ],
-   "need": [
-    "works"
-   ]
-  },
-  {
-   "n": 80,
-   "w": 6,
-   "h": 8,
-   "tier": "medium",
    "flavor": "decoy",
-   "title": "Lightning Rod",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "ice": [
-    0,
-    3
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 81,
-   "w": 6,
-   "h": 7,
    "tier": "easy",
-   "flavor": "freerun",
-   "title": "Siesta",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 6,
-   "plans": [
-    3,
-    14
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.6,
-    4.0
-   ],
-   "routes_max": 58,
-   "late": 0.15,
-   "bits_max": 3.2,
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 82,
-   "w": 6,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "knot",
-   "title": "Mirage",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    30,
-    65
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.6,
-    8.2
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "ice": [
-    0,
-    3
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "locker"
-   ]
-  },
-  {
-   "n": 83,
-   "w": 7,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "longcon",
-   "title": "Thunderclap",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.6,
-    8.2
-   ],
-   "doom_min": 7,
-   "ice": [
-    1,
-    3
-   ],
-   "lockers": [
-    1,
-    2
-   ],
-   "works": [
-    1,
-    2
+   "who": 2,
+   "mech": [
+    "ice",
+    "lock",
+    "works"
    ],
    "need": [
     "ice",
     "locker",
     "works"
    ],
-   "challenge": true
+   "band": [
+    2.1,
+    3.6
+   ],
+   "w": 6,
+   "h": 7,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "imax": 3,
+    "lmax": 2,
+    "lmin": 1,
+    "wmax": 2,
+    "w": 6,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 2.1,
+    "pehi": 3.6,
+    "pnmin": 20,
+    "pfmax": 0.3,
+    "ehi": 5.0,
+    "flavor": "decoy",
+    "need": "ice,locker,works"
+   }
+  },
+  {
+   "n": 77,
+   "title": "Flash Flood",
+   "flavor": "dump",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "ice",
+    "lock",
+    "works"
+   ],
+   "need": [
+    "locker",
+    "works"
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "A locker takes a package a house wanted: choose which",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "imax": 3,
+    "lmax": 2,
+    "lmin": 1,
+    "wmax": 2,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "dump",
+    "need": "locker,works"
+   }
+  },
+  {
+   "n": 78,
+   "title": "Tumbleweed",
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "works",
+    "hub",
+    "lock"
+   ],
+   "need": [
+    "locker"
+   ],
+   "band": [
+    8.0,
+    12.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "umax": 2,
+    "lmax": 2,
+    "lmin": 1,
+    "wmax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.0,
+    "pehi": 12.5,
+    "pnmin": 85,
+    "pfmax": 0.02,
+    "ehi": 23.0,
+    "flavor": "decoy",
+    "need": "locker"
+   }
+  },
+  {
+   "n": 79,
+   "title": "Cactus Mail",
+   "flavor": "twodoor",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "lock",
+    "works"
+   ],
+   "need": [
+    "works"
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "lmax": 2,
+    "lmin": 0,
+    "wmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "twodoor",
+    "need": "works"
+   }
+  },
+  {
+   "n": 80,
+   "title": "Lightning Rod",
+   "flavor": "decoy",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "ice",
+    "lock",
+    "works"
+   ],
+   "need": [
+    "works"
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "imax": 3,
+    "lmax": 2,
+    "lmin": 0,
+    "wmax": 2,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "decoy",
+    "need": "works"
+   }
+  },
+  {
+   "n": 81,
+   "title": "Siesta",
+   "flavor": "breather",
+   "tier": "easy",
+   "who": 2,
+   "mech": [
+    "lock",
+    "works"
+   ],
+   "need": [
+    "works"
+   ],
+   "band": [
+    2.1,
+    3.6
+   ],
+   "w": 5,
+   "h": 7,
+   "asks": "A breather: a couple of ways to win, and one way to lose",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 6,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "lmax": 2,
+    "lmin": 0,
+    "wmax": 2,
+    "rmin": 2,
+    "w": 5,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 2.1,
+    "pehi": 3.6,
+    "pnmin": 20,
+    "pfmax": 0.3,
+    "ehi": 5.0,
+    "flavor": "breather",
+    "need": "works"
+   }
+  },
+  {
+   "n": 82,
+   "title": "Mirage",
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "ice",
+    "lock"
+   ],
+   "need": [
+    "ice"
+   ],
+   "band": [
+    8.0,
+    12.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "imax": 3,
+    "lmax": 2,
+    "lmin": 0,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.0,
+    "pehi": 12.5,
+    "pnmin": 85,
+    "pfmax": 0.02,
+    "ehi": 23.0,
+    "flavor": "decoy",
+    "need": "ice"
+   }
+  },
+  {
+   "n": 83,
+   "title": "Thunderclap",
+   "flavor": "longcon",
+   "tier": "hard",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "ice",
+    "lock",
+    "works"
+   ],
+   "need": [
+    "ice",
+    "locker",
+    "works"
+   ],
+   "band": [
+    9.5,
+    14.0
+   ],
+   "w": 8,
+   "h": 9,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "imax": 3,
+    "lmax": 2,
+    "lmin": 1,
+    "wmax": 2,
+    "w": 8,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 9.5,
+    "pehi": 14.0,
+    "pnmin": 110,
+    "pfmax": 0.03,
+    "ehi": 24.0,
+    "flavor": "longcon",
+    "need": "ice,locker,works"
+   }
   },
   {
    "n": 84,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "restock",
    "title": "Cloud Nine",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
+   "flavor": "restock",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "gate",
+    "pick",
+    "works"
    ],
    "need": [
+    "gate",
     "pickup"
-   ]
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "Fetch the pickup when you want it on top, not before",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "gmax": 2,
+    "wmax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "restock",
+    "need": "gate,pickup"
+   }
   },
   {
    "n": 85,
-   "w": 7,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "twodoor",
    "title": "Penthouse",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
+   "flavor": "longcon",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "gate",
+    "pick",
+    "works"
    ],
    "need": [
     "pickup"
-   ]
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 8,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 1,
+    "gmax": 2,
+    "wmax": 2,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "longcon",
+    "need": "pickup"
+   }
   },
   {
    "n": 86,
-   "w": 7,
-   "h": 8,
-   "tier": "medium",
-   "flavor": "hoard",
    "title": "Crane Lift",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "stock": 4,
-   "max_order": 4,
-   "load_min": 8,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    2,
-    4
-   ],
-   "multi": [
-    3,
-    8
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
+   "flavor": "hoard",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "br",
+    "gate",
+    "wh",
+    "works"
    ],
    "need": [
+    "gate",
     "warehouse"
-   ]
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "Make room before the warehouse",
+   "args": {
+    "hmin": 4,
+    "hmax": 6,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 9,
+    "pkmax": 14,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 10,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smin": 1,
+    "smax": 2,
+    "stock": 4,
+    "maxorder": 4,
+    "bmax": 1,
+    "gmax": 2,
+    "wmax": 2,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "hoard",
+    "need": "gate,warehouse"
+   }
   },
   {
    "n": 87,
-   "w": 6,
-   "h": 7,
-   "tier": "easy",
-   "flavor": "fork",
    "title": "Thin Air",
-   "houses": [
-    3,
-    5
-   ],
-   "colors": 3,
-   "free_min": 4,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 1500,
-   "loops": [
-    55,
-    85
-   ],
-   "len_min": 11,
-   "cover_min": 0.45,
-   "diff": [
-    2.6,
-    4.0
-   ],
-   "late": 0.1,
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "pickup"
-   ]
-  },
-  {
-   "n": 88,
-   "w": 7,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "sorter",
-   "title": "Window Washer",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.6,
-    8.2
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "pickup"
-   ]
-  },
-  {
-   "n": 89,
-   "w": 6,
-   "h": 7,
-   "tier": "medium",
-   "flavor": "twin",
-   "title": "Mile Zero",
-   "houses": [
-    4,
-    6
-   ],
-   "colors": 4,
-   "free_min": 6,
-   "plans": [
-    2,
-    2
-   ],
-   "nodes_max": 3000,
-   "loops": [
-    65,
-    95
-   ],
-   "len_min": 13,
-   "cover_min": 0.45,
-   "diff": [
-    4.6,
-    6.4
-   ],
-   "overlap_max": 0.7,
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "works": [
-    0,
-    2
-   ],
-   "need": [
-    "pickup"
-   ]
-  },
-  {
-   "n": 90,
-   "w": 7,
-   "h": 8,
-   "tier": "hard",
-   "flavor": "districts",
-   "title": "Top of the World",
-   "houses": [
-    5,
-    7
-   ],
-   "colors": 4,
-   "free_min": 10,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 5000,
-   "loops": [
-    70,
-    100
-   ],
-   "len_min": 16,
-   "cover_min": 0.5,
-   "diff": [
-    6.6,
-    8.2
-   ],
-   "districts": 2,
-   "doors": 2,
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    1,
-    2
-   ],
-   "works": [
-    0,
-    2
+   "flavor": "twodoor",
+   "tier": "easy",
+   "who": 2,
+   "mech": [
+    "gate",
+    "pick",
+    "works"
    ],
    "need": [
     "gate"
    ],
-   "challenge": true
+   "band": [
+    2.1,
+    3.6
+   ],
+   "w": 5,
+   "h": 7,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 4,
+    "hmax": 5,
+    "ncol": 3,
+    "colmin": 2,
+    "pkmin": 4,
+    "pkmax": 6,
+    "rmax": 2,
+    "len_min": 11,
+    "cover_min": 0.6,
+    "nodes_max": 1500,
+    "qmax": 7,
+    "mono": 0.6,
+    "pickmin": 1,
+    "secs": 20,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "wmax": 2,
+    "w": 5,
+    "h": 7,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 2.1,
+    "pehi": 3.6,
+    "pnmin": 20,
+    "pfmax": 0.3,
+    "ehi": 5.0,
+    "flavor": "twodoor",
+    "need": "gate"
+   }
+  },
+  {
+   "n": 88,
+   "title": "Window Washer",
+   "flavor": "decoy",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "gate",
+    "pick",
+    "hub"
+   ],
+   "need": [
+    "gate"
+   ],
+   "band": [
+    8.0,
+    12.5
+   ],
+   "w": 6,
+   "h": 8,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "umax": 2,
+    "w": 6,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 8.0,
+    "pehi": 12.5,
+    "pnmin": 85,
+    "pfmax": 0.02,
+    "ehi": 23.0,
+    "flavor": "decoy",
+    "need": "gate"
+   }
+  },
+  {
+   "n": 89,
+   "title": "Mile Zero",
+   "flavor": "twin",
+   "tier": "medium",
+   "who": 2,
+   "mech": [
+    "gate",
+    "pick",
+    "works"
+   ],
+   "need": [
+    "works"
+   ],
+   "band": [
+    5.0,
+    7.5
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "Two different answers",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 5,
+    "pkmax": 8,
+    "rmax": 4,
+    "len_min": 15,
+    "cover_min": 0.65,
+    "nodes_max": 2500,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 2,
+    "pickmin": 3,
+    "secs": 45,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "wmax": 2,
+    "rmin": 2,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 5.0,
+    "pehi": 7.5,
+    "pnmin": 52,
+    "pfmax": 0.1,
+    "ehi": 14.0,
+    "flavor": "twin",
+    "need": "works"
+   }
+  },
+  {
+   "n": 90,
+   "title": "Top of the World",
+   "flavor": "gauntlet",
+   "tier": "hard",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "br",
+    "gate",
+    "pick",
+    "works"
+   ],
+   "need": [
+    "gate"
+   ],
+   "band": [
+    9.5,
+    14.0
+   ],
+   "w": 7,
+   "h": 9,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 6,
+    "hmax": 8,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 7,
+    "pkmax": 10,
+    "rmax": 1,
+    "len_min": 19,
+    "cover_min": 0.65,
+    "nodes_max": 4000,
+    "qmax": 10,
+    "mono": 0.45,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 4,
+    "secs": 80,
+    "bmax": 1,
+    "smax": 2,
+    "smin": 0,
+    "gmax": 2,
+    "wmax": 2,
+    "w": 7,
+    "h": 9,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 9.5,
+    "pehi": 14.0,
+    "pnmin": 110,
+    "pfmax": 0.03,
+    "ehi": 24.0,
+    "flavor": "gauntlet",
+    "need": "gate"
+   }
   },
   {
    "n": 91,
-   "w": 9,
-   "h": 11,
-   "tier": "end",
-   "flavor": "decoy",
    "title": "Needle in a Haystack",
-   "houses": [
-    7,
-    10
-   ],
-   "colors": 5,
-   "free_min": 12,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    7.4,
-    8.4
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "shops": [
-    1,
-    2
+   "flavor": "decoy",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "pick"
    ],
    "need": [
     "pickup"
    ],
-   "repaints": 6
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 8,
+   "h": 12,
+   "asks": "The obvious first stop is the wrong one",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 5,
+    "colmin": 4,
+    "pkmin": 10,
+    "pkmax": 14,
+    "rmax": 1,
+    "len_min": 30,
+    "cover_min": 0.55,
+    "nodes_max": 8000,
+    "qmax": 14,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 130,
+    "amax": 3,
+    "smax": 3,
+    "smin": 1,
+    "w": 8,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "decoy",
+    "need": "pickup"
+   }
   },
   {
    "n": 92,
-   "w": 8,
-   "h": 12,
-   "tier": "end",
-   "flavor": "knot",
    "title": "Last Orders",
-   "houses": [
-    7,
-    10
+   "flavor": "longcon",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "br",
+    "hub",
+    "pick",
+    "R"
    ],
-   "colors": 5,
-   "free_min": 2,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    30,
-    65
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    7.4,
-    8.4
-   ],
-   "ext": [
-    0,
-    1
-   ],
-   "late": 0.15,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "ret": true,
    "need": [
     "pickup"
    ],
-   "repaints": 6
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 9,
+   "h": 11,
+   "asks": "An early, innocent turn decides the ending",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 5,
+    "colmin": 4,
+    "pkmin": 10,
+    "pkmax": 14,
+    "rmax": 1,
+    "len_min": 30,
+    "cover_min": 0.55,
+    "nodes_max": 8000,
+    "qmax": 14,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 130,
+    "amax": 3,
+    "bmax": 1,
+    "smax": 3,
+    "smin": 1,
+    "umax": 2,
+    "ret": 1,
+    "w": 9,
+    "h": 11,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "longcon",
+    "need": "pickup"
+   }
   },
   {
    "n": 93,
-   "w": 8,
-   "h": 12,
-   "tier": "end",
-   "flavor": "districts",
    "title": "The Long Way Round",
-   "houses": [
-    7,
-    10
+   "flavor": "twodoor",
+   "tier": "melter",
+   "who": 2,
+   "mech": [
+    "pick",
+    "R"
    ],
-   "colors": 5,
-   "free_min": 12,
-   "plans": [
-    1,
-    2
+   "need": [],
+   "band": [
+    10.0,
+    14.0
    ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    7.6,
-    8.6
-   ],
-   "districts": 3,
-   "doors": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "ret": true,
-   "need": [
-    "pickup"
-   ],
-   "repaints": 6
+   "w": 7,
+   "h": 8,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 5,
+    "hmax": 7,
+    "ncol": 3,
+    "colmin": 3,
+    "pkmin": 6,
+    "pkmax": 8,
+    "rmax": 1,
+    "len_min": 15,
+    "cover_min": 0.6,
+    "nodes_max": 3000,
+    "qmax": 9,
+    "mono": 0.5,
+    "d1max": 1,
+    "open_end": 1,
+    "pickmin": 3,
+    "melter": 1,
+    "secs": 80,
+    "smax": 2,
+    "smin": 0,
+    "ret": 1,
+    "w": 7,
+    "h": 8,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 10.0,
+    "pehi": 14.0,
+    "pnmin": 110,
+    "pfmax": 0.02,
+    "ehi": 24.0,
+    "flavor": "twodoor"
+   }
   },
   {
    "n": 94,
-   "w": 8,
-   "h": 11,
-   "tier": "end",
-   "flavor": "sorter",
    "title": "Night Freight",
-   "houses": [
-    7,
-    10
-   ],
-   "colors": 5,
-   "free_min": 12,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    8.0,
-    9.0
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    1,
-    2
+   "flavor": "sorter",
+   "tier": "end",
+   "who": 2,
+   "gift": "deep_field",
+   "mech": [
+    "1w",
+    "gate",
+    "hub",
+    "pick"
    ],
    "need": [
     "hub"
    ],
-   "repaints": 6,
-   "gift": "deep_field"
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 8,
+   "h": 12,
+   "asks": "The hub decides the order: choose when to cross it",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 5,
+    "colmin": 4,
+    "pkmin": 10,
+    "pkmax": 14,
+    "rmax": 1,
+    "len_min": 30,
+    "cover_min": 0.55,
+    "nodes_max": 8000,
+    "qmax": 14,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 130,
+    "amax": 3,
+    "smax": 3,
+    "smin": 0,
+    "gmax": 2,
+    "umax": 2,
+    "w": 8,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "sorter",
+    "need": "hub",
+    "gift": 1
+   }
   },
   {
    "n": 95,
-   "w": 8,
-   "h": 12,
-   "tier": "end",
-   "flavor": "longcon",
    "title": "Grand Tour",
-   "houses": [
-    7,
-    10
+   "flavor": "gauntlet",
+   "tier": "end",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "br",
+    "gate",
+    "hub",
+    "pick",
+    "xN",
+    "R"
    ],
-   "colors": 5,
-   "free_min": 12,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    8.6,
-    9.6
-   ],
-   "doom_min": 7,
-   "oneway": [
-    0,
-    2
-   ],
-   "bridge": [
-    1,
-    1
-   ],
-   "multi": [
-    1,
-    3
-   ],
-   "shops": [
-    1,
-    2
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
-   ],
-   "ret": true,
    "need": [
     "pickup"
    ],
-   "repaints": 6,
-   "challenge": true
+   "band": [
+    14.0,
+    22.0
+   ],
+   "w": 9,
+   "h": 11,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 5,
+    "colmin": 4,
+    "pkmin": 10,
+    "pkmax": 16,
+    "rmax": 1,
+    "len_min": 30,
+    "cover_min": 0.55,
+    "nodes_max": 8000,
+    "qmax": 14,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 130,
+    "amax": 3,
+    "bmax": 1,
+    "maxorder": 3,
+    "smax": 3,
+    "smin": 1,
+    "gmax": 2,
+    "umax": 2,
+    "ret": 1,
+    "w": 9,
+    "h": 11,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 14.0,
+    "pehi": 22.0,
+    "pnmin": 240,
+    "pfmax": 0.01,
+    "ehi": 38.0,
+    "flavor": "gauntlet",
+    "need": "pickup"
+   }
   },
   {
    "n": 96,
-   "w": 9,
-   "h": 12,
-   "tier": "end",
-   "flavor": "hoard",
    "title": "Bulk Order",
-   "houses": [
-    8,
-    11
-   ],
-   "colors": 4,
-   "free_min": 12,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    7.8,
-    8.8
-   ],
-   "stock": 5,
-   "max_order": 4,
-   "load_min": 8,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    14,
-    22
-   ],
-   "shops": [
-    4,
-    6
-   ],
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
+   "flavor": "hoard",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "gate",
+    "hub",
+    "wh",
+    "xN"
    ],
    "need": [
     "warehouse"
    ],
-   "repaints": 6,
-   "minpkg": 25
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 9,
+   "h": 12,
+   "asks": "Make room before the warehouse",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 25,
+    "pkmax": 34,
+    "rmax": 2,
+    "len_min": 34,
+    "cover_min": 0.55,
+    "nodes_max": 9000,
+    "qmax": 16,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 180,
+    "smin": 4,
+    "smax": 6,
+    "stock": 5,
+    "maxorder": 4,
+    "amax": 3,
+    "gmax": 2,
+    "umax": 2,
+    "w": 9,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "hoard",
+    "need": "warehouse"
+   }
   },
   {
    "n": 97,
-   "w": 9,
-   "h": 11,
-   "tier": "end",
-   "flavor": "districts",
    "title": "Peak Season",
-   "houses": [
-    8,
-    11
-   ],
-   "colors": 4,
-   "free_min": 12,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    7.8,
-    8.8
-   ],
-   "districts": 2,
-   "doors": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    14,
-    22
-   ],
-   "shops": [
-    4,
-    6
-   ],
-   "stock": 5,
-   "max_order": 4,
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
+   "flavor": "gauntlet",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "gate",
+    "hub",
+    "wh",
+    "xN"
    ],
    "need": [
     "warehouse"
    ],
-   "repaints": 6,
-   "minpkg": 25
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 9,
+   "h": 12,
+   "asks": "One trap after another, all the way along",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 25,
+    "pkmax": 34,
+    "rmax": 2,
+    "len_min": 34,
+    "cover_min": 0.55,
+    "nodes_max": 9000,
+    "qmax": 16,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 180,
+    "smin": 4,
+    "smax": 6,
+    "stock": 5,
+    "maxorder": 4,
+    "amax": 3,
+    "gmax": 2,
+    "umax": 2,
+    "w": 9,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "gauntlet",
+    "need": "warehouse"
+   }
   },
   {
    "n": 98,
-   "w": 9,
-   "h": 11,
-   "tier": "end",
-   "flavor": "twodoor",
    "title": "Overstock",
-   "houses": [
-    8,
-    11
-   ],
-   "colors": 4,
-   "free_min": 12,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    8.2,
-    9.2
-   ],
-   "late": 0.65,
-   "ext": [
-    3,
-    7
-   ],
-   "two_door": 3.0,
-   "late_min": 2,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    14,
-    22
-   ],
-   "shops": [
-    4,
-    6
-   ],
-   "stock": 5,
-   "max_order": 4,
-   "gate": [
-    0,
-    2
+   "flavor": "twodoor",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "gate",
+    "wh",
+    "xN"
    ],
    "need": [
     "warehouse"
    ],
-   "repaints": 6,
-   "minpkg": 25
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 9,
+   "h": 12,
+   "asks": "Drive past a house now, deliver from another street later",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 25,
+    "pkmax": 34,
+    "rmax": 2,
+    "len_min": 34,
+    "cover_min": 0.55,
+    "nodes_max": 9000,
+    "qmax": 16,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 180,
+    "smin": 4,
+    "smax": 6,
+    "stock": 5,
+    "maxorder": 4,
+    "amax": 3,
+    "gmax": 2,
+    "w": 9,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "twodoor",
+    "need": "warehouse"
+   }
   },
   {
    "n": 99,
-   "w": 8,
-   "h": 12,
-   "tier": "end",
-   "flavor": "sorter",
    "title": "Cyber Monday",
-   "houses": [
-    8,
-    11
-   ],
-   "colors": 4,
-   "free_min": 12,
-   "plans": [
-    1,
-    1
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    8.4,
-    9.4
-   ],
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    14,
-    22
-   ],
-   "shops": [
-    4,
-    6
-   ],
-   "stock": 5,
-   "max_order": 4,
-   "gate": [
-    0,
-    2
-   ],
-   "hub": [
-    0,
-    2
+   "flavor": "sorter",
+   "tier": "end",
+   "who": 2,
+   "mech": [
+    "1w",
+    "gate",
+    "hub",
+    "wh",
+    "xN"
    ],
    "need": [
+    "hub",
     "warehouse"
    ],
-   "repaints": 6,
-   "minpkg": 25
+   "band": [
+    12.0,
+    18.0
+   ],
+   "w": 9,
+   "h": 12,
+   "asks": "The hub decides the order: choose when to cross it",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 25,
+    "pkmax": 34,
+    "rmax": 2,
+    "len_min": 34,
+    "cover_min": 0.55,
+    "nodes_max": 9000,
+    "qmax": 16,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 180,
+    "smin": 4,
+    "smax": 6,
+    "stock": 5,
+    "maxorder": 4,
+    "amax": 3,
+    "gmax": 2,
+    "umax": 2,
+    "w": 9,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 12.0,
+    "pehi": 18.0,
+    "pnmin": 180,
+    "pfmax": 0.02,
+    "ehi": 32.0,
+    "flavor": "sorter",
+    "need": "hub,warehouse"
+   }
   },
   {
    "n": 100,
-   "w": 9,
-   "h": 12,
-   "tier": "end",
-   "flavor": "hoard",
    "title": "The Last Mile",
-   "houses": [
-    8,
-    11
-   ],
-   "colors": 4,
-   "free_min": 12,
-   "plans": [
-    1,
-    2
-   ],
-   "nodes_max": 8000,
-   "loops": [
-    65,
-    95
-   ],
-   "routes_max": 55,
-   "len_min": 26,
-   "cover_min": 0.45,
-   "diff": [
-    9.0,
-    10.0
-   ],
-   "stock": 5,
-   "max_order": 4,
-   "load_min": 8,
-   "oneway": [
-    0,
-    2
-   ],
-   "multi": [
-    14,
-    22
-   ],
-   "shops": [
-    4,
-    6
-   ],
-   "gate": [
-    0,
-    2
+   "flavor": "hoard",
+   "tier": "end",
+   "who": 2,
+   "challenge": true,
+   "mech": [
+    "1w",
+    "gate",
+    "hub",
+    "wh",
+    "xN"
    ],
    "need": [
     "warehouse"
    ],
-   "repaints": 6,
-   "challenge": true,
-   "minpkg": 25
+   "band": [
+    14.0,
+    22.0
+   ],
+   "w": 9,
+   "h": 12,
+   "asks": "Make room before the warehouse",
+   "args": {
+    "hmin": 8,
+    "hmax": 11,
+    "ncol": 4,
+    "colmin": 3,
+    "pkmin": 25,
+    "pkmax": 34,
+    "rmax": 2,
+    "len_min": 34,
+    "cover_min": 0.55,
+    "nodes_max": 9000,
+    "qmax": 16,
+    "mono": 0.4,
+    "d1max": 3,
+    "open_end": 1,
+    "pickmin": 5,
+    "secs": 180,
+    "smin": 4,
+    "smax": 6,
+    "stock": 5,
+    "maxorder": 4,
+    "amax": 3,
+    "gmax": 2,
+    "umax": 2,
+    "w": 9,
+    "h": 12,
+    "who": 2,
+    "elo": 0.3,
+    "fmax": 1.0,
+    "twmin": 0,
+    "pelo": 14.0,
+    "pehi": 22.0,
+    "pnmin": 240,
+    "pfmax": 0.01,
+    "ehi": 38.0,
+    "flavor": "hoard",
+    "need": "warehouse"
+   }
   }
- ]
+ ],
+ "asks": {
+  "intro": "Introduces a rule, gently",
+  "breather": "A breather: a couple of ways to win, and one way to lose",
+  "decoy": "The obvious first stop is the wrong one",
+  "twodoor": "Drive past a house now, deliver from another street later",
+  "longcon": "An early, innocent turn decides the ending",
+  "gauntlet": "One trap after another, all the way along",
+  "knot": "One long winding drive; don't box yourself in",
+  "dump": "A locker takes a package a house wanted: choose which",
+  "restock": "Fetch the pickup when you want it on top, not before",
+  "sorter": "The hub decides the order: choose when to cross it",
+  "twin": "Two different answers",
+  "hoard": "Make room before the warehouse"
+ }
 }

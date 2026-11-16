@@ -11,12 +11,12 @@ func _init() -> void:
 		["solved today first try", [[1, true]], 1],
 		["three days in a row", [[1, true], [2, true], [1, true]], 3],
 		["today with one redo still counts", [[1, true], [2, true]], 2],
-		["today with two redos doesn't", [[1, true], [3, true]], 0],
+		["today on the last try still counts", [[1, true], [6, true]], 2],
 		["yesterday's streak survives until today is played", [[1, true], [1, true], [0, false]], 2],
-		["one redo used today, not solved yet: still alive", [[1, true], [2, false]], 1],
-		["two redos used today: gone", [[1, true], [3, false]], 0],
+		["two redos used today, not solved yet: still alive", [[1, true], [3, false]], 1],
+		["every try used today, unsolved: gone", [[1, true], [6, false]], 0],
 		["a missed day breaks it", [[1, true], [0, false], [1, true]], 1],
-		["too many redos two days ago breaks it", [[1, true], [4, true], [1, true], [1, true]], 2],
+		["a day solved on its last try keeps it going", [[1, true], [6, true], [1, true], [1, true]], 4],
 	]
 	for c in cases:
 		var p = load("res://scripts/progress.gd").new()
@@ -28,7 +28,7 @@ func _init() -> void:
 			for a in days[i][0]:
 				p.daily_attempt(day)
 			if days[i][1]:
-				p.daily_done(day, 3, 30.0, [])
+				p.daily_done(day, 30.0, [])
 		var got: int = p.streak(today)
 		var ok: bool = got == c[2]
 		if not ok:

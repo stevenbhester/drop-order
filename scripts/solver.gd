@@ -14,6 +14,7 @@ extends RefCounted
 
 const REVISIT_CAP := 2
 
+var _blocked := {}      # tiles a search must keep off (solve_from's avoid)
 var L: LevelData
 var count := 0
 var shortest: Array = []
@@ -89,7 +90,7 @@ static func _reach(L: LevelData, route: Array, st: Dictionary, goal: Vector2i, d
 			continue
 		route.append(n)
 		var st2 := Sim.copy_state(st)
-		Sim.arrive(L, st2, n)
+		Sim.arrive(L, st2, n, route)
 		var got := _reach(L, route, st2, goal, depth - 1)
 		route.pop_back()
 		if not got.is_empty():
@@ -99,8 +100,20 @@ static func _reach(L: LevelData, route: Array, st: Dictionary, goal: Vector2i, d
 
 ## The shortest way to finish from where the player is now: the tiles from the van's tile onwards, or [] if
 ## there's no way to win from here. Used for hints.
-static func solve_from(level: LevelData, route: Array, state: Dictionary, max_nodes := 400000) -> Array:
+static func solve_from(level: LevelData, route: Array, state: Dictionary, max_nodes := 400000, avoid: Array = []) -> Array:
+	# Steer round some tiles if it can be done (the hints keep off the road to the level's present, so a
+	# hint doesn't hand out the optional reward); if it can't, the plain answer.
+	if not avoid.is_empty():
+		var round_it := _solve_from(level, route, state, max_nodes, avoid)
+		if not round_it.is_empty():
+			return round_it
+	return _solve_from(level, route, state, max_nodes, [])
+
+
+static func _solve_from(level: LevelData, route: Array, state: Dictionary, max_nodes: int, avoid: Array) -> Array:
 	var s := Solver.new()
+	for t in avoid:
+		s._blocked[t] = true
 	s.L = level
 	s.limit = 400
 	s.node_limit = max_nodes
@@ -129,13 +142,13 @@ func _dfs(route: Array, state: Dictionary) -> void:
 	var last: Vector2i = route.back()
 	for d in LevelData.DIRS:
 		var nxt: Vector2i = last + d
-		if not Sim.can_extend(L, route, nxt, state):
+		if not Sim.can_extend(L, route, nxt, state) or _blocked.has(nxt):
 			continue
 		var v: int = _visits.get(nxt, 0)
 		if not L.no_revisit and v >= REVISIT_CAP:
 			continue
 		var st := Sim.copy_state(state)
-		Sim.arrive(L, st, nxt)
+		Sim.arrive(L, st, nxt, route)
 		route.append(nxt)
 		_visits[nxt] = v + 1
 		if Sim.is_won(L, st, route):

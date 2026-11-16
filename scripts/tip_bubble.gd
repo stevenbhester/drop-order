@@ -11,6 +11,10 @@ var text := ""
 var target := Vector2.INF
 var tap := false
 var life := 7.0
+## Sit over the target even when it's at the screen's side (so it doesn't lie across the row it's in).
+var above := false
+## ...or under it (something along the top of the screen that the bubble mustn't lie across).
+var below := false
 
 var _t := 0.0
 var _closing := false
@@ -37,7 +41,11 @@ func _place() -> void:
 	var at := v / 2.0 - size2 / 2.0
 	if target != Vector2.INF:
 		# Beside the target, on whichever side has room; above or below it otherwise.
-		if target.x < v.x * 0.3:
+		if above:
+			at = Vector2(target.x - size2.x / 2.0, target.y - 90.0 - size2.y)
+		elif below:
+			at = Vector2(target.x - size2.x / 2.0, target.y + 90.0)
+		elif target.x < v.x * 0.3:
 			at = Vector2(target.x + 90.0, target.y - size2.y / 2.0)
 		elif target.x > v.x * 0.7:
 			at = Vector2(target.x - 90.0 - size2.x, target.y - size2.y / 2.0)

@@ -106,8 +106,9 @@ static func draw_aura(ci: CanvasItem, c: Vector2, size: Vector2, t: float, m: in
 	if m <= 0:
 		return
 	var pal := palette(m)
-	var count := 5 + mini(m, 8) * 2
-	var height := size.y * (0.7 + 0.18 * mini(m, 8))
+	# Starts as a few modest licks round the wheels; the full blaze is for long runs.
+	var count := 3 + mini(m, 8) * 2
+	var height := size.y * (0.3 + 0.2 * mini(m, 8))
 	for i in count:
 		var u := (i + 0.5) / count
 		var x := c.x - size.x * 0.62 + size.x * 1.24 * u

@@ -73,6 +73,14 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.42, -0.42) * s, Vector2(0.7, 0.28) * s), col, s * 0.1)
 			ci.draw_polyline(PackedVector2Array([c + Vector2(0.28, -0.28) * s, c + Vector2(0.42, -0.28) * s, c + Vector2(0.42, 0.0) * s, c + Vector2(0.0, 0.06) * s, c + Vector2(0.0, 0.22) * s]), col, s * 0.08, true)
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.08, 0.2) * s, Vector2(0.16, 0.3) * s), col, s * 0.06)
+		"box":
+			# A cardboard parcel: kraft body, a lighter lid, and tape down the middle in `col`.
+			var kraft := Color("d9a35f")
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.44, -0.3) * s, Vector2(0.88, 0.74) * s), kraft.darkened(0.25), s * 0.1)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.44, -0.3) * s, Vector2(0.88, 0.68) * s), kraft, s * 0.1)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.44, -0.3) * s, Vector2(0.88, 0.2) * s), kraft.lightened(0.18), s * 0.08)
+			ci.draw_rect(Rect2(c + Vector2(-0.08, -0.3) * s, Vector2(0.16, 0.68) * s), col)
+			ci.draw_line(c + Vector2(-0.44, -0.1) * s, c + Vector2(0.44, -0.1) * s, kraft.darkened(0.3), maxf(1.0, s * 0.03))
 		"gift":
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.42, -0.2) * s, Vector2(0.84, 0.66) * s), col, s * 0.12)
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.48, -0.34) * s, Vector2(0.96, 0.24) * s), col.lightened(0.15), s * 0.08)
@@ -227,6 +235,72 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 				ci.draw_line(c + Vector2(-0.3 * sx, -0.3) * s, c + Vector2(0.3 * sx, 0.3) * s, col, s * 0.15, true)
 				ci.draw_circle(c + Vector2(-0.3 * sx, -0.3) * s, s * 0.075, col)
 				ci.draw_circle(c + Vector2(0.3 * sx, 0.3) * s, s * 0.075, col)
+		"caller":
+			# A happy face with a phone to its ear (its own colours: "yes, call me").
+			var skin := Color("ffd08a")
+			ci.draw_circle(c, s * 0.42, skin.darkened(0.18))
+			ci.draw_circle(c + Vector2(0, -0.02) * s, s * 0.4, skin)
+			for ex in [-0.15, 0.1]:
+				ci.draw_arc(c + Vector2(ex, -0.06) * s, s * 0.07, PI, TAU, 10, Color("4a3323"), s * 0.05, true)
+			ci.draw_arc(c + Vector2(-0.03, 0.06) * s, s * 0.2, 0.15 * PI, 0.85 * PI, 14, Color("4a3323"), s * 0.06, true)
+			ci.draw_circle(c + Vector2(-0.27, 0.1) * s, s * 0.06, Color(1, 0.5, 0.45, 0.6))
+			# The phone, tilted along the cheek, and a hand holding it.
+			ci.draw_set_transform(c + Vector2(0.34, 0.02) * s, 0.28, Vector2.ONE)
+			DrawUtil.rrect(ci, Rect2(Vector2(-0.11, -0.3) * s, Vector2(0.22, 0.6) * s), Color("2b2a3a"), s * 0.07)
+			DrawUtil.rrect(ci, Rect2(Vector2(-0.07, -0.24) * s, Vector2(0.14, 0.42) * s), Color("7fd4ff"), s * 0.03)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			ci.draw_circle(c + Vector2(0.32, 0.2) * s, s * 0.13, skin.darkened(0.08))
+			for k in 2:
+				ci.draw_arc(c + Vector2(0.44, -0.3) * s, s * (0.1 + 0.1 * k), -0.45 * PI, 0.05 * PI, 8, Color(col, 0.9 - 0.3 * k), s * 0.05, true)
+		"monkey":
+			# Hear no evil: a monkey with its hands clapped over its ears (its own colours).
+			var fur := Color("8a5a3c")
+			var face := Color("f2c9a0")
+			ci.draw_circle(c + Vector2(0, -0.02) * s, s * 0.38, fur)
+			ci.draw_circle(c + Vector2(-0.12, -0.06) * s, s * 0.17, face)
+			ci.draw_circle(c + Vector2(0.12, -0.06) * s, s * 0.17, face)
+			ci.draw_circle(c + Vector2(0, 0.13) * s, s * 0.22, face)
+			for ex in [-0.11, 0.11]:
+				ci.draw_circle(c + Vector2(ex, -0.07) * s, s * 0.045, Color("2b1d14"))
+			ci.draw_arc(c + Vector2(0, 0.1) * s, s * 0.1, 0.2 * PI, 0.8 * PI, 10, Color("2b1d14"), s * 0.04, true)
+			for sx in [-1.0, 1.0]:
+				# A hand over each ear: a pad and four finger bumps.
+				var h := c + Vector2(0.38 * sx, -0.02) * s
+				DrawUtil.rrect(ci, Rect2(h + Vector2(-0.12, -0.2) * s, Vector2(0.24, 0.4) * s), face.darkened(0.12), s * 0.1)
+				for k in 4:
+					ci.draw_line(h + Vector2(-0.07 * sx, -0.13 + k * 0.085) * s, h + Vector2(0.07 * sx, -0.13 + k * 0.085) * s, face.darkened(0.3), s * 0.02, true)
+		"jump":
+			# An arrow arcing up and over (the jump jets).
+			var arc := PackedVector2Array()
+			for i in 13:
+				var a := PI + PI * i / 12.0
+				arc.append(c + Vector2(cos(a) * 0.36, sin(a) * 0.36 + 0.14) * s)
+			ci.draw_polyline(arc, col, s * 0.12, true)
+			ci.draw_circle(arc[0], s * 0.06, col)
+			var tip := arc[arc.size() - 1]
+			ci.draw_colored_polygon(PackedVector2Array([tip + Vector2(-0.2, -0.06) * s, tip + Vector2(0.18, -0.06) * s, tip + Vector2(0, 0.24) * s]), col)
+		"megaphone":
+			var cone := PackedVector2Array([c + Vector2(-0.22, -0.12) * s, c + Vector2(0.34, -0.38) * s, c + Vector2(0.34, 0.3) * s, c + Vector2(-0.22, 0.08) * s])
+			ci.draw_colored_polygon(cone, col)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.44, -0.14) * s, Vector2(0.26, 0.24) * s), col.darkened(0.2), s * 0.06)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.3, 0.08) * s, Vector2(0.13, 0.3) * s), col.darkened(0.2), s * 0.05)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(0.3, -0.42) * s, Vector2(0.1, 0.76) * s), col.lightened(0.35), s * 0.05)
+		"flame":
+			var out := PackedVector2Array()
+			for k in 20:
+				var a := TAU * k / 20.0
+				var rr := 0.34 + (0.2 * maxf(0.0, -sin(a)) * maxf(0.0, -sin(a)))
+				out.append(c + Vector2(cos(a) * 0.32, sin(a) * rr + 0.12) * s)
+			ci.draw_colored_polygon(out, col)
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-0.2, -0.1) * s, c + Vector2(0.02, -0.52) * s, c + Vector2(0.24, -0.1) * s]), col)
+			ci.draw_circle(c + Vector2(0, 0.2) * s, s * 0.17, col.lightened(0.55))
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-0.12, 0.1) * s, c + Vector2(0.0, -0.12) * s, c + Vector2(0.12, 0.1) * s]), col.lightened(0.55))
+		"cone":
+			# A roadworks cone (its own colours): work in progress.
+			var orange := Color("ff7a1a")
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.42, 0.3) * s, Vector2(0.84, 0.16) * s), orange.darkened(0.2), s * 0.05)
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-0.3, 0.32) * s, c + Vector2(-0.07, -0.44) * s, c + Vector2(0.07, -0.44) * s, c + Vector2(0.3, 0.32) * s]), orange)
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-0.2, 0.0) * s, c + Vector2(-0.14, -0.2) * s, c + Vector2(0.14, -0.2) * s, c + Vector2(0.2, 0.0) * s]), Color.WHITE)
 
 
 static func _thumb(c: Vector2, s: float, side: float) -> PackedVector2Array:

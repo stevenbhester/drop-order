@@ -127,7 +127,13 @@ static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
 ##     happen in between, if a house right there wants what just came aboard).
 ## Returns { "events": [ {type: "swap"} | {type: "deliver", house, color} |
 ##                       {type: "pickup", shop, color} ], "nopes": [house idx] }.
-static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
+##
+## Two houses beside the tile that both want the package on top: the one this is the LAST CHANCE for gets
+## it (every other road tile beside it is already driven: `route`, the tiles driven so far, says). Failing
+## that, the first in reading order (top to bottom, left to right). So the game never hands a package to a
+## house it could have served later while the one next door goes without for good. (With no `route` given
+## it's reading order alone.)
+static func arrive(L: LevelData, s: Dictionary, tile: Vector2i, route: Array = []) -> Dictionary:
 	var events := []
 	var stack: Array = s["stack"]
 	var fills: Array = s["fills"]
@@ -147,15 +153,22 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 			var top: String = stack.back()
 			# A house wanting that colour first; a locker (any colour) only if none does.
 			for pass_any in [false, true]:
+				var pick := -1
 				for h in adj_h:
 					if (L.houses[h].color == "any") == pass_any and (pass_any or L.houses[h].color == top) and fills[h] < L.houses[h].order:
-						fills[h] += 1
-						stack.pop_back()
-						delivered[h] = true
-						events.append({"type": "deliver", "house": h, "color": top})
-						progress = true
-						break
-				if progress:
+						if pick < 0:
+							pick = h
+						if route.is_empty():
+							break
+						if _last_chance(L, h, tile, route):
+							pick = h
+							break
+				if pick >= 0:
+					fills[pick] += 1
+					stack.pop_back()
+					delivered[pick] = true
+					events.append({"type": "deliver", "house": pick, "color": top})
+					progress = true
 					break
 		if progress:
 			continue
@@ -173,6 +186,17 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i) -> Dictionary:
 			if fills[h] < L.houses[h].order and L.houses[h].color != top and L.houses[h].color != "any" and not delivered.has(h):
 				nopes.append(h)
 	return {"events": events, "nopes": nopes}
+
+
+## Is `tile` the last road tile beside house `h` that the van can still stand on? (Every other one is in
+## `route` already; a bridge, or the depot on a round trip, can be driven again, so those still count.)
+static func _last_chance(L: LevelData, h: int, tile: Vector2i, route: Array) -> bool:
+	if not L.no_revisit:
+		return false
+	for r in L.house_roads[h]:
+		if r != tile and (not route.has(r) or L.bridges.has(r) or (L.return_depot and r == L.start)):
+			return false
+	return true
 
 
 ## The most packages aboard at any point along `route` (from a fresh start), counting the start.
@@ -194,7 +218,7 @@ static func max_load(L: LevelData, route: Array) -> int:
 static func run(L: LevelData, route: Array) -> Dictionary:
 	var s := new_state(L)
 	for i in range(1, route.size()):
-		arrive(L, s, route[i])
+		arrive(L, s, route[i], route.slice(0, i))
 	return s
 
 
@@ -204,5 +228,5 @@ static func run_checked(L: LevelData, route: Array) -> Dictionary:
 	for i in range(1, route.size()):
 		if not can_extend(L, route.slice(0, i), route[i], s):
 			return {}
-		arrive(L, s, route[i])
+		arrive(L, s, route[i], route.slice(0, i))
 	return s

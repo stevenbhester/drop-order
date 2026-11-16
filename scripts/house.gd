@@ -16,7 +16,8 @@ var check_t := 0.0:
 		check_t = v
 		queue_redraw()
 ## The package that's next out of the van (at the end of the route being planned, if there is one) is for
-## this house: it gives off a soft, slowly breathing glow in its colour.
+## this house: it wiggles on its base like it's excited (a quick left-right shimmy now and then), with a
+## soft steady glow in its colour. (Bouncing is kept for pickups: their parcels hop.)
 var next_up := false:
 	set(v):
 		if next_up != v:
@@ -134,9 +135,14 @@ func _kill(tw: Tween) -> void:
 func _process(delta: float) -> void:
 	_gt += delta
 	_glow = move_toward(_glow, 1.0 if next_up and not is_full() else 0.0, delta * 4.0)
+	# The shimmy: three quick wiggles, then a rest, over and over.
+	var cyc := fmod(_gt, 1.7)
+	var env := clampf(1.0 - cyc / 0.55, 0.0, 1.0)
+	rotation = 0.11 * _glow * sin(cyc * 34.0) * env
 	if _glow > 0.0:
 		queue_redraw()
 	elif not next_up:
+		rotation = 0.0
 		set_process(false)
 
 
@@ -164,8 +170,8 @@ func _draw() -> void:
 		var tint := color.darkened(0.45) if not done else Color("8d8d96")
 		(_outline.material as ShaderMaterial).set_shader_parameter("tint", tint)
 	if _glow > 0.0:
-		# The glow: soft rings of its colour round the house, breathing.
-		var pulse := 0.75 + 0.25 * sin(_gt * 3.2)
+		# The glow: soft rings of its colour round the house, steady (no pulsing: that's the pickups' thing).
+		var pulse := 0.85
 		var gc := Vector2(0, -s * 0.24)
 		for k in 5:
 			var r := s * (0.36 + k * 0.07)

@@ -79,6 +79,8 @@ func _take(text: String) -> void:
 
 ## Opens the TestFlight app, where the update is waiting under Last Mile (its web page elsewhere).
 static func open_testflight() -> void:
+	if DebugRemote.on():
+		return
 	if OS.get_name() == "iOS" and OS.shell_open("itms-beta://") == OK:
 		print("[update] opened TestFlight")
 		return

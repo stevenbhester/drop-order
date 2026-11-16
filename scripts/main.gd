@@ -33,7 +33,13 @@ func _ready() -> void:
 	_cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	over.add_child(_cover)
 	levels = Levels.load_all()
+	if DebugRemote.on():
+		# A playtest driven from outside (tools/playtest/lm.py).
+		var remote := DebugRemote.new()
+		remote.main = self
+		add_child(remote)
 	Notify.refresh(Progress)
+	Rating.flush()      # any level ratings that couldn't be sent last time
 	_night = Progress.night
 	_colorblind = Progress.colorblind
 	_landscape = Progress.landscape
@@ -42,7 +48,7 @@ func _ready() -> void:
 	if levels.is_empty():
 		push_error("No levels loaded")
 		return
-	var start := Progress.first_incomplete(levels.size())
+	var start := maxi(Zones.frontier(levels), 0)
 	var direct := false
 	var side_id := ""
 	var args := OS.get_cmdline_user_args()
@@ -113,6 +119,23 @@ func _ready() -> void:
 			if a.contains("="):
 				ad.kind = a.trim_prefix("--promo-ad=")
 			add_child.call_deferred(ad)
+	if args.has("--notify-prefs"):
+		# Debug: the "what do you want to hear from us" card, over whatever's showing.
+		NotifyPrefs.ask_if_needed.call_deferred(self, func(): pass)
+	for a in args:
+		if a.begins_with("--checkpoint"):
+			# Debug: a zone checkpoint over whatever's showing (--checkpoint=waved: the waved-through card).
+			var cp := Checkpoint.new()
+			cp.zone = 1
+			if a == "--checkpoint=waved":
+				Progress.ads_seen = 1
+			elif a == "--checkpoint=cleared":
+				cp.state = "cleared"
+			add_child.call_deferred(cp)
+	for a in args:
+		if a.begins_with("--baron-ad"):
+			# Debug: play one of Hoardly Inc.'s ads over whatever's showing (--baron-ad=family|small_business|safety|planet|care).
+			add_child.call_deferred(BaronAd.new())
 	for a in args:
 		if a.begins_with("--next="):
 			# Debug: as if level N-1 was just won: the van drives up to N, then the Next card.
@@ -123,6 +146,7 @@ func _ready() -> void:
 			# Debug: the "you found something" card for this cosmetic.
 			var u := UnlockCard.new()
 			u.item = a.trim_prefix("--unlock=")
+			u.wrapped = not args.has("--unlock-open")
 			add_child.call_deferred(u)
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
@@ -144,6 +168,10 @@ func _ready() -> void:
 func open_options(from: Node = null) -> OptionsMenu:
 	var m := OptionsMenu.new()
 	m.feedback_pressed.connect(open_feedback.bind(from))
+	m.reset_pressed.connect(func():
+		Progress.reset()
+		LevelStats.wins = 0
+		show_title())
 	add_child(m)
 	if from is Game:
 		(from as Game).modal = m
@@ -256,6 +284,53 @@ func _on_settings() -> void:
 
 
 ## Daily reminders are rescheduled whenever the game goes to the background (and at launch, below).
+# ---------------------------------------------------------------- frame rate (battery)
+
+## The phone's screen can run at 120 fps; this is a puzzle, so it runs at 60 while things move and drops to
+## 30 when nobody's touched it for a moment and nothing's driving or popping up (most of play is thinking).
+## That keeps the phone cool and the battery going: half the frames, then half again.
+const FPS_ACTIVE := 60
+const FPS_IDLE := 30
+const IDLE_AFTER := 2.0
+var _last_touch := 0.0
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or event is InputEventMouseMotion or event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_last_touch = Time.get_ticks_msec() / 1000.0
+
+
+func _pace() -> void:
+	if Progress.auto:
+		if Engine.max_fps != 0:
+			Engine.max_fps = 0      # self-tests run flat out
+		return
+	var calm := Time.get_ticks_msec() / 1000.0 - _last_touch > IDLE_AFTER
+	if calm and screen is Game:
+		var g := screen as Game
+		calm = (g.state == Game.State.IDLE or g.state == Game.State.FAILED) and not g._busy_modal()
+	elif calm and screen is LevelSelect:
+		calm = not (screen as LevelSelect).map.driving()
+	# Anything popped up over the screen (the finish card, a present, an ad, a card) gets the full rate.
+	if calm:
+		for c in get_children():
+			if c is CanvasLayer and c.visible and c.layer >= 60 and c.get_child_count() > 0:
+				calm = false
+				break
+		if calm and screen and not (screen is Game):    # (a level's own pop-ups are its modal, above)
+			for c in screen.get_children():
+				if c is CanvasLayer and c.visible and c.get_child_count() > 0 and not (c is PortraitHost):
+					calm = false
+					break
+	var want := FPS_IDLE if calm else FPS_ACTIVE
+	if Engine.max_fps != want:
+		Engine.max_fps = want
+
+
+func _process(_delta: float) -> void:
+	_pace()
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		Notify.refresh(Progress)
@@ -265,7 +340,7 @@ func show_title() -> void:
 	_reshow = show_title
 	var t := TitleScreen.new()
 	t.setup(levels)
-	t.play_pressed.connect(func(): play(Progress.first_incomplete(levels.size())))
+	t.play_pressed.connect(func(): play(maxi(Zones.frontier(levels), 0)))
 	t.levels_pressed.connect(show_select)
 	t.daily_pressed.connect(show_daily)
 	t.garage_pressed.connect(show_garage)
@@ -283,15 +358,24 @@ func _title_audible() -> void:
 		_offer_update()
 
 
-## Opens level `i`, paying a gas tank first if it hasn't been beaten.
+## Opens level `i` (free: gas only pays for extra hints and undos).
 func play(i: int) -> void:
 	i = clampi(i, 0, levels.size() - 1)
-	var L: LevelData = levels[i]
-	var paid := not Progress.is_complete(L.number)
-	if paid and not Progress.spend_gas():
-		_out_of_gas(play.bind(i))
+	# Into a zone not played in yet: its checkpoint first (Checkpoint), then the job.
+	var n: int = levels[i].number
+	if not Zones.level_open(n):
+		return              # (not reached yet: the map says why)
+	if Checkpoint.due(n):
+		if screen is LevelSelect:
+			# On the map: the checkpoint, the zone opening, the drive in, then this job's card.
+			(screen as LevelSelect).checkpoint(i)
+			return
+		var cp := Checkpoint.new()
+		cp.zone = Zones.of(n)
+		_put(cp)
+		cp.done.connect(_start.bind(i, false))
 		return
-	_start(i, paid)
+	_start(i, false)
 
 
 ## Opens level `i` (a retry is already paid for in the game; `paid` just shows the charge).
@@ -430,12 +514,10 @@ func _start_side(id: String, pan := Vector2i.ZERO) -> void:
 ## Today's puzzle. Each start counts as an attempt (the first is free of redos); unsolved, it costs gas.
 func play_daily() -> void:
 	var day := Daily.today()
-	var paid: bool = not Progress.daily_record(day).get("done", false)
-	if paid and not Progress.spend_gas():
-		_out_of_gas(play_daily)
+	if not Progress.daily_attempt(day):
+		show_daily()            # (every try spent: nothing to start)
 		return
-	Progress.daily_attempt(day)
-	_start_daily(paid)
+	_start_daily(false)
 
 
 func _start_daily(paid := false) -> void:
@@ -452,16 +534,29 @@ func _start_daily(paid := false) -> void:
 	g.setup(L, 0, 1, solved[key])
 	g.retry_requested.connect(func(_i): _start_daily(g.retry_paid))
 	g.daily_menu_requested.connect(show_daily)
+	g.work_requested.connect(show_work)
 	g.menu_requested.connect(show_daily)
 	_swap(g)
 
 
 func show_daily() -> void:
+	if not Daily.unlocked():
+		show_select()
+		return
 	_reshow = show_daily
 	var d := DailyScreen.new()
 	d.play_pressed.connect(play_daily)
 	d.back_pressed.connect(show_title)
+	d.work_pressed.connect(show_work)
 	_swap(d)
+
+
+## "Get back to work" after the daily: the map, with the card up for the job the van's at.
+func show_work() -> void:
+	show_select()
+	var s := screen as LevelSelect
+	if s:
+		s.offer.call_deferred(s.map.here)
 
 
 func show_garage() -> void:
@@ -488,6 +583,12 @@ func _out_of_gas(then: Callable) -> void:
 
 ## After a win: the map, the van driving up to the next stop, then the Next card.
 func show_next(from_i: int, to_i: int) -> void:
+	# On to the next level if its zone's open (and it isn't beaten and put behind); else wherever's next.
+	if to_i >= levels.size() or not Zones.level_open(levels[to_i].number) or (Progress.is_complete(levels[to_i].number) and from_i + 1 == to_i and Zones.frontier(levels) > to_i):
+		to_i = Zones.frontier(levels)
+	if to_i < 0 or not Zones.level_open(levels[to_i].number):
+		show_select()
+		return
 	show_select()
 	(screen as LevelSelect).advance(from_i, to_i)
 
@@ -510,8 +611,10 @@ func _swap(next: Node) -> void:
 		screen.process_mode = Node.PROCESS_MODE_DISABLED
 		screen.queue_free()
 		if not Progress.auto:
-			_cover.color.a = 1.0
-			create_tween().tween_property(_cover, "color:a", 0.0, 0.22)
+			# (In the backdrop's colours as they are now: night mode's, not the day's it started with.)
+			# (Half-strength: a full sheet of cream between a dark card and the next screen read as a flash.)
+			_cover.color = Color(Backdrop.TOP.lerp(Backdrop.BOTTOM, 0.5), 0.5)
+			create_tween().tween_property(_cover, "color:a", 0.0, 0.3)
 	screen = next
 	_put(next)
 	# A breadcrumb for bug reports (the log rides along with them).

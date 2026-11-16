@@ -7,7 +7,7 @@ const RATE := 44100
 const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click", "rewind", "pickup", "swap", "gate",
 		"coin", "star", "kaching", "jingle", "empty", "hint", "sparkle", "punch", "slam", "whoomp",
 		"crunch", "crash", "screech", "beep"]
-const LAZY := ["laugh"]
+const LAZY := ["laugh", "corp_bed", "corp_sting"]
 
 
 static func make(sound: String) -> AudioStreamWAV:
@@ -41,6 +41,8 @@ static func make(sound: String) -> AudioStreamWAV:
 		"screech": b = _screech()
 		"beep": b = _beep()
 		"laugh": b = _laugh()
+		"corp_bed": b = _corp_bed()
+		"corp_sting": b = _notes([1046.5, 1318.5, 1568.0, 2349.3], 0.09, 2.6, 0.12, 1.6)
 		_: b = PackedFloat32Array([0.0])
 	return _wav(b)
 
@@ -303,3 +305,35 @@ static func _beep() -> PackedFloat32Array:
 		var v := signf(sin(TAU * 415.0 * t)) * 0.5 + signf(sin(TAU * 523.0 * t)) * 0.5
 		b[i] = v * env * 0.16
 	return b
+
+
+## Hoardly Inc.'s ad music (BaronAd): fourteen seconds of soft electric piano, a gentle arpeggio over
+## I-vi-IV-V with a pad underneath. Reassuring. Suspiciously so. (Shipped as audio/corp_bed.wav.)
+static func _corp_bed() -> PackedFloat32Array:
+	var dur := 14.0
+	var b := _buf(dur)
+	var chords := [[261.63, 329.63, 392.0, 493.88], [220.0, 261.63, 329.63, 392.0], [174.61, 220.0, 261.63, 329.63], [196.0, 246.94, 293.66, 349.23]]
+	var bar := 3.4
+	var step := bar / 8.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var ci := int(t / bar) % chords.size()
+		var ch: Array = chords[ci]
+		var tb := fmod(t, bar)
+		var s := 0.0
+		# The pad: the chord, soft, swelling in each bar.
+		for f in ch:
+			s += 0.05 * sin(TAU * float(f) * 0.5 * t) * minf(1.0, tb * 2.0)
+		# The arpeggio: up and back down, one note each step, ringing.
+		var k := int(tb / step)
+		for back in 3:
+			var kk := k - back
+			if kk < 0:
+				continue
+			var lt := tb - kk * step
+			var order := [0, 1, 2, 3, 2, 1, 2, 3]
+			var f: float = float(ch[order[kk % 8]]) * 2.0
+			s += (sin(TAU * f * lt) + 0.25 * sin(TAU * f * 2.0 * lt)) * exp(-lt * 2.6) * _attack(lt, 4.0) * 0.16
+		b[i] = s * minf(1.0, (dur - t) * 1.5) * minf(1.0, t * 4.0)
+	return b
+

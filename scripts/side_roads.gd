@@ -16,16 +16,17 @@ const PATH := "res://levels/side.json"
 ## Level numbers side levels play as (never real level numbers, so they never touch level progress).
 const NUMBER_BASE := 800
 const CHESTS := {
+	# Gas: two tanks in the first chest, one in each after (it's scarce: a tank is unlimited help on a job).
 	10: {"gas": 2, "coins": 250, "hints": 1},
-	20: {"gas": 3, "coins": 400, "hat": "party_hat", "hints": 1},
-	30: {"gas": 3, "coins": 600, "hat": "race_car"},
-	40: {"gas": 4, "coins": 800, "hat": "hard_hat"},
-	50: {"gas": 4, "coins": 1000, "hat": "bassinet"},
-	60: {"gas": 4, "coins": 1100, "hat": "caterpillar"},
-	70: {"gas": 5, "coins": 1200, "hat": "cone_hat"},
-	80: {"gas": 5, "coins": 1300, "hat": "minivan"},
-	90: {"gas": 5, "coins": 1400, "hat": "pillow_tower"},
-	100: {"gas": 5, "coins": 2500, "hat": "crown"},
+	20: {"gas": 1, "coins": 400, "hints": 1},
+	30: {"gas": 1, "coins": 600, "hat": "race_car"},
+	40: {"gas": 1, "coins": 800},
+	50: {"gas": 1, "coins": 1000, "hat": "bassinet"},
+	60: {"gas": 1, "coins": 1100, "hat": "caterpillar"},
+	70: {"gas": 1, "coins": 1200},
+	80: {"gas": 1, "coins": 1300, "hat": "minivan"},
+	90: {"gas": 1, "coins": 1400, "hat": "pillow_tower"},
+	100: {"gas": 1, "coins": 2500},
 }
 ## What each twist is called on its sign and in the game's top bar.
 const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route", "boss": "Boss fight"}
@@ -109,14 +110,17 @@ static func all_levels() -> Array:
 	return out
 
 
-## Where a cosmetic is won, for the garage: a side road or a chest.
+## Where a cosmetic is won, for the garage: a side road, a chest, or the Baron on the main road.
 static func where(item: String) -> String:
+	for n in Boss.LOOT:
+		if Boss.LOOT[n] == item:
+			return "Beat the boss: job %d" % n
 	for d in defs():
 		if d.get("reward", "") == item:
 			if Boss.is_boss(d):
 				return "Beat the boss: %s" % d.get("title", "")
-			return ("Mega route: %s" if is_mega(d) else "Side road: %s") % d.get("title", "")
+			return ("Mega route: %s" if is_mega(d) else "Detour: %s") % d.get("title", "")
 	for n in CHESTS:
 		if CHESTS[n].get("hat", "") == item:
-			return "Chest at level %d" % n
+			return "Chest at job %d" % n
 	return ""

@@ -35,6 +35,8 @@ var vertical := true
 var spout := 1.0
 ## Return levels: a finish flag behind the last package.
 var finish_flag := false
+## Where the flag's drawn (in here), once it has been (INF: not showing). For the "End of shift" card.
+var flag_at := Vector2.INF
 ## Fog (a side road's twist): every package but the next is a grey "?" crate.
 var fog := false:
 	set(v):
@@ -424,19 +426,53 @@ func rebuild(cols: Array) -> void:
 	queue_redraw()
 
 
-## Show this load instead (the one the planned route will leave, or the real one again): what it shares
-## with what's showing (from the back forward) stays put; the rest leave by the mouth or pop in.
+## While a route's planned: the real load, marked up with what the plan will do (`marks`, parallel to
+## `cols`: "" aboard and staying, "gone" the plan delivers it, "new" the plan picks it up; see PackageBox.plan).
+## Only a preview, so nothing drops out of the mouth: what changes just shrinks away or pops in.
+func show_plan(cols: Array, marks: Array) -> void:
+	var keep := 0
+	while keep < mini(colors.size(), cols.size()) and colors[keep] == cols[keep] and (boxes[keep] as PackageBox).plan == str(marks[keep]):
+		keep += 1
+	if keep == colors.size() and keep == cols.size():
+		return
+	_view = 0
+	while boxes.size() > keep:
+		var b: PackageBox = boxes.pop_back()
+		colors.pop_back()
+		var tw := b.create_tween()
+		tw.tween_property(b, "scale", Vector2.ZERO, 0.12)
+		tw.tween_callback(b.queue_free)
+	for i in range(keep, cols.size()):
+		var b := _add(cols[i])
+		b.plan = str(marks[i])
+		b.position = _slot(i)
+		b.scale = Vector2.ZERO
+	_place(true)
+	queue_redraw()
+
+
+## Show this load instead (the real one again, unmarked): what it shares with what's showing (from the back
+## forward) stays put; the rest leave by the mouth or pop in.
 func show_stack(cols: Array) -> void:
 	var keep := 0
 	while keep < mini(colors.size(), cols.size()) and colors[keep] == cols[keep]:
 		keep += 1
+	for i in keep:
+		(boxes[i] as PackageBox).plan = ""          # (a plan's marks come off)
 	if keep == colors.size() and keep == cols.size():
 		return
 	_view = 0
 	var change := cols.size() - colors.size()
 	while boxes.size() > keep:
-		_leave(boxes.pop_back())
+		var b: PackageBox = boxes.pop_back()
 		colors.pop_back()
+		if b.plan != "":
+			# Only a plan's preview of it: it just shrinks away (nothing was delivered).
+			var tw := b.create_tween()
+			tw.tween_property(b, "scale", Vector2.ZERO, 0.12)
+			tw.tween_callback(b.queue_free)
+		else:
+			_leave(b)
 	var fresh := []
 	for i in range(keep, cols.size()):
 		fresh.append(_add(cols[i]))
@@ -652,5 +688,6 @@ func _draw() -> void:
 			# flag sits one place past the last slot, in the open tube: it has to show from the very start, or
 			# a route gets planned without knowing it must end back at the depot.
 			at = _at_place(q)
+		flag_at = at
 		if at != Vector2.INF:
 			Icons.finish_flag(self, at, ph * 0.86, Time.get_ticks_msec() / 1000.0)

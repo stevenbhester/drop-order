@@ -1,11 +1,12 @@
 class_name DailyScreen
 extends Control
-## Today's puzzle: its number and name, the streak (in fire), the last week as a row of days, and Play (one
-## gas tank, refunded when you solve it) or Share once it's done. A day counts toward the streak if it's
-## solved with at most Daily.MAX_REDOS redos.
+## Today's puzzle: its number and name, the streak (in fire), the last week as a row of days, and Play, or
+## Share once it's done (with a little begging over it until it's been shared). A day counts toward the
+## streak if it's solved at all; there are Daily.MAX_TRIES tries a day.
 
 signal play_pressed
 signal back_pressed
+signal work_pressed
 
 var _t := 0.0
 var _play: JuicyButton
@@ -20,6 +21,8 @@ func _ready() -> void:
 	size = get_viewport_rect().size
 	theme = UiTheme.theme()
 	_day = Daily.today()
+	if Progress.daily_seen != _day:
+		Progress.set_option("daily_seen", _day)
 	_top = UiTheme.insets(get_viewport()).x
 	var v := size
 
@@ -42,7 +45,9 @@ func _ready() -> void:
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(gap)
-	bar.add_child(CoinChip.new())
+	var coins := CoinChip.new()
+	coins.visible = Progress.COINS
+	bar.add_child(coins)
 
 	var r := Progress.daily_record(_day)
 	var done: bool = r.get("done", false)
@@ -51,14 +56,20 @@ func _ready() -> void:
 	_play.bg = Palette.ACCENT if not done else Color.WHITE
 	_play.fg = Color.WHITE if not done else Palette.TEXT
 	_play.label = "Play" if int(r.get("attempts", 0)) == 0 else ("Play again" if done else "Keep going")
+	if Daily.out_of_tries(r):
+		_play.label = "Out of tries"
+		_play.dim = true
+	elif not done:
+		# Tries left today, on the button.
+		_play.badge = "%d left" % Daily.tries_left(r)
 	_play.icon_name = "play"
-	if not done:
-		_play.badge = "1"
-		_play.badge_icon = "gas"
-		_play.badge_color = GasChip.FUEL
 	_play.size = Vector2(620, 170)
 	_play.position = Vector2((v.x - 620) / 2.0, v.y * 0.62)
 	_play.pressed.connect(func():
+		if Daily.out_of_tries(Progress.daily_record(_day)):
+			Sfx.play("bonk", 1.0, -6.0)
+			_play.pop()
+			return
 		Sfx.play("click")
 		play_pressed.emit())
 	add_child(_play)
@@ -73,13 +84,42 @@ func _ready() -> void:
 		_share.position = Vector2((v.x - 620) / 2.0, v.y * 0.62)
 		_share.pressed.connect(_open_share)
 		add_child(_share)
-		_play.position.y += 200.0
-		_play.size = Vector2(620, 130)
-		_play.font_px = 52
-	else:
+		# Under Share: your score (its card again) and Stats (how everyone did), then Play again, smaller.
+		var row_y := _share.position.y + 190.0
+		var sc := JuicyButton.new()
+		sc.font_px = 42
+		sc.label = "Score: %d" % int(r.get("score", 0))
+		sc.icon_name = "star"
+		sc.size = Vector2(300, 120)
+		sc.position = Vector2((v.x - 620) / 2.0, row_y)
+		sc.pressed.connect(_open_score)
+		add_child(sc)
+		var st := JuicyButton.new()
+		st.font_px = 42
+		st.label = "Stats"
+		st.icon_name = "grid"
+		st.size = Vector2(300, 120)
+		st.position = Vector2((v.x - 620) / 2.0 + 320.0, row_y)
+		st.pressed.connect(_open_stats)
+		add_child(st)
+		if not r.has("score"):
+			# (Solved before days had scores: just Stats, the full width.)
+			sc.visible = false
+			st.position.x = sc.position.x
+			st.size.x = 620.0
+		_play.position.y = row_y + 140.0
+		_play.size = Vector2(620, 100)
+		_play.font_px = 40
+		if not r.get("shared", false):
+			# Room for the begging bubble over Share.
+			for b in [_share, sc, st, _play]:
+				b.position.y += 150.0
+	elif not Daily.out_of_tries(r):
 		_play.ready.connect(_play.breathe.bind(true), CONNECT_DEFERRED)
 	if done and OS.get_cmdline_user_args().has("--share"):
 		_open_share.call_deferred()
+	if done and OS.get_cmdline_user_args().has("--daily-stats"):
+		_open_stats.call_deferred()
 
 
 func _process(delta: float) -> void:
@@ -94,8 +134,43 @@ func _open_shop() -> void:
 	add_child(_modal)
 
 
+## Today's score card again, all dealt (DailyScore).
+func _open_score() -> void:
+	Sfx.play("click")
+	if _modal != null and is_instance_valid(_modal):
+		return
+	var card := DailyScore.new()
+	card.day = _day
+	card.animate = false
+	_modal = card
+	add_child(card)
+	card.share_pressed.connect(func():
+		_modal = null
+		_open_share())
+	card.stats_pressed.connect(func():
+		_modal = null
+		_open_stats())
+	card.done_pressed.connect(func():
+		_modal = null
+		NotifyPrefs.ask_if_needed(self, func(): work_pressed.emit(), true))
+
+
+## How everyone did today (DailyStats).
+func _open_stats() -> void:
+	Sfx.play("click")
+	if _modal != null and is_instance_valid(_modal) and not (_modal is DailyScore):
+		return
+	var card := DailyStats.new()
+	card.day = _day
+	_modal = card
+	add_child(card)
+	# (What they'd like to hear from us, if it's due and never got asked on the map: NotifyPrefs.)
+	card.closed.connect(func(): NotifyPrefs.ask_if_needed(self, func(): pass, true))
+
+
 func _open_share() -> void:
 	Sfx.play("click")
+	Progress.daily_shared(_day)
 	if _modal != null and is_instance_valid(_modal):
 		return
 	var card := ShareCard.new()
@@ -155,15 +230,14 @@ func _draw() -> void:
 			AnimeFire.draw_flame(self, Vector2(x, sy + 30), 70, 90, _t, 0.0, [Color(Palette.TEXT, 0.12), Color(Palette.TEXT, 0.08)])
 	_text("%d-day streak" % streak if streak != 1 else "1-day streak", Vector2(cx, sy + 100), 60, Palette.TEXT, 10)
 	var note := "Best: %d" % Progress.best_streak
-	var redos := int(r.get("attempts", 0)) - 1
 	if r.get("done", false):
-		note = "Solved today%s! Come back tomorrow." % ("" if r.get("ok", false) else " (too many redos for the streak)")
-	elif redos >= Daily.MAX_REDOS + 1:
-		note = "Over %d redo today: no streak this time." % Daily.MAX_REDOS
-	elif redos == Daily.MAX_REDOS:
-		note = "Last redo used: this one counts!"
+		note = "Solved today! Come back tomorrow."
+	elif Daily.out_of_tries(r):
+		note = "All %d tries used. A new one tomorrow!" % Daily.MAX_TRIES
+	elif Daily.tries_left(r) == 1:
+		note = "Last try today. Solve it to keep the streak!"
 	else:
-		note = "Solve it with no more than %d redo to keep the streak." % Daily.MAX_REDOS
+		note = "Solve it today, in six tries or fewer, to keep the streak."
 	_text(note, Vector2(cx, sy + 170), 36, Palette.TEXT_SOFT)
 
 	# The last seven days.
@@ -173,16 +247,17 @@ func _draw() -> void:
 		var x := cx + (i - 3) * 120.0
 		var rec := Progress.daily_record(day)
 		var col := Color(Palette.TEXT, 0.1)
-		if rec.get("ok", false):
+		if rec.get("done", false):
 			col = Palette.GOOD
-		elif rec.get("done", false):
-			col = Palette.STAR_GOLD
 		DrawUtil.rrect(self, Rect2(x - 46, dy - 46, 92, 92), col, 26)
 		if day == _day:
 			draw_arc(Vector2(x, dy), 60, 0, TAU, 40, Palette.ACCENT, 6.0, true)
-		if rec.get("ok", false):
+		if rec.get("done", false):
 			Icons.star(self, Vector2(x, dy), 26.0, Color.WHITE)
 		var label := Daily.key(day).substr(8, 2)
 		var f := UiTheme.font()
 		var w := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
 		draw_string(f, Vector2(x - w / 2.0, dy + 90), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.TEXT_SOFT)
+	# Solved and not shared yet: please, tell someone.
+	if _share and not r.get("shared", false) and (_modal == null or not is_instance_valid(_modal)):
+		Daily.draw_beg(self, _share.position + Vector2(_share.size.x / 2.0, 0), Daily.beg(_day), _t)

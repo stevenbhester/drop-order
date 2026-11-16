@@ -1,6 +1,6 @@
 class_name GhostFinger
 extends Node2D
-## Tutorial: a translucent fingertip that traces a route on loop.
+## Tutorial: a hand that comes down on the van and drags the route out along the road, on a loop.
 
 const SPEED := 3.6   # tiles per second
 
@@ -44,6 +44,6 @@ func _draw() -> void:
 	draw_polyline(trail, tc, radius * 0.8, true)
 	for p in trail:
 		draw_circle(p, radius * 0.4, tc)
-	draw_circle(pos + Vector2(5, 10), radius * press, Color(0, 0, 0, 0.15 * alpha))
-	draw_circle(pos, radius * press, Color(1, 1, 1, 0.9 * alpha))
-	draw_arc(pos, radius * press, 0, TAU, 40, Color(Palette.TEXT, 0.35 * alpha), 4.0, true)
+	# Where it's pressing, then the hand itself, its fingertip on the spot.
+	draw_circle(pos, radius * 0.7 * press, Color(1, 1, 1, 0.35 * alpha))
+	DrawUtil.hand(self, pos, radius * 2.6 * (0.92 if press <= 1.0 else press), alpha)
