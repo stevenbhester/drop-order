@@ -1,8 +1,9 @@
 class_name LevelStats
 extends RefCounted
-## What the game counts while a level is played, for the level ratings (Rating): attempts, restarts, undos,
-## hints, wrong moves, time. A restart makes a new Game, so the counts live here, by level, for as long as the
-## app is open. Nothing here is saved or sent unless "Rate levels" is on and a rating is submitted.
+## What the game counts while a level is played: attempts, restarts, undos, hints, wrong moves, time. A
+## restart makes a new Game, so the counts live here, by level, for as long as the app is open. They go out
+## with each play record (Rating.play: on a win, leaving, a skip or the app going to the background, unless
+## "Send play stats" is off) and with a rating. They add up until the level's won, then start afresh.
 
 static var _session := ""
 static var _records := {}          # level key -> {field: number}
@@ -35,6 +36,14 @@ static func add(key: String, field: String, n: float = 1.0) -> void:
 
 static func value(key: String, field: String) -> float:
 	return float(_rec(key).get(field, 0.0))
+
+
+## The level's counts so far, with the time since it was first opened, leaving them counting.
+static func peek(key: String) -> Dictionary:
+	var r: Dictionary = _rec(key).duplicate()
+	r["seconds_wall"] = (Time.get_ticks_msec() - int(r["opened_ms"])) / 1000.0
+	r.erase("opened_ms")
+	return r
 
 
 ## The level's counts so far, with the time since it was first opened. Won: start afresh next time.

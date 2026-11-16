@@ -8,11 +8,17 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 27
+const BUILD := 28
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
 const BUILD_NOTES := [
+	"Undo Rush and Hint Rush: detours that used to give ten minutes of free undos or hints now give a rush you start yourself. When you're out, hold the button: two minutes of free undos (one of free hints) on a clock that only runs while you're on a job.",
+	"Colour gates show how they'll stand at the end of your plan, not where the van has got to.",
+	"The map takes no taps while the van's driving on from a win, and a chest you've earned opens before it sets off.",
+	"Zero the Steed is Him.",
+	"Each job's numbers (time, undos, hints, retries, dead ends, how it ended) now go to Steven, with the phone model and time zone and no name. Turn it off in Options: Send play stats.",
+	"Ads come from one pool now, Frontiers Celestia included, and you won't see the same one twice in a short while.",
 	"Headlights: you can only plan a short way ahead of the van now, and it follows your finger. Beat the Baron for brighter lights. (The old way is in Options, Testers.)",
 	"Dollaroos are gone for now (nothing to spend them on). The gas station gives gas for watching a (pretend) ad.",
 	"Playing and retrying jobs is free. Gas pays for extra help: on a job, one tank makes undos and hints both unlimited for the rest of the level. Tanks refill one an hour. Out of gas? A (pretend) ad gives you two.",
@@ -82,6 +88,9 @@ const BUILD_NOTES := [
 	"Job 7's scripted drive looks like one now: black bars and a push in while the van drives itself.",
 	"Skipped a present? There's a Wear it button beside it on the finish card. The route preview chip is retired.",
 	"Job 2 (now Next In Line) walks you through the line of packages: only the one marked NEXT can be delivered.",
+	"Boss jobs look like boss jobs while you play: a gold BOSS FIGHT plate, a framed board, and the Baron watching from the corner.",
+	"Said no to notifications? The van takes it badly, and you can change your mind any time under Notifications in Options.",
+	"A new paint job is shown on whatever you're driving, not the plain van.",
 ]
 
 const NOTES := [

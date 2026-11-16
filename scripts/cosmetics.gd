@@ -113,6 +113,21 @@ const ANIMATED := ["sprout", "rivet", "puffball", "monster_truck", "rocket_van",
 	"bassinet", "caterpillar", "pillow_tower", "shark", "eazy_van", "dreamsicle", "classic_car", "lab", "zero"]
 
 
+## The rides that are somebody, not something, and what to call them ("Take her out for a spin"). Zero's is
+## capitalised on purpose: Zero IS Him. Anything not here is "it".
+const PRONOUN := {"zero": "Him", "ice_cream": "him", "shark": "him", "caterpillar": "her"}
+
+
+## "it" for a thing, "him"/"her" for a somebody (PRONOUN).
+static func them(id: String) -> String:
+	return PRONOUN.get(id, "it")
+
+
+## What the button that puts a new ride to work says: "Take it for a spin", or "Take Him out for a spin".
+static func spin_cta(id: String) -> String:
+	return "Take %s out for a spin" % PRONOUN[id] if PRONOUN.has(id) else "Take it for a spin"
+
+
 static func name_of(id: String) -> String:
 	return ITEMS.get(id, {}).get("name", id)
 

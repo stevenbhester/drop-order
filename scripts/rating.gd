@@ -9,6 +9,11 @@ extends RefCounted
 ##
 ## A rating that can't be sent waits in user://ratings_queue.json and goes with the next one, or the next
 ## time the game starts.
+##
+## Play records (play()) go the same way, for everyone unless "Send play stats" is off: a job won, left,
+## skipped or put in the background, with the counts. They're ratings with no stars (difficulty, fun and
+## frustration 0) and stats.record "play", stats.outcome what happened; a win with a rating is the one
+## record, stars and all (record "rating"). The self-tests send none.
 
 const URL := "https://music-grid-io-42616e204fd3.herokuapp.com/lm/ratings"
 const QUEUE := "user://ratings_queue.json"
@@ -33,10 +38,17 @@ static var _uploader: Uploader
 
 ## Where ratings go ("-- --ratings-url=..." points them somewhere else, for testing).
 static func url() -> String:
+	var u := URL
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--ratings-url="):
-			return a.trim_prefix("--ratings-url=")
-	return URL
+			u = a.trim_prefix("--ratings-url=")      # (the last one given)
+	return u
+
+
+## Testing play records against a local server: "-- --send-plays" sends them from the self-tests and the
+## playtest harness too (with --ratings-url pointing somewhere safe).
+static func _test_send() -> bool:
+	return OS.get_cmdline_user_args().has("--send-plays")
 
 
 static func _hex() -> String:
@@ -71,6 +83,18 @@ static func payload(level: LevelData, where: String, answers: Dictionary, stats:
 	}
 
 
+## A play record (see the top): `outcome` is "won", "left", "skipped" or "backgrounded"; `answers` a
+## rating's, when there was one.
+static func play(level: LevelData, where: String, outcome: String, stats: Dictionary, answers := {}) -> void:
+	var rated := not answers.is_empty()
+	if not rated and (not Progress.play_stats or (Progress.auto and not _test_send())):
+		return
+	var s := stats.duplicate()
+	s["record"] = "rating" if rated else "play"
+	s["outcome"] = outcome
+	submit(payload(level, where, answers, s), rated)
+
+
 ## Which layout of a main level this is: 1 for its first, 2 after its first redesign, ... (from
 ## levels/level_versions.json, kept by tools/level_versions.gd). 0 if it isn't in the history.
 static var _versions := {}
@@ -103,16 +127,17 @@ static func waiting() -> int:
 	return _read_queue().size()
 
 
-## Queue a rating and start sending.
-static func submit(p: Dictionary) -> void:
-	if DebugRemote.on():
+## Queue a rating (or a play record: `rated` false) and start sending.
+static func submit(p: Dictionary, rated := true) -> void:
+	if DebugRemote.on() and not _test_send():
 		return              # (a simulated playtest: nothing's sent or kept)
 	var q := _read_queue()
 	q.append(p)
 	while q.size() > MAX_QUEUE:
 		q.pop_front()
 	_write_queue(q)
-	LevelStats.rated += 1
+	if rated:
+		LevelStats.rated += 1
 	flush()
 
 

@@ -61,12 +61,25 @@ static func recent_log() -> String:
 	return f.get_buffer(mini(n, MAX_LOG)).get_string_from_utf8()
 
 
+## The phone's time zone, as its clock is set: "PST (UTC-8:00)". No place finer than that.
+static func time_zone() -> String:
+	var tz := Time.get_time_zone_from_system()
+	var bias := int(tz.get("bias", 0))
+	var off := "UTC%s%d:%02d" % ["-" if bias < 0 else "+", absi(bias) / 60, absi(bias) % 60]
+	var name := str(tz.get("name", ""))
+	return "%s (%s)" % [name, off] if name != "" else off
+
+
 ## Device and game details, a line each.
 static func system_info() -> String:
 	var lines := [
 		"Game: Last Mile v%s (build %d)" % [Version.NUMBER, Version.BUILD],
 		"Device: %s · %s %s" % [OS.get_model_name(), OS.get_name(), OS.get_version()],
 		"Screen: %s, viewport %s" % [DisplayServer.screen_get_size(), Vector2i(Engine.get_main_loop().root.get_visible_rect().size)],
+		"Time zone: %s" % time_zone(),
+		# The random id the game's play stats, ratings and daily results go under: so a report can say whose
+		# they are (to look at them, or to delete them on request).
+		"Player id: %s" % (Progress.device_id if Progress.device_id != "" else "none yet"),
 		"Engine: Godot %s" % Engine.get_version_info().get("string", ""),
 		"Progress: %d levels done, next %d; momentum %d; gas %d (+%d spare); %d Dollaroos" % [Progress.completed.size(),
 			Progress.first_incomplete(100) + 1, Progress.momentum, Progress.gas, Progress.reserve_gas, Progress.dollaroos],

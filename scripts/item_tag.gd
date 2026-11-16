@@ -22,7 +22,7 @@ func _ready() -> void:
 		_van.position = Vector2(75, 75)
 		_van.paint = item if kind == "paint" else Progress.paint
 		_van.topper = item if kind == "topper" else ""
-		_van.ride = item if kind == "ride" else ""
+		_van.ride = item if kind == "ride" else Progress.ride
 		_van.rotation = -0.3
 		_van.target_rotation = -0.3
 		add_child(_van)

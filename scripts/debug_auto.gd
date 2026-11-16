@@ -362,6 +362,7 @@ func _ready() -> void:
 			Game.gas_bought.erase(g._attempt_key())
 			g.hints_unlimited = false
 			Progress.hoardly_ads = false            # (the Last Mile ad, not a Hoardly one: BaronAd is a roll)
+			Progress.recent_ads = ["celestia"]     # (...nor Frontiers Celestia: AdPicker skips what was seen lately)
 			Progress.gas = 0
 			Progress.gas_t = Time.get_unix_time_from_system()
 			Progress.reserve_gas = 0

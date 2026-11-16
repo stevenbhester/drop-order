@@ -43,6 +43,8 @@ var side_kind := "SIDE ROAD"
 var _word := "DELIVERED!" if randf() > 0.02 else "DELIVERED?"
 ## A side road's power-up ("Free hints for 10 minutes"), or "".
 var bonus_line := ""
+## A rush still on the clock ("Undo Rush: 0:47 left. Keep going!"), or "": said over the Next button.
+var rush_line := ""
 ## A line or two of what's next, under the rewards (the first job's: keep an eye out for headlights).
 var note := ""
 ## First win on a challenge level.
@@ -388,6 +390,10 @@ func _draw() -> void:
 			var note_lines := note.split("\n")
 			for i in note_lines.size():
 				_centered(note_lines[i], Vector2(v.x / 2.0, y - 25.0 + i * 50.0), int((42 if i == 0 else 36) * k), Color("ffe08a") if i == 0 else Color(1, 1, 1, 0.85))
+	# A rush still on the clock: over the Next button, throbbing (the clock's waiting for the next job).
+	if rush_line != "" and _next.visible:
+		var px := int(44 * (1.0 + 0.04 * sin(_t * 6.0)))
+		_centered(rush_line, Vector2(v.x / 2.0, _next.position.y - 34.0), px, RushRing.GOLD)
 	# Today's daily solved: please, tell someone.
 	if beg != "" and _share and _share.visible:
 		Daily.draw_beg(self, _share.position + Vector2(_share.size.x / 2.0, 0), beg, _t, clampf((_t - BUTTONS_AT - 0.4) / 0.3, 0.0, 1.0))
@@ -518,7 +524,7 @@ func _show_item_tag() -> void:
 	_tag.position = Vector2((get_viewport_rect().size.x - total) / 2.0, y)
 	if can_wear:
 		_equip = JuicyButton.new()
-		_equip.label = "Wear it"
+		_equip.label = "Ride %s" % Cosmetics.them(new_item) if Cosmetics.PRONOUN.has(new_item) else "Wear it"
 		_equip.font_px = 38
 		_equip.bg = Palette.ACCENT
 		_equip.fg = Color.WHITE

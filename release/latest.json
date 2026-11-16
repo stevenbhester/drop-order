@@ -1,11 +1,11 @@
 {
-	"build": 27,
+	"build": 28,
 	"name": "The Long Road",
 	"notes": [
-		"Headlights: you can only plan a short way ahead of the van now, and it follows your finger. Beat the Baron for brighter lights. (The old way is in Options, Testers.)",
-		"Dollaroos are gone for now (nothing to spend them on). The gas station gives gas for watching a (pretend) ad.",
-		"Playing and retrying jobs is free. Gas pays for extra help: on a job, one tank makes undos and hints both unlimited for the rest of the level. Tanks refill one an hour. Out of gas? A (pretend) ad gives you two."
+		"Undo Rush and Hint Rush: detours that used to give ten minutes of free undos or hints now give a rush you start yourself. When you're out, hold the button: two minutes of free undos (one of free hints) on a clock that only runs while you're on a job.",
+		"Colour gates show how they'll stand at the end of your plan, not where the van has got to.",
+		"The map takes no taps while the van's driving on from a win, and a chest you've earned opens before it sets off."
 	],
-	"ready_at": 1794790658,
+	"ready_at": 1794805369,
 	"version": "0.7"
 }

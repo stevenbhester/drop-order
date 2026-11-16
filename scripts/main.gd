@@ -142,12 +142,31 @@ func _ready() -> void:
 			var n := a.trim_prefix("--next=").to_int()
 			show_next.call_deferred(n - 2, n - 1)
 	for a in args:
+		if a.begins_with("--ad-picks="):
+			# Debug: the next N ads AdPicker would play (each remembered as seen), printed.
+			var picks := []
+			for k in a.trim_prefix("--ad-picks=").to_int():
+				var id := AdPicker.pick(k == 0 and args.has("--gate-first"))
+				Progress.saw_ad(id)
+				picks.append(id)
+			print("AD PICKS: ", " ".join(picks))
+	for a in args:
+		if a.begins_with("--rush-card="):
+			# Debug: the card for a detour's rush ("undos" or "hints").
+			var rc := RushCard.new()
+			rc.kind = a.trim_prefix("--rush-card=")
+			rc.secs = float(Progress.RUSH_SECS.get(rc.kind, 120.0))
+			add_child.call_deferred(rc)
+	for a in args:
 		if a.begins_with("--unlock="):
 			# Debug: the "you found something" card for this cosmetic.
 			var u := UnlockCard.new()
 			u.item = a.trim_prefix("--unlock=")
 			u.wrapped = not args.has("--unlock-open")
 			add_child.call_deferred(u)
+	if args.has("--system-info"):
+		# Debug: the device lines a feedback report carries, printed.
+		print(Feedback.system_info())
 	if args.has("--feedback"):
 		# Debug: open the feedback card straight away (for screenshots).
 		open_feedback.call_deferred()

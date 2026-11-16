@@ -206,7 +206,7 @@ func _on_ad() -> void:
 	_done = true
 	_buy.breathe(false)
 	Sfx.play("click")
-	var ad: CanvasLayer = BaronAd.new() if BaronAd.due() else FakeAd.new()
+	var ad := AdPicker.make()
 	add_child(ad)
 	ad.finished.connect(func():
 		Progress.ad_watched()

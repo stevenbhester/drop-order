@@ -6,6 +6,8 @@ engine expected of each level.
   python3 tools/ratings.py --no-fetch      just the summary, from what's already been fetched
   python3 tools/ratings.py --level 23      every rating of one level, notes and all
   python3 tools/ratings.py --csv out.csv   one row per rating, stats spread into columns
+  python3 tools/ratings.py --devices       each device that's rated: phone, OS, time zone, how far it got
+  python3 tools/ratings.py --plays         every job attempt logged (build 28 on): players, wins, quits, time, help used
   python3 tools/ratings.py --url http://localhost:5077/lm/ratings     another server (testing)
 
 The ratings live in the MusicGrid server's database (table lm_level_ratings); reading them needs that
@@ -141,7 +143,42 @@ rows = load()
 if "--no-fetch" not in args:
     fetch(rows)
 # The deploy check and the game's own self-tests mark themselves; they aren't anyone's opinion.
-real = [r for r in rows.values() if not r["stats"].get("test") and not r["note"].startswith("Autotest note")]
+every = [r for r in rows.values() if not r["stats"].get("test") and not r["note"].startswith("Autotest note")]
+# Play records (from build 28: every job won, left, skipped or put away, for everyone) are kept apart from the
+# ratings; a rated win is both.
+plays = [r for r in every if r["stats"].get("record") in ("play", "rating")]
+real = [r for r in every if r["stats"].get("record") != "play"]
+
+if "--plays" in args:
+    # Every job attempt the game has logged: per job, how many players reached it, how many won, left or
+    # skipped it, and the time, undos, hints, restarts and dead ends it took. Each device's last record for a
+    # job stands for that try (the counts add up until a win).
+    last = {}
+    for r in sorted(plays, key=lambda r: r["receivedAt"]):
+        last[(r["device"], r["where"], r["stats"].get("outcome") == "won")] = r
+    per = defaultdict(lambda: {"devices": set(), "won": set(), "left": set(), "skipped": set(), "secs": [], "undos": [], "hints": [], "restarts": [], "dead": []})
+    for (dev, where, _), r in last.items():
+        s = r["stats"]
+        p = per[where]
+        p["devices"].add(dev)
+        o = s.get("outcome", "")
+        if o in ("won", "left", "skipped"):
+            p[o].add(dev)
+        p["secs"].append(float(s.get("seconds_active", 0) or 0) + float(s.get("seconds_this_try", 0) or 0))
+        for k, f in (("undos", "undos"), ("hints", "hints"), ("restarts", "restarts"), ("dead", "stuck")):
+            p[k].append(float(s.get(f, 0) or 0))
+    med = lambda v: sorted(v)[len(v) // 2] if v else 0
+    def order(w):
+        n = w.split()[-1]
+        return (0 if w.startswith("Level ") else 1, int(n) if n.isdigit() else 0, w)
+    print("%d play record(s) from %d device(s)\n" % (len(plays), len({r["device"] for r in plays})))
+    print("%-28s %7s %4s %5s %5s %8s %6s %6s %5s %5s" % ("job", "players", "won", "left", "skip", "med secs", "undos", "hints", "retry", "dead"))
+    for w in sorted(per, key=order):
+        p = per[w]
+        print("%-28s %7d %4d %5d %5d %8.0f %6.1f %6.1f %5.1f %5.1f" % (w[:28], len(p["devices"]), len(p["won"]), len(p["left"] - p["won"]),
+              len(p["skipped"]), med(p["secs"]), sum(p["undos"]) / len(p["undos"]), sum(p["hints"]) / len(p["hints"]),
+              sum(p["restarts"]) / len(p["restarts"]), sum(p["dead"]) / len(p["dead"])))
+    sys.exit()
 main = [r for r in real if r["where"].startswith("Level ")]
 
 if opt("--csv"):
@@ -168,6 +205,20 @@ if opt("--level"):
             s.get("seconds_winning_try", 0), r["levelFp"]))
         if r["note"]:
             print("     note: %s" % r["note"])
+    sys.exit()
+
+if "--devices" in args:
+    # Each device that has rated: what it is and where its clock is set (sent from build 28 on), how many
+    # ratings, how far it got, when it was last seen.
+    by = defaultdict(list)
+    for r in every:
+        by[r["device"]].append(r)
+    print("%-8s  %-16s  %-14s  %-18s  %7s  %5s  %s" % ("device", "phone", "os", "time zone", "ratings", "done", "last seen"))
+    for d, rs in sorted(by.items(), key=lambda kv: max(r["receivedAt"] for r in kv[1]), reverse=True):
+        known = [r["stats"] for r in rs if r["stats"].get("device_model")]
+        s = known[-1] if known else {}
+        print("%-8s  %-16s  %-14s  %-18s  %7d  %5s  %s" % (d[:8], s.get("device_model", "?"), s.get("os", "?"), s.get("time_zone", "?"), len(rs),
+              max(int(r["stats"].get("levels_done", 0) or 0) for r in rs), max(r["receivedAt"] for r in rs)[:16]))
     sys.exit()
 
 print("%d rating(s) from %d device(s) over %d session(s); %d of main levels" % (len(real), len({r["device"] for r in real}), len({r["session"] for r in real}), len(main)))

@@ -161,10 +161,11 @@ func update_works(done: int) -> void:
 		works_nodes[p].set_done(done)
 
 
-## Lift/lower every gate for the given top package colour.
-func update_gates(top: String, instant := false) -> void:
+## Lift/lower every gate for the given top package colour. Gates on `held` tiles (the planned road the van
+## hasn't driven yet) stay up whatever's on top.
+func update_gates(top: String, instant := false, held: Array = []) -> void:
 	for p in gate_nodes:
-		gate_nodes[p].set_open(L.gates[p] == top, instant)
+		gate_nodes[p].set_open(L.gates[p] == top or held.has(p), instant)
 
 
 func size_px() -> Vector2:

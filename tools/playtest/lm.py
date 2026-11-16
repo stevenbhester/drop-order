@@ -9,7 +9,9 @@
   lm.py <name> press "Label"             tap the button whose label has that text
   lm.py <name> hold "Label"|X Y SECS     press and hold
   lm.py <name> drive UURRD               in a level: drag a route from the van, a tile per letter (Up Down Left Right)
-  lm.py <name> drag X,Y X,Y ...          a finger along those points
+  lm.py <name> drag X,Y X,Y ... [keep]   a finger along those points ("keep": it stays down; `up X Y` lifts it)
+  lm.py <name> up X Y                    lift the finger a "keep" drag left down
+  lm.py <name> drag X,Y X,Y ...          (as above)
   lm.py <name> wait SECS
 Add --shot to any command for a picture after it. Every command prints the screen's text afterwards.
 """
@@ -63,7 +65,11 @@ def main():
     elif op == "drive":
         cmd.update(moves=rest[0])
     elif op == "drag":
+        if rest and rest[-1] == "keep":
+            rest = rest[:-1]; cmd["keep"] = True
         cmd.update(points=[[float(v) for v in r.split(",")] for r in rest])
+    elif op == "up":
+        cmd.update(x=float(rest[0]), y=float(rest[1]))
     elif op == "wait":
         cmd.update(secs=float(rest[0]) if rest else 1.0)
     seqf = os.path.join(d, "seq")

@@ -61,7 +61,7 @@ func _ready() -> void:
 	# A new ride in its own Classic paint; anything else on the van as it is.
 	_van.paint = item if kind == "paint" else ("classic" if kind == "ride" else Progress.paint)
 	_van.topper = item if kind == "topper" else ""
-	_van.ride = item if kind == "ride" else ""
+	_van.ride = item if kind == "ride" else Progress.ride       # (a new paint job is shown on what you're driving)
 	add_child(_van)
 	_van.set_top("yellow")
 	# A new look: what it changes, big, instead of the van.
@@ -147,7 +147,7 @@ func _two_buttons(v: Vector2, kind: String) -> void:
 	_wear.font_px = 44
 	_wear.bg = Palette.ACCENT
 	_wear.fg = Color.WHITE
-	_wear.label = CTA.get(kind, "Use it now")
+	_wear.label = "Paint my ride" if kind == "paint" and Progress.ride != "" else (Cosmetics.spin_cta(item) if kind == "ride" else CTA.get(kind, "Use it now"))
 	_wear.size = Vector2(bw, 150)
 	_wear.position = Vector2(x0 + bw + 30.0, spot.position.y - 186.0)
 	_wear.pressed.connect(_on_wear)
@@ -167,7 +167,7 @@ func _ride_buttons(v: Vector2, painted: bool) -> void:
 	_wear.font_px = 48
 	_wear.bg = Palette.ACCENT
 	_wear.fg = Color.WHITE
-	_wear.label = CTA["ride"]
+	_wear.label = Cosmetics.spin_cta(item)
 	_wear.size = Vector2(bw, 170)
 	_wear.position = Vector2(x0, y)
 	_wear.pressed.connect(_on_wear)
@@ -192,7 +192,7 @@ func _ride_buttons(v: Vector2, painted: bool) -> void:
 		_classic.font_px = 36
 		_classic.bg = Color.WHITE
 		_classic.fg = Color("2b2233")
-		_classic.label = "Take it in Classic"
+		_classic.label = "Take %s in Classic" % Cosmetics.them(item)
 		_classic.size = Vector2(bw, 116)
 		_classic.position = Vector2(x0, y + 190)
 		_classic.pressed.connect(_on_classic)
@@ -283,7 +283,7 @@ func _on_wear() -> void:
 	_fx.burst(_van.position, Cosmetics.tint(item), 30, 1000.0, 26.0)
 	_fx.say(_van.position + Vector2(0, -230), "Looking good!", Palette.GOOD, 72)
 	_wear.breathe(false)
-	_wear.label = "Wearing it!"
+	_wear.label = "Riding %s!" % Cosmetics.them(item) if Cosmetics.PRONOUN.has(item) else "Wearing it!"
 	_wear.icon_name = "star"
 	var tw := create_tween()
 	tw.tween_interval(0.45 if paged else 0.9)

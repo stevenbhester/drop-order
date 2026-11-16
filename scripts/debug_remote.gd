@@ -75,7 +75,11 @@ func _run(cmd: Dictionary) -> void:
 		"drag":
 			var pts: Array = cmd.get("points", [])
 			if pts.size() >= 2:
-				await _drag_points(pts.map(func(q): return Vector2(float(q[0]), float(q[1]))), float(cmd.get("pause", 0.03)))
+				await _drag_points(pts.map(func(q): return Vector2(float(q[0]), float(q[1]))), float(cmd.get("pause", 0.03)), bool(cmd.get("keep", false)))
+		"up":
+			# Lifts a finger a drag left down ("keep").
+			_mouse(Vector2(float(cmd.get("x", 0)), float(cmd.get("y", 0))), false)
+			await get_tree().process_frame
 		"drive":
 			out["note"] = await _drive(str(cmd.get("moves", "")))
 			out["ok"] = not str(out["note"]).begins_with("can't")
@@ -121,7 +125,7 @@ func _press(pos: Vector2, secs: float) -> void:
 	await get_tree().process_frame
 
 
-func _drag_points(pts: Array, pause: float) -> void:
+func _drag_points(pts: Array, pause: float, keep := false) -> void:
 	_mouse(pts[0], true)
 	await get_tree().process_frame
 	for k in range(1, pts.size()):
@@ -130,6 +134,8 @@ func _drag_points(pts: Array, pause: float) -> void:
 			await get_tree().process_frame
 		if pause > 0.0:
 			await get_tree().create_timer(pause).timeout
+	if keep:
+		return                     # (the finger stays down: "up" lifts it)
 	_mouse(pts.back(), false)
 	await get_tree().process_frame
 

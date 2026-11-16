@@ -81,8 +81,14 @@ var hint_ad_watched := false
 ## and free hints / free undos until these times (Unix seconds). A side road hands one out once a day.
 const MAX_RESERVE := 5             # extra tanks on top of the gauge: five at most
 var reserve_gas := 0
-var free_hints_until := 0.0
-var free_undos_until := 0.0
+## Rushes: a detour's power-up is a charge of free undos ("undos") or free hints ("hints"), held until the
+## player starts it (holding the button once they're out), then running for its seconds, and only while
+## they're on a job (Game ticks it).
+const RUSH_SECS := {"undos": 120.0, "hints": 60.0}
+const RUSH_NAME := {"undos": "Undo Rush", "hints": "Hint Rush"}
+var rush_held := {}                # kind -> the seconds its charge will run for (absent: none in hand)
+var rush_secs := {}                # kind -> seconds left of one that's running
+var rush_full := {}                # kind -> the seconds that one started with (for the ring round the button)
 var side_bonus_day := {}           # side road id -> the day it last handed out its power-up
 ## Speedrun: best time per course (seconds).
 var speed_best := {}
@@ -112,10 +118,13 @@ var hoardly_ads := true
 ## any at all and the next checkpoint waves you through.
 var checkpoints := {}
 var ads_seen := 0
+var gate_ads := 0                  # ads watched at checkpoints, ever (the first is Hoardly's)
+var recent_ads: Array = []         # the last few ads this player saw (AdPicker ids, oldest first)
 ## Tester option "Full license": stands in for the premium version (no checkpoints).
 var licensed := false
 ## Rate levels: a quick card after each win (RatingCard), sent to Steven with the level's stats (Rating).
 var rate_levels := false
+var play_stats := true             # each job's numbers go to Steven when it's won, left, skipped (Rating.play)
 ## A random id made the first time a rating is sent, so one tester's ratings can be told from another's.
 var device_id := ""
 ## The one-time "want to rate levels?" card (RatePrompt, after level 5) has been answered.
@@ -290,6 +299,13 @@ func _apply_preset(preset: String) -> void:
 				if v > 0:
 					for id in Cosmetics.ITEMS:
 						owned[id] = true
+			"gateads":
+				gate_ads = v           # (ads already watched at checkpoints)
+			"rush":
+				# rush:1 (a charge of each in hand).
+				if v > 0:
+					for k in RUSH_SECS:
+						rush_held[k] = RUSH_SECS[k]
 			"wear":
 				# wear:<item id> (owns it and puts it on).
 				owned[kv[1]] = true
@@ -355,8 +371,16 @@ func _load() -> void:
 	for n in Boss.LOOT:
 		if completed.has(int(n)):
 			owned[Boss.LOOT[n]] = true
-	free_hints_until = float(d.get("free_hints_until", 0.0))
-	free_undos_until = float(d.get("free_undos_until", 0.0))
+	for pair in [["hints", "free_hints_until"], ["undos", "free_undos_until"]]:
+		# Free hints / undos still on the old clock: a rush to start when they like, in their place.
+		if float(d.get(pair[1], 0.0)) > _now():
+			rush_held[pair[0]] = RUSH_SECS[pair[0]]
+	for pair in [["rush_held", rush_held], ["rush_secs", rush_secs], ["rush_full", rush_full]]:
+		var got = d.get(pair[0], {})
+		if got is Dictionary:
+			for k in got:
+				if RUSH_SECS.has(str(k)) and float(got[k]) > 0.0:
+					pair[1][str(k)] = float(got[k])
 	var sb = d.get("speed_best", {})
 	if sb is Dictionary:
 		for k in sb:
@@ -378,6 +402,7 @@ func _load() -> void:
 	notify_fresh = bool(d.get("notify_fresh", true))
 	notify_after = int(d.get("notify_after", -1))
 	rate_levels = bool(d.get("rate_levels", false))
+	play_stats = bool(d.get("play_stats", true))
 	device_id = str(d.get("device_id", ""))
 	rate_asked = bool(d.get("rate_asked", false))
 	all_open = all_open or bool(d.get("all_open", false))
@@ -417,6 +442,11 @@ func _load() -> void:
 	for k in d.get("checkpoints", []):
 		checkpoints[int(k)] = true
 	ads_seen = int(d.get("ads_seen", 0))
+	gate_ads = int(d.get("gate_ads", 0))
+	var ra = d.get("recent_ads", [])
+	if ra is Array:
+		for x in ra:
+			recent_ads.append(str(x))
 	licensed = bool(d.get("licensed", false))
 	jets = bool(d.get("jets", false))
 	var mg = d.get("mega", {})
@@ -436,9 +466,9 @@ func _save() -> void:
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
-			"reserve_gas": reserve_gas, "free_hints_until": free_hints_until, "free_undos_until": free_undos_until, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
-			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "hoardly_ads": hoardly_ads, "notify_chosen": notify_chosen, "notify_after": notify_after, "daily_seen": daily_seen, "notify_updates": notify_updates, "notify_streak": notify_streak, "notify_fresh": notify_fresh, "rate_levels": rate_levels, "device_id": device_id, "rate_asked": rate_asked, "skipped": skipped.keys(), "seen_new": seen_new, "all_open": all_open, "headlights": foresight, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "og_done": og_done.keys(), "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
-			"mega": mega, "jets": jets, "checkpoints": checkpoints.keys(), "ads_seen": ads_seen, "licensed": licensed}))
+			"reserve_gas": reserve_gas, "rush_held": rush_held, "rush_secs": rush_secs, "rush_full": rush_full, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
+			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "hoardly_ads": hoardly_ads, "notify_chosen": notify_chosen, "notify_after": notify_after, "daily_seen": daily_seen, "notify_updates": notify_updates, "notify_streak": notify_streak, "notify_fresh": notify_fresh, "rate_levels": rate_levels, "play_stats": play_stats, "device_id": device_id, "rate_asked": rate_asked, "skipped": skipped.keys(), "seen_new": seen_new, "all_open": all_open, "headlights": foresight, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "og_done": og_done.keys(), "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
+			"mega": mega, "jets": jets, "checkpoints": checkpoints.keys(), "ads_seen": ads_seen, "gate_ads": gate_ads, "recent_ads": recent_ads, "licensed": licensed}))
 
 
 func _now() -> float:
@@ -571,6 +601,11 @@ func reset() -> void:
 	speed_best.clear()
 	checkpoints.clear()
 	ads_seen = 0
+	gate_ads = 0
+	recent_ads.clear()
+	rush_held.clear()
+	rush_secs.clear()
+	rush_full.clear()
 	# A fresh start in full (Testers > Reset progress): keys, unlocked detours, the OG run, which layouts were
 	# beaten, where the van waits. Settings, the rating id and the looks being worn stay.
 	keys = 0
@@ -880,29 +915,91 @@ func hint_slots() -> int:
 
 
 func free_hints() -> bool:
-	return _now() < free_hints_until
+	return rush_left("hints") > 0.0
 
 
 func free_undos() -> bool:
-	return _now() < free_undos_until
+	return rush_left("undos") > 0.0
 
 
-## Seconds of free hints / undos left (0 when none).
-func free_left(what: String) -> int:
-	return maxi(0, int(ceil((free_hints_until if what == "hints" else free_undos_until) - _now())))
+## Seconds left of a rush that's running (0: it isn't).
+func rush_left(kind: String) -> float:
+	return maxf(0.0, float(rush_secs.get(kind, 0.0)))
 
 
-## A detour won: its power-up. Free hints or undos for a while come once a day per detour; a tank of gas
-## only the first time it's ever won (gas is scarce: Small Tank can't be farmed for it). Returns a line saying
-## what it gave ("" for none).
+## A charge of this kind is in hand, not started (and none's running).
+func rush_ready(kind: String) -> bool:
+	return float(rush_held.get(kind, 0.0)) > 0.0 and rush_left(kind) <= 0.0
+
+
+## The charge in hand starts. Returns the seconds it runs for (0: there wasn't one).
+func rush_start(kind: String) -> float:
+	if not rush_ready(kind):
+		return 0.0
+	var secs := float(rush_held[kind])
+	rush_held.erase(kind)
+	rush_secs[kind] = secs
+	rush_full[kind] = secs
+	_save()
+	changed.emit()
+	return secs
+
+
+## A running rush's clock (Game calls this while a job's being played). Returns the kinds that just ran out.
+func rush_tick(delta: float) -> Array:
+	var over := []
+	for kind in rush_secs.keys():
+		rush_secs[kind] = float(rush_secs[kind]) - delta
+		if float(rush_secs[kind]) <= 0.0:
+			rush_secs.erase(kind)
+			rush_full.erase(kind)
+			over.append(kind)
+	if not over.is_empty():
+		_save()
+		changed.emit()
+	return over
+
+
+## Keeps a running rush's clock (leaving a job, or now and then while it runs).
+func rush_keep() -> void:
+	if not rush_secs.is_empty():
+		_save()
+
+
+## "2:00", "0:47".
+static func clock(secs: float) -> String:
+	var n := maxi(0, int(ceil(secs)))
+	return "%d:%02d" % [n / 60, n % 60]
+
+
+## A detour's bonus, in a few words, for its card on the map ("" if it has none to give right now).
+func side_bonus_says(id: String, bonus: Dictionary) -> String:
+	var kind := str(bonus.get("kind", ""))
+	if kind == "reserve":
+		return "" if side_bonus_day.has(id) else "+%d gas" % int(bonus.get("amount", 1))
+	if not RUSH_SECS.has(kind) or int(side_bonus_day.get(id, -1)) == Daily.today() or rush_ready(kind):
+		return ""
+	return "%s (%s of free %s)" % [RUSH_NAME[kind], clock(rush_len(bonus)), kind]
+
+
+## How long a detour's rush runs: the kind's seconds, half as long again for the big ones (amount 15).
+func rush_len(bonus: Dictionary) -> float:
+	return float(RUSH_SECS.get(str(bonus.get("kind", "")), 0.0)) * (1.5 if int(bonus.get("amount", 10)) >= 15 else 1.0)
+
+
+## A detour won: its power-up. A rush of free hints or undos (a charge to start when they like: one of each
+## in hand at most) comes once a day per detour; a tank of gas only the first time it's ever won (gas is
+## scarce: Small Tank can't be farmed for it). Returns a line saying what it gave ("" for none).
 func side_power_up(id: String, bonus: Dictionary) -> String:
 	var today := Daily.today()
 	if bonus.is_empty() or int(side_bonus_day.get(id, -1)) == today:
 		return ""
 	if str(bonus.get("kind", "")) == "reserve" and side_bonus_day.has(id):
 		return ""
-	side_bonus_day[id] = today
 	var kind := str(bonus.get("kind", ""))
+	if RUSH_SECS.has(kind) and float(rush_held.get(kind, 0.0)) > 0.0:
+		return ""                  # (one's in hand already: today's is still there to win once it's used)
+	side_bonus_day[id] = today
 	var n := int(bonus.get("amount", 1))
 	var said := ""
 	match kind:
@@ -910,12 +1007,9 @@ func side_power_up(id: String, bonus: Dictionary) -> String:
 			var got := mini(n, MAX_RESERVE - reserve_gas)
 			reserve_gas += got
 			said = "+%d gas" % got if got > 0 else "Spare tanks full!"
-		"hints":
-			free_hints_until = maxf(free_hints_until, _now()) + n * 60.0
-			said = "Free hints for %d minutes" % n
-		"undos":
-			free_undos_until = maxf(free_undos_until, _now()) + n * 60.0
-			said = "Free undos for %d minutes" % n
+		"hints", "undos":
+			rush_held[kind] = rush_len(bonus)
+			said = "%s: %s of free %s" % [RUSH_NAME[kind], clock(rush_len(bonus)), kind]
 	_save()
 	changed.emit()
 	return said
@@ -1073,6 +1167,21 @@ func daily_attempt(day: int) -> bool:
 
 
 ## A (pretend) ad watched to the end or skipped (gas, the gas station): the next checkpoint waves you through.
+## An ad's about to play (AdPicker id): remembered, the last AdPicker.RECENT of them.
+func saw_ad(id: String) -> void:
+	recent_ads.erase(id)
+	recent_ads.append(id)
+	while recent_ads.size() > AdPicker.RECENT:
+		recent_ads.pop_front()
+	_save()
+
+
+## An ad's been watched at a checkpoint.
+func gate_ad_watched() -> void:
+	gate_ads += 1
+	_save()
+
+
 func ad_watched() -> void:
 	ads_seen += 1
 	_save()

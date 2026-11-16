@@ -225,8 +225,15 @@ var _hint_armed := 0.0               # D-pad: Hint was tapped once; a second tap
 var _gas_line: GasLine               # Hint or Undo held down when it costs a tank: the fuel line filling
 var _gas_held := ""                  # the button ("hint"/"undo") whose hold just paid: its release is swallowed
 var _gas_paid := ""                  # set while the help a tank was just committed to runs (no hold needed)
+var _rush_rings := {}                # "undos" / "hints" -> the RushRing on its button
+var _rush_hold := ""                 # the button ("undo" / "hint") being held to start the rush in hand
+var _rush_hold_t := 0.0
+var _rush_won := ""                  # a detour just paid out a rush of this kind (RushCard before the finish)
+var _rush_keep_t := 0.0
+var _play_sent := false              # this try's play record has gone (left, skipped)
 var _undo_lesson: UndoLesson         # job 6's lesson, while it's running (UndoLesson)
 ## Undo held down: it undoes, then again, and again, sooner each time (so a long way back is quick).
+const RUSH_HOLD := 0.65              # seconds Undo / Hint is held to start the rush in hand
 const UNDO_HOLD_FIRST := 0.38
 const UNDO_HOLD_GAP := 0.26
 const UNDO_HOLD_MIN := 0.04
@@ -338,6 +345,12 @@ func _ready() -> void:
 				seen[sym["kind"]] = true
 				tw.tween_callback(_explain.bind(Vector2i(x, y)))
 				tw.tween_interval(1.6)
+	# A boss job says so the whole time it's played (BossWatch): the Baron in the corner, the gold plate.
+	if (_boss_level() or Boss.is_boss(side)) and not Progress.auto:
+		var bw := BossWatch.new()
+		bw.game = self
+		_ui_root.add_child(bw)
+		_ui_root.move_child(bw, 0)
 	DebugAuto.maybe_run(self)
 
 
@@ -894,6 +907,7 @@ func _process(delta: float) -> void:
 	_skip_tick()
 	_fs_tick(delta)
 	_undo_hold_tick(delta)
+	_rush_tick(delta)
 	_nudge_tick(delta)
 	if not _busy_modal() and (state == State.IDLE or state == State.DRAWING):
 		_idle_t += delta
@@ -1334,6 +1348,11 @@ func _build_ui() -> void:
 	hint_button.button_up.connect(_hold_up)
 	undo_button.button_down.connect(_hold_down.bind("undo"))
 	undo_button.button_up.connect(_hold_up)
+	for pair in [["hints", hint_button], ["undos", undo_button]]:
+		var ring := RushRing.new()
+		ring.kind = pair[0]
+		pair[1].add_child(ring)
+		_rush_rings[pair[0]] = ring
 	# The gas gauge, right by the buttons it pays for (placed in _layout).
 	gas_chip = GasChip.new()
 	gas_chip.shop_requested.connect(_open_shop)
@@ -1997,6 +2016,20 @@ func _drag(lp: Vector2) -> void:
 			break
 
 
+## Lifts and lowers the colour gates. While there's a plan, they stand as they will at the END of it (that's
+## what the next tile is judged by), not by what's on top where the van has got to: with the headlights the
+## van trails the finger, and a gate used to swing open for a package the plan had already delivered. One
+## the van has still to drive through stays up until it's through.
+func _show_gates() -> void:
+	if level.gates.is_empty():
+		return
+	if seg.size() < 2 or seg_states.size() != seg.size():
+		board.update_gates(Sim.top_color(level, sim_state))
+		return
+	var driven := _fired if (state == State.DRIVING or _fs > 0) else 0
+	board.update_gates(Sim.top_color(level, seg_states.back()), false, seg.slice(driven + 1))
+
+
 ## Bumping into a closed gate: it rattles (once per attempt at that tile).
 func _maybe_deny(t: Vector2i) -> void:
 	if t == _denied or not board.gate_nodes.has(t):
@@ -2016,7 +2049,7 @@ func _extend(t: Vector2i) -> void:
 		_fs_committed = maxi(_fs_committed, seg.size() - _fs)
 	_unblock()
 	_show_seg()
-	board.update_gates(Sim.top_color(level, st))
+	_show_gates()
 	_refresh_tags()
 	_preview_load()
 	Sfx.play("tick", 1.0 + minf(seg.size(), 24) * 0.015, -2)
@@ -2029,7 +2062,7 @@ func _retract() -> void:
 	_denied = NOWHERE
 	_unblock()
 	_show_seg()
-	board.update_gates(Sim.top_color(level, seg_states.back()))
+	_show_gates()
 	_refresh_tags()
 	_preview_load()
 	Sfx.play("untick", 1.0, -4)
@@ -2441,7 +2474,7 @@ func _arrive(k: int) -> bool:
 		Sfx.play("bonk", randf_range(0.95, 1.05), -3)
 		Sfx.haptic(12)
 		combo = 0
-	board.update_gates(Sim.top_color(level, sim_state))
+	_show_gates()
 	if level.return_depot and board.depot:
 		board.depot.calling = Sim.all_delivered(level, sim_state)
 
@@ -2675,12 +2708,12 @@ func _tanked() -> bool:
 
 ## Undos are unlimited here: the option, the power-up, or a tank spent on this level.
 func _undos_unlimited() -> bool:
-	return Progress.free_undos() or Progress.unlimited_hints or _tanked()
+	return _rush_on("undos") or Progress.unlimited_hints or _tanked()
 
 
 ## Undos to hand: this try's free ones, then (with a tank to spend) as many as you like.
 func undos_available() -> int:
-	if _undos_unlimited() or Progress.total_gas() > 0:
+	if _undos_unlimited() or Progress.total_gas() > 0 or _rush_ready("undos"):
 		return 99
 	return undo_left
 
@@ -2722,10 +2755,9 @@ func _on_undo_pressed() -> void:
 
 
 ## Out of gas, and an undo or a hint wanted: a (pretend) ad plays, pays AD_TANKS bonus tanks however it
-## ends, and then `then` does what was asked. `hint`: the ad for hints (PromoAd), else FakeAd; now and then
-## a Hoardly Inc. one instead (BaronAd).
+## ends, and then `then` does what was asked. Which ad: AdPicker (any of them, not one seen lately).
 func _gas_ad(hint: bool, then: Callable) -> void:
-	var ad: CanvasLayer = BaronAd.new() if BaronAd.due() else (PromoAd.new() if hint else FakeAd.new())
+	var ad := AdPicker.make()
 	modal = ad
 	_overlay(ad)
 	ad.finished.connect(func():
@@ -2767,12 +2799,15 @@ func _explain_gas(what: String, then: Callable) -> bool:
 func _tank_due(kind: String) -> bool:
 	if _busy_modal() or _strict_side() or Progress.total_gas() <= 0 or not Progress.seen_new.has("gas"):
 		return false
+	if _rush_due(kind):
+		return false               # (a rush in hand goes before a tank does)
 	if kind == "undo":
 		return not (dpad_mode and state == State.DRAWING) and not _undos_unlimited() and undo_left <= 0 and can_undo()
 	if _no_hints():
 		return false
+	# (At a dead end too: a held Hint there spends its tank like anywhere else, and buys the same.)
 	return not _hints_free() and hints_left <= 0 and hint_run.is_empty() \
-			and (state == State.IDLE or (dpad_mode and state == State.DRAWING))
+			and (state == State.IDLE or state == State.FAILED or (dpad_mode and state == State.DRAWING))
 
 
 ## Hint or Undo pressed down: when it'll cost a tank, the fuel line starts filling (GasLine). Full, and the
@@ -2782,6 +2817,11 @@ func _hold_down(kind: String) -> void:
 		_undo_hold = UNDO_HOLD_FIRST
 		_undo_gap = UNDO_HOLD_GAP
 		_undo_streak = 0
+	if _rush_due(kind):
+		# A rush in hand, and out of free ones: this hold starts it (the line runs round the button).
+		_rush_hold = kind
+		_rush_hold_t = 0.0
+		return
 	if Progress.auto or not _tank_due(kind):
 		return
 	if is_instance_valid(_gas_line):
@@ -2800,6 +2840,7 @@ func _hold_down(kind: String) -> void:
 func _hold_up() -> void:
 	_undo_hold = -1.0
 	_undo_streak = 0
+	_rush_hold = ""
 	if is_instance_valid(_gas_line) and not _gas_line.is_full():
 		_gas_line.let_go()
 	(func(): _gas_held = "").call_deferred()
@@ -2824,6 +2865,110 @@ func _undo_hold_tick(delta: float) -> void:
 	_undo_streak += 1
 	_gas_held = "undo"
 	undo()
+
+
+# ---------------------------------------------------------------- rushes
+
+## Rushes (Progress.rush_*: a detour's power-up, free undos or free hints against a clock) work on the main
+## road's jobs and the detours that allow undos; never on a daily, a speedrun or the OG 100.
+func _rush_here() -> bool:
+	return daily_day < 0 and not og and not _speedrun() and not _strict_side()
+
+
+## One's running here.
+func _rush_on(what: String) -> bool:
+	return _rush_here() and Progress.rush_left(what) > 0.0
+
+
+## One's in hand here, not started.
+func _rush_ready(what: String) -> bool:
+	return _rush_here() and Progress.rush_ready(what)
+
+
+## Would holding Undo / Hint (`button`) now start the rush in hand? Out of this job's free ones, and with
+## something for it to do.
+func _rush_due(button: String) -> bool:
+	if _busy_modal():
+		return false
+	if button == "undo":
+		return _rush_ready("undos") and not (dpad_mode and state == State.DRAWING) and not _undos_unlimited() and undo_left <= 0 and can_undo()
+	return _rush_ready("hints") and not _hints_free() and hints_left <= 0 and hint_run.is_empty() \
+			and (state == State.IDLE or state == State.FAILED or (dpad_mode and state == State.DRAWING))
+
+
+func _rush_badge_col(what: String) -> Color:
+	return RushRing.HOT if Progress.rush_left(what) <= RushRing.LAST else RushRing.INK
+
+
+## The rush in hand starts: the clock, the splash across the screen, the ring off its button.
+func _begin_rush(what: String) -> void:
+	var secs := Progress.rush_start(what)
+	if secs <= 0.0:
+		return
+	Sfx.play("whoomp", 1.1, -4.0)
+	Sfx.play("sparkle", 1.0, -2.0)
+	Sfx.haptic(35, 1.0)
+	var splash := RushSplash.new()
+	splash.kind = what
+	splash.secs = secs
+	_ui_root.add_child(splash)
+	_rush_rings[what].burst()
+	_update_undo()
+
+
+## ...from a hold on its button, which then does what it's for (an undo, a hint), free.
+func _start_rush(button: String) -> void:
+	_gas_held = button             # (the release that follows isn't one more press)
+	_begin_rush("undos" if button == "undo" else "hints")
+	_paid_call(button, _on_undo_pressed if button == "undo" else _on_hint_pressed)
+
+
+## Each frame: the hold that starts one; what the rings on the buttons show; and a running rush's clock,
+## which only runs while the job's being played (not on a card, not once it's won).
+func _rush_tick(delta: float) -> void:
+	if _rush_hold != "":
+		if not _rush_due(_rush_hold):
+			_rush_hold = ""
+		else:
+			_rush_hold_t += delta
+			if _rush_hold_t >= RUSH_HOLD:
+				var b := _rush_hold
+				_rush_hold = ""
+				_start_rush(b)
+	var here := _rush_here()
+	for what in _rush_rings:
+		var ring: RushRing = _rush_rings[what]
+		ring.armed = here and Progress.rush_ready(what) and not (what == "hints" and _no_hints())
+		ring.charge = _rush_hold_t / RUSH_HOLD if _rush_hold == ("undo" if what == "undos" else "hint") else 0.0
+		ring.left = Progress.rush_left(what) if here else 0.0
+		ring.full = float(Progress.rush_full.get(what, 1.0))
+	if not here or Progress.rush_secs.is_empty() or state == State.WON or _busy_modal() or _alive < 1.0:
+		return
+	var was := {}
+	for what in Progress.rush_secs:
+		was[what] = int(ceil(Progress.rush_left(what)))
+	var over: Array = Progress.rush_tick(delta)
+	var ticked := not over.is_empty()
+	for what in Progress.rush_secs:
+		var now := int(ceil(Progress.rush_left(what)))
+		if now != int(was[what]):
+			ticked = true
+			if now <= int(RushRing.LAST):
+				Sfx.play("tick", 1.5, -4.0)
+				Sfx.haptic(8)
+	for what in over:
+		Sfx.play("untick", 0.7, 0.0)
+		_say("%s over!" % Progress.RUSH_NAME[what], RushRing.HOT.darkened(0.2))
+	if ticked:
+		_update_undo()
+	_rush_keep_t += delta
+	if _rush_keep_t >= 5.0:
+		_rush_keep_t = 0.0
+		Progress.rush_keep()
+
+
+func _exit_tree() -> void:
+	Progress.rush_keep()
 
 
 ## A dead end anyone can see: a stop still owed a package with no road left to it (every road tile beside
@@ -2971,6 +3116,12 @@ func _gate_tank(kind: String) -> bool:
 	if _gas_held == kind and _gas_paid == "":
 		_gas_held = ""
 		return true
+	if _gas_paid != kind and _rush_due(kind):
+		var what := "undos" if kind == "undo" else "hints"
+		Sfx.play("bonk", 1.2, -10.0)
+		_say("Hold for %s of free %s!" % [Progress.clock(float(Progress.rush_held.get(what, 0.0))), what], RushRing.GOLD.darkened(0.35))
+		_rush_rings[what].nudge()
+		return true
 	if _gas_paid == kind or Progress.auto or not _tank_due(kind):
 		return false
 	Sfx.play("bonk", 1.2, -10.0)
@@ -2996,8 +3147,10 @@ func undo() -> void:
 	if not can_undo():
 		return
 	var lights := Progress.lights_on()
-	if Progress.free_undos():
-		pass                        # a side road's power-up: undos are free
+	if not _undos_unlimited() and undo_left <= 0 and _rush_ready("undos"):
+		_begin_rush("undos")        # (out, with a rush in hand: it goes before any tank)
+	if _rush_on("undos"):
+		pass                        # a rush (a detour's power-up): undos are free
 	elif undo_left > 0:
 		undo_left -= 1
 		undo_used = not lights      # with headlights on, going back is part of driving: it isn't counted
@@ -3134,15 +3287,24 @@ func _update_undo() -> void:
 		hint_button.dim = true
 		undo_button.queue_redraw()
 		return
+	# (A running rush's clock is a bigger badge than a count.)
+	undo_button.badge_px = 38 if _rush_on("undos") else 28
+	hint_button.badge_px = 38 if _rush_on("hints") and not _no_hints() else 28
 	if _undos_unlimited():
 		undo_button.badge_icon = ""
-		undo_button.badge_color = Palette.GOOD
-		undo_button.badge = "FREE" if Progress.free_undos() else ("∞" if UiTheme.font().has_char(0x221E) else "ALL")
+		undo_button.badge_color = _rush_badge_col("undos") if _rush_on("undos") else Palette.GOOD
+		undo_button.badge = Progress.clock(Progress.rush_left("undos")) if _rush_on("undos") else ("∞" if UiTheme.font().has_char(0x221E) else "ALL")
 		undo_button.dim = not can_undo()
 	elif undo_left > 0:
 		undo_button.badge_icon = ""
 		undo_button.badge_color = COUNT_BLUE
 		undo_button.badge = str(undo_left)
+		undo_button.dim = not can_undo()
+	elif _rush_ready("undos"):
+		# Out of free ones, with a rush in hand: holding starts it.
+		undo_button.badge_icon = ""
+		undo_button.badge_color = RushRing.GOLD.darkened(0.22)
+		undo_button.badge = "HOLD"
 		undo_button.dim = not can_undo()
 	elif Progress.total_gas() > 0:
 		# Out of free ones: a tank of gas each.
@@ -3173,12 +3335,15 @@ func _update_hint() -> void:
 		return
 	hint_button.badge_icon = ""
 	hint_button.dim = false
-	if Progress.free_hints() or hints_unlimited or Progress.unlimited_hints:
-		hint_button.badge_color = Palette.GOOD
-		hint_button.badge = "FREE" if Progress.free_hints() else ("∞" if UiTheme.font().has_char(0x221E) else "ALL")
+	if _rush_on("hints") or hints_unlimited or Progress.unlimited_hints:
+		hint_button.badge_color = _rush_badge_col("hints") if _rush_on("hints") else Palette.GOOD
+		hint_button.badge = Progress.clock(Progress.rush_left("hints")) if _rush_on("hints") else ("∞" if UiTheme.font().has_char(0x221E) else "ALL")
 	elif hints_left > 0:
 		hint_button.badge_color = COUNT_BLUE
 		hint_button.badge = str(hints_left)
+	elif _rush_ready("hints"):
+		hint_button.badge_color = RushRing.GOLD.darkened(0.22)
+		hint_button.badge = "HOLD"
 	elif Progress.total_gas() > 0:
 		# Out of free ones: a tank of gas each.
 		hint_button.badge_icon = "gas"
@@ -3195,7 +3360,7 @@ func _update_hint() -> void:
 ## Hints cost nothing (neither the level's free ones nor gas): the power-up's on, or the Unlimited hints
 ## option (or a self-test) says so.
 func _hints_free() -> bool:
-	return hints_unlimited or Progress.free_hints() or Progress.unlimited_hints
+	return hints_unlimited or _rush_on("hints") or Progress.unlimited_hints
 
 
 ## The last hint of the level just went: a tip by the Hint button says what happens next (an ad for
@@ -3257,6 +3422,7 @@ func _on_hint_pressed() -> void:
 	# A dead end (stuck, or no win left from here): the hint says so and points at Retry (or Undo). It
 	# never restarts anything itself, and costs no star; after a restart, a hint shows the first step.
 	if state == State.FAILED:
+		_tank_for_dead_end()
 		_dead_end_hint()
 		return
 	if state != State.IDLE and not (dpad_mode and state == State.DRAWING):
@@ -3265,6 +3431,7 @@ func _on_hint_pressed() -> void:
 	var path := Solver.solve_from(level, route, sim_state, 400000, avoid)
 	if path.size() < 2:
 		LevelStats.add(_attempt_key(), "dead_end_hints")
+		_tank_for_dead_end()
 		_dead_end_hint()
 		return
 	if not _hints_free() and hints_left <= 0 and _explain_gas("hint", _on_hint_pressed):
@@ -3275,7 +3442,7 @@ func _on_hint_pressed() -> void:
 	LevelStats.add(_attempt_key(), "hints")
 	if dpad_mode and state == State.DRAWING:
 		_cancel_plan()
-	if not Progress.free_hints():
+	if not _rush_on("hints"):
 		hint_used = true
 	if not _hints_free() and hints_left > 0:
 		_spend_free_hint()
@@ -3291,6 +3458,19 @@ func _on_hint_pressed() -> void:
 	stars_ctl.queue_redraw()
 	_show_hint_run(_hint_run_from(path))
 	_say("Try this way.")
+
+
+## A tank's just been committed to a hint (a full hold on the button, the explainer's go-ahead, an ad) and
+## the answer is "dead end": the tank's spent all the same and buys what it always does, unlimited hints
+## and undos for the rest of the job. (So the way out of the dead end, Undo, is free from here.)
+func _tank_for_dead_end() -> void:
+	if _gas_paid != "hint" or _hints_free() or hints_left > 0 or Progress.total_gas() <= 0 or _no_hints() or _strict_side():
+		return
+	_burn_tank(hint_button)
+	_buy("hint")
+	hints_unlimited = true
+	hint_used = true
+	_update_undo()
 
 
 ## One of this job's free hints goes (and stays gone through retries: hints_spent).
@@ -3507,6 +3687,7 @@ func _leave() -> void:
 	if side.is_empty() and daily_day < 0 and not og:
 		Progress.map_here = index + 1 if state == State.WON and index + 1 < total else index
 	if state != State.WON:
+		_send_play("left")
 		LevelStats.add(_attempt_key(), "walked_away")
 		LevelStats.add(_attempt_key(), "seconds_active", play_time)
 	last_attempt = {}
@@ -3551,6 +3732,9 @@ func _win() -> void:
 		if Progress.win_side(str(side.get("id", ""))):
 			side_prize = str(side.get("reward", ""))
 		_bonus_line = Progress.side_power_up(str(side.get("id", "")), side.get("bonus", {}))
+		var bonus_kind := str(side.get("bonus", {}).get("kind", ""))
+		if _bonus_line != "" and Progress.RUSH_SECS.has(bonus_kind):
+			_rush_won = bonus_kind
 		if _twist() == "mega":
 			Progress.set_mega_part(str(side.get("id", "")), 0)
 	elif og:
@@ -3789,10 +3973,49 @@ func _stats_at_win() -> Dictionary:
 	s["longest_pause"] = snappedf(_longest_wait, 0.1)
 	s["sideways"] = Progress.landscape
 	s["levels_done"] = Progress.completed.size()
-	s["ratings_this_session"] = LevelStats.rated
-	s["build"] = Version.BUILD
+	s.merge(_play_context(), true)
 	LevelStats.wins += 1
 	return s
+
+
+## How the job, the player and the phone stood, for a play record or a rating.
+func _play_context() -> Dictionary:
+	return {
+		"boss": _boss_level(), "challenge": level.challenge, "packages": level.total_orders(),
+		"board": "%dx%d" % [level.width, level.height], "gas": Progress.gas, "steering": Progress.drive_mode,
+		"unlimited_hints": Progress.unlimited_hints, "ghost_path": Progress.ghost_path,
+		"foresight": Progress.sight() if Progress.lights_on() else -1,
+		"sideways": Progress.landscape, "levels_done": Progress.completed.size(), "ratings_this_session": LevelStats.rated,
+		"daily": daily_day >= 0, "detour": str(side.get("id", "")), "build": Version.BUILD,
+		# Which phone, and its time zone (no place finer than that).
+		"device_model": OS.get_model_name().left(80), "os": ("%s %s" % [OS.get_name(), OS.get_version()]).left(80),
+		"time_zone": Feedback.time_zone().left(80),
+	}
+
+
+## A play record for a job that wasn't won (left, skipped, the app put away): the counts so far, this try's
+## time and moves included. Once per try at most.
+func _send_play(outcome: String) -> void:
+	if state == State.WON or _play_sent:
+		return
+	if LevelStats.value(_attempt_key(), "segments") <= 0.0 and route.size() < 2 and play_time < 3.0 and outcome != "skipped":
+		return                     # (opened and closed again: nothing to say)
+	_play_sent = outcome != "backgrounded"
+	var s := LevelStats.peek(_attempt_key())
+	s["seconds_this_try"] = play_time
+	s["route_tiles"] = route.size() - 1
+	s["delivered"] = deliveries.size()
+	s["used_hint"] = hint_used
+	s["used_undo"] = undo_used
+	s["dead_end"] = state == State.FAILED
+	s["first_time"] = not _replay_free()
+	s.merge(_play_context(), true)
+	Rating.play(level, Feedback.where_of(self), outcome, s)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED:
+		_send_play("backgrounded")
 
 
 ## With Rate levels on, the rating card comes up first (RatingCard); the finish card follows it. Speedrun
@@ -3810,6 +4033,16 @@ func _rate_then_finish(fresh: int, pay: int, gas_back: bool, new_item: String, m
 		card.done.connect(_rate_then_finish.bind(fresh, pay, gas_back, new_item, missed, crushed, found_key))
 		_overlay(card)
 		return
+	if _rush_won != "" and (not Progress.auto or OS.get_cmdline_user_args().has("--buff")):
+		# A detour's rush: its card, before anything else.
+		var rc := RushCard.new()
+		rc.kind = _rush_won
+		rc.secs = float(Progress.rush_held.get(_rush_won, Progress.RUSH_SECS[_rush_won]))
+		_rush_won = ""
+		rc.done.connect(_rate_then_finish.bind(fresh, pay, gas_back, new_item, missed, crushed, found_key))
+		_overlay(rc)
+		return
+	_rush_won = ""
 	var testing := OS.get_cmdline_user_args().has("--rate")
 	var can := not _speedrun() and (not Progress.auto or testing)
 	# Once, from the fifth level on: would they like to rate levels? Yes turns it on, starting with this one.
@@ -3823,13 +4056,18 @@ func _rate_then_finish(fresh: int, pay: int, gas_back: bool, new_item: String, m
 		_overlay(ask)
 		return
 	if not (can and Progress.rate_levels):
+		Rating.play(level, Feedback.where_of(self), "won", _win_stats)
 		_show_finish(fresh, pay, gas_back, new_item, missed, crushed, found_key)
 		return
 	rating_card = RatingCard.new()
 	rating_card.level = level
 	rating_card.where = Feedback.where_of(self)
 	rating_card.done.connect(func(answers: Dictionary):
-		Rating.submit(Rating.payload(level, Feedback.where_of(self), answers, _win_stats))
+		if int(answers.get("difficulty", 0)) + int(answers.get("fun", 0)) + int(answers.get("frustration", 0)) > 0 \
+				or not answers.get("tags", []).is_empty() or str(answers.get("note", "")) != "":
+			Rating.play(level, Feedback.where_of(self), "won", _win_stats, answers)
+		else:
+			Rating.play(level, Feedback.where_of(self), "won", _win_stats)        # (skipped: just the play)
 		rating_card = null
 		_show_finish(fresh, pay, gas_back, new_item, missed, crushed, found_key))
 	_overlay(rating_card)
@@ -3879,6 +4117,9 @@ func _show_finish(fresh: int, pay: int, gas_back: bool, new_item: String, missed
 	if _speedrun():
 		finish.secs = speed_elapsed + play_time
 	finish.bonus_line = _bonus_line
+	for what in Progress.rush_secs:
+		# A rush still on the clock: the win card says so (it's waiting for the next job).
+		finish.rush_line = "%s: %s left. Keep going!" % [Progress.RUSH_NAME[what], Progress.clock(Progress.rush_left(what))]
 	# Sideways the finish lives in its own portrait column, so rewards can't fly across to the wallet.
 	finish.coin_chip = null if Progress.landscape else coin_chip
 	finish.gas_chip = null if Progress.landscape else gas_chip
@@ -4079,6 +4320,7 @@ func _skip() -> void:
 		return
 	Sfx.play("whoosh", 1.1, -4.0)
 	LevelStats.add(_attempt_key(), "skipped")
+	_send_play("skipped")
 	Progress.skip(level.number)
 	Progress.momentum = 0
 	last_attempt = {}

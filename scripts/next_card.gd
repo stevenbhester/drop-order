@@ -98,6 +98,11 @@ func _ready() -> void:
 		go.badge_color = GasChip.FUEL
 	go.pressed.connect(_finish.bind("go"))
 	go.ready.connect(go.breathe.bind(true), CONNECT_DEFERRED)
+	for what in Progress.rush_secs:
+		# A rush still on the clock (it only runs on a job): a reason to drive on.
+		var rl := _label("%s: %s left. Go, go, go!" % [str(Progress.RUSH_NAME[what]).to_upper(), Progress.clock(Progress.rush_left(what))], 38, RushRing.GOLD.darkened(0.3))
+		rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(rl)
 	col.add_child(go)
 
 	if not detour.is_empty():
@@ -243,6 +248,12 @@ func _detour_sheet(col: VBoxContainer) -> void:
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(sub)
+	var prize := Progress.side_bonus_says(str(detour.get("id", "")), detour.get("bonus", {}))
+	if prize != "" and not locked:
+		var pl := _label("PRIZE TODAY: " + prize, 36, RushRing.GOLD.darkened(0.3))
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		col.add_child(pl)
 	col.add_child(go)
 	var stay := Button.new()
 	stay.flat = true

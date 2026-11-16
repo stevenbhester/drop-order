@@ -89,6 +89,8 @@ var _open_said := true
 ## A zone kept shut whatever its checkpoint says (LevelSelect, from the checkpoint's end until open_zone,
 ## so the gate never blinks open under the card as it closes).
 var held := -1
+## The map's in the middle of a sequence (LevelSelect.advance): its tickets, chests and gates take no taps.
+var busy := false
 var _open_booth := false         # (a checkpoint stood at it: its boom swings up too)
 var _open_puff := 0.0
 var _fx: Fx
@@ -791,6 +793,10 @@ func _gui_input(event: InputEvent) -> void:
 	if _drive_t >= 0.0:
 		if event is InputEventMouseButton and event.pressed:
 			finish_drive()
+		accept_event()
+		return
+	if busy:
+		# Something's playing out on the map (a win's drive on, a checkpoint, a zone opening): no taps.
 		accept_event()
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and _back_k > 0.5 \

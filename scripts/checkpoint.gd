@@ -117,17 +117,15 @@ func _on_go() -> void:
 		_close()
 
 
-## The message from our sponsors: a Hoardly spot if they're on (it's his checkpoint), else one of the others.
+## The message from our sponsors (AdPicker). The first one a player ever watches at a gate is a Hoardly spot
+## (it's his checkpoint); after that, any of them.
 func _watch() -> void:
 	state = "ad"
 	_root.visible = false
-	var ad: CanvasLayer
-	if Progress.hoardly_ads:
-		ad = BaronAd.new()
-	else:
-		ad = PromoAd.new() if randf() < 0.5 else FakeAd.new()
+	var ad := AdPicker.make(Progress.gate_ads == 0)
 	add_child(ad)
 	ad.finished.connect(func():
+		Progress.gate_ad_watched()
 		_root.visible = true
 		_pass(true))
 

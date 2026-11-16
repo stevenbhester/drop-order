@@ -137,11 +137,24 @@ func _build() -> void:
 	_rows.add_child(_slider("Haptics", "haptics", "buzz", ["None", "Max"]))
 	_rows.add_child(_toggle("Night mode", "night", "moon"))
 	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
+	_rows.add_child(_toggle("Send play stats", "play_stats", "megaphone", "time, undos, hints per job; no name, goes to Steven"))
 	_gap(6)
 	_rows.add_child(_page_link("controls", "steer", "steering, hand, chute, sideways"))
-	_rows.add_child(_page_link("extras", "trail", "trail, route preview, ghost path"))
+	_rows.add_child(_page_link("extras", "trail", "trail, ghost path"))
 	_rows.add_child(_page_link("testers", "star", "ratings, hints, unlock all, reset"))
 	_gap(10)
+	# What they hear from us (the same card the game asks with, opened on what's set now: NotifyPrefs).
+	var nb := JuicyButton.new()
+	nb.label = "Notifications"
+	nb.icon_name = "megaphone"
+	nb.font_px = 40
+	nb.custom_minimum_size = Vector2(0, 110)
+	nb.pressed.connect(func():
+		Sfx.play("click")
+		var card := NotifyPrefs.new()
+		card.from_options = true
+		add_child(card))
+	_rows.add_child(nb)
 	var fb := JuicyButton.new()
 	fb.label = "Feedback / Bug report"
 	fb.icon_name = "peek"

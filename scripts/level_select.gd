@@ -164,17 +164,17 @@ func _ready() -> void:
 ## After a win: the van drives from stop `from_i` up to `to_i`, then the Next card pops up (Drive!, and a
 ## Detour if a side road branches off the stop just beaten).
 func advance(from_i: int, to_i: int) -> void:
-	if Checkpoint.due(levels[to_i].number):
-		# Into a new zone: its checkpoint at the gate first, then the zone opens and the van drives in.
-		if not await _through_checkpoint(from_i, to_i):
-			return
-	else:
-		map.drive(from_i, to_i)
-		await map.drive_done
-	if not is_inside_tree():
-		return
-	# The job just beaten unlocked a chest: the map shows it, and it's opened there and then (they hold
-	# upgrades: nobody should drive past one).
+	# While all this plays the map takes no taps of its own (RoadMap.busy): a chest or a job tapped half-way
+	# through used to open under the card that was on its way.
+	map.busy = true
+	await _advance_run(from_i, to_i)
+	if is_instance_valid(map):
+		map.busy = false
+
+
+func _advance_run(from_i: int, to_i: int) -> void:
+	# The job just beaten unlocked a chest: the map shows it, and it's opened there and then, before the van
+	# moves on (they hold upgrades: nobody should drive past one).
 	var beaten: int = levels[from_i].number
 	if SideRoads.CHESTS.has(beaten) and Progress.is_complete(beaten) and not Progress.chest_open(beaten) \
 			and (not Progress.auto or OS.get_cmdline_user_args().has("--chest-reveal")):
@@ -185,6 +185,15 @@ func advance(from_i: int, to_i: int) -> void:
 		await _open_chest_now(beaten)
 		if not is_inside_tree():
 			return
+	if Checkpoint.due(levels[to_i].number):
+		# Into a new zone: its checkpoint at the gate first, then the zone opens and the van drives in.
+		if not await _through_checkpoint(from_i, to_i):
+			return
+	else:
+		map.drive(from_i, to_i)
+		await map.drive_done
+	if not is_inside_tree():
+		return
 	# Just opened up the daily: its intro first (and if they try it, that's where they go).
 	if await daily_intro():
 		return
@@ -273,7 +282,11 @@ func checkpoint(i: int) -> void:
 	for c in get_children():
 		if c is NextCard:
 			c.queue_free()
-	if await _through_checkpoint(-1, i):
+	map.busy = true
+	var through: bool = await _through_checkpoint(-1, i)
+	if is_instance_valid(map):
+		map.busy = false
+	if through:
 		offer(i)
 
 
@@ -290,6 +303,9 @@ func _detour_card(id: String) -> void:
 
 
 func _open_chest(n: int) -> void:
+	for c in get_children():
+		if c is ChestCard:
+			return              # (one's opening already)
 	_open_chest_now(n)
 
 
