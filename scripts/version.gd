@@ -8,15 +8,43 @@ const NUMBER := "0.7"
 const NAME := "The Long Road"
 ## The iOS build number (export_presets.cfg's application/version), for bug reports. tools/testflight.sh
 ## keeps the two in step.
-const BUILD := 28
+const BUILD := 33
 ## What changed in this build since the last one, for the "new build" card (UpdateCard, via
 ## tools/release_note.gd). Empty means the card shows the version's top notes instead. Rewrite it for each
 ## build; clear it when NUMBER goes up.
 const BUILD_NOTES := [
-	"Undo Rush and Hint Rush: detours that used to give ten minutes of free undos or hints now give a rush you start yourself. When you're out, hold the button: two minutes of free undos (one of free hints) on a clock that only runs while you're on a job.",
+	"Play records now include which notifications you chose (or that you haven't been asked yet), so we can see what people want to hear about.",
+	"The garage says how to find things in two short lines (Present · on job 12, Beat the boss · Hostile Takeover), and trails show a bar of how close you are.",
+	"A dead-end hint now pins the last spot on your route you could still win from, not the start of the whole drag. One Undo can land you there, mid-drag.",
+	"When you win, the camera pushes in on your ride's celebration, so Zero's card hand and the shark's hoop jump don't get missed.",
+	"New trails have their own button: Move mountains, Make a splash, Raise the dead, Make it rain and more.",
+	"Your ride has its own way of setting off: Zoom! with Zero, Dive in! with the shark, Hop in! with Violet's Tower, and more.",
+	"Put on a new ride or paint job and its button turns into a green Continue, straight back to the road. Undo is still right under it.",
+	"The daily's clock starts when it loads and runs across every try, not just the one that solved it. Down to your last three tries, a heads-up by Retry says how many are left, and the last one says so loudly.",
+	"On the daily, the Hint button (no hints there) is now Rules: tap it any time for how the daily works and how many tries you've got left.",
+	"The daily's Stats button stands out now: a little live chart, a shine, and a red dot until you've looked today.",
+	"Dailies: gas doesn't buy undos any more. Each try has its undos, and when they're gone, Retry is your fresh start. The daily says its rules (undos, tries left) each time you start it.",
+	"The Baron has a new look (a monocle, very expensive hair, always on his phone) and a new attitude: his boss jobs open like an anime, he takes everything personally, and he cries when he loses.",
+	"Job 5 is new: Shortcut. The quick way in isn't always the way out, and Dispatch is a call away if you're not sure. No more watching the van drive itself into a dead end.",
+	"The Radio is now Call: call Dispatch to ask if you can still finish. The call rings through, then answers big and clear over the button, green \"Still on track!\" or red \"No good!\", and a bubble over the van keeps the answer until you move (or tap its X).",
+	"Help stays unlimited through job 6, where Dispatch comes on the radio to say what Hint and Call are for. The Baron puts a meter on it at job 11 instead, and blames unlimited help for losing to you.",
+	"The buttons along the bottom never move now. What isn't open yet (Call, the gas pump) waits in its place with a padlock: tap it to see when it opens. On job 11 the Baron rips the padlock off his pump.",
+	"Jump jets come with beating job 11, and the victory screen shows how they work. They still can't jump the Baron's jobs.",
+	"Stuck on job 6? After half a minute or two tries, you're offered the first half of the way.",
+	"A paint job you just put on can be undone from its card.",
+	"Small Tank: stuck, at a dead end, or reaching for a hint, you're reminded that detours are optional and wait on the map.",
+	"Help has changed. Undo is free on the road now, like Retry. Hints and calls are things you carry from job to job: they don't refill by themselves.",
+	"Hints are never shorter than three tiles. At a dead end a hint pins the stop to undo back to, and once you're there it shows the way on.",
+	"Gas buys more: hold Hint or Call to pour in a can, for 1 hint or 3 calls. A can refills every hour and an ad fills the tank. No more spare tanks: yours topped up the tank or became hints.",
+	"Prizes: bosses pay 4 calls and a hint, chests fill your tank (a hint if it's full) and hold calls, and solving the daily pays a hint and a call.",
+	"Jobs 5 and 7 swapped places, so the Undo lesson comes first.",
+	"Jump jets are free now. Up to 3 jobs can wait on the map at once; deliver one and you can jump again. Stuck on a job? They offer themselves first.",
+	"The gas gauge is a slim pump in the middle of the buttons: what gas buys on its left, what's always free on its right.",
+	"Detour prizes are for the first win now: a full tank, calls or hints. Hint Rush (a minute and a half of free hints) is the prize for beating Hostile Takeover.",
 	"Colour gates show how they'll stand at the end of your plan, not where the van has got to.",
 	"The map takes no taps while the van's driving on from a win, and a chest you've earned opens before it sets off.",
 	"Zero the Steed is Him.",
+	"While you plan through a spinner, the queue shows your packages in their new order instead of ticking them off and adding them back.",
 	"Each job's numbers (time, undos, hints, retries, dead ends, how it ended) now go to Steven, with the phone model and time zone and no name. Turn it off in Options: Send play stats.",
 	"Ads come from one pool now, Frontiers Celestia included, and you won't see the same one twice in a short while.",
 	"Headlights: you can only plan a short way ahead of the van now, and it follows your finger. Beat the Baron for brighter lights. (The old way is in Options, Testers.)",

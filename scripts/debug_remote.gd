@@ -76,6 +76,19 @@ func _run(cmd: Dictionary) -> void:
 			var pts: Array = cmd.get("points", [])
 			if pts.size() >= 2:
 				await _drag_points(pts.map(func(q): return Vector2(float(q[0]), float(q[1]))), float(cmd.get("pause", 0.03)), bool(cmd.get("keep", false)))
+		"touch":
+			# A raw finger event, as a phone sends it (not the mouse the other ops use): finger `index` goes
+			# down or comes up at x,y. For testing what happens when a lift is lost.
+			var te := InputEventScreenTouch.new()
+			te.index = int(cmd.get("index", 0))
+			te.pressed = bool(cmd.get("down", true))
+			te.position = Vector2(float(cmd.get("x", 0)), float(cmd.get("y", 0)))
+			Input.parse_input_event(te)
+			await get_tree().process_frame
+		"resume":
+			# As if the app had just come back from the background.
+			main.notification(NOTIFICATION_APPLICATION_RESUMED)
+			await get_tree().process_frame
 		"up":
 			# Lifts a finger a drag left down ("keep").
 			_mouse(Vector2(float(cmd.get("x", 0)), float(cmd.get("y", 0))), false)
@@ -85,6 +98,14 @@ func _run(cmd: Dictionary) -> void:
 			out["ok"] = not str(out["note"]).begins_with("can't")
 		"wait":
 			await get_tree().create_timer(clampf(float(cmd.get("secs", 1.0)), 0.0, 30.0)).timeout
+		"solve":
+			# Drives the job's answer from the start (as the S key does in a debug build).
+			var g := main.get("screen") as Game
+			if g and g.route.size() == 1 and not g._busy_modal():
+				g.drive_tiles(g.solve_info.get("shortest", []))
+				out["note"] = "driving the answer"
+			else:
+				out["note"] = "can't: not at the start of a job"
 	await get_tree().create_timer(clampf(float(cmd.get("settle", 0.45)), 0.0, 10.0)).timeout
 	out["state"] = _state()
 	if cmd.get("shot", false):
@@ -236,7 +257,7 @@ func _controls() -> Array:
 			else:
 				out.append({"kind": "button", "text": "%s (press and HOLD about half a second)" % er.give_label, "at": (o + Vector2(200, ExitRibbon.ROW_H * 0.5) * sc).round(), "layer": _layer_of(c)})
 				if er.row == "jets":
-					out.append({"kind": "button", "text": "Jump jets, costs 1 gas (press and HOLD about a second)%s" % (" (taped off)" if er.jets_blocked else ""), "at": (o + Vector2(200, ExitRibbon.ROW_H * 1.5) * sc).round(), "layer": _layer_of(c)})
+					out.append({"kind": "button", "text": "Jump jets, free (press and HOLD about a second)%s" % (" (taped off)" if er.jets_blocked else ""), "at": (o + Vector2(200, ExitRibbon.ROW_H * 1.5) * sc).round(), "layer": _layer_of(c)})
 				elif er.row == "locked":
 					out.append({"kind": "button", "text": "[a parcel label: DO NOT OPEN TILL JOB %d]" % er.locked_until, "at": (o + Vector2(200, ExitRibbon.ROW_H * 1.5) * sc).round(), "layer": _layer_of(c)})
 				elif er.row == "gift":

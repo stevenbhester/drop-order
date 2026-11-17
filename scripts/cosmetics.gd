@@ -123,6 +123,52 @@ static func them(id: String) -> String:
 	return PRONOUN.get(id, "it")
 
 
+## How each ride sets off, for the words that say "drive" to the player: [the go button (picking a job),
+## the D-pad's big button, going on after a checkpoint]. The plain van (and anything not here) drives.
+const GO := {
+	"": ["Drive!", "DRIVE BABY DRIVE", "Drive on!"],
+	"monster_truck": ["Crush it!", "CRUSH BABY CRUSH", "Crush on!"],
+	"scooter": ["Zip off!", "ZIP ZIP ZIP", "Zip on!"],
+	"ice_cream": ["Roll out!", "SCOOP BABY SCOOP", "Roll on!"],
+	"rocket_van": ["Blast off!", "BLAST BABY BLAST", "Blast on!"],
+	"hover_van": ["Float off!", "HOVER BABY HOVER", "Float on!"],
+	"race_car": ["Floor it!", "VROOM BABY VROOM", "Floor it!"],
+	"bassinet": ["Rock it!", "ROCK-A-BYE BABY", "Rock on!"],
+	"caterpillar": ["Crawl!", "MUNCH BABY MUNCH", "Crawl on!"],
+	"minivan": ["Beep beep!", "BEEP BEEP BEEP", "Beep on!"],
+	"pillow_tower": ["Hop in!", "HOP BABY HOP", "Hop on!"],
+	"shark": ["Dive in!", "SWIM BABY SWIM", "Swim on!"],
+	"eazy_van": ["Cruise!", "EASY BABY EASY", "Cruise on!"],
+	"dreamsicle": ["Slide!", "DRIP BABY DRIP", "Slide on!"],
+	"classic_car": ["Motor!", "MOTOR BABY MOTOR", "Motor on!"],
+	"lab": ["Brew it!", "BREW BABY BREW", "Brew on!"],
+	"zero": ["Zoom!", "ZOOMIES!", "Zoom on!"],
+}
+
+
+## The ride's word for going (GO): which 0 the go button, 1 the D-pad's, 2 after a checkpoint.
+static func go_word(ride: String, which: int) -> String:
+	return GO.get(ride, GO[""])[which]
+
+
+## What the button that puts a new trail on says: each in its own trail's words (the generic "Burn rubber
+## with it" for one not here).
+const TRAIL_CTA := {
+	"wreck": "Tear it up",
+	"river": "Make a splash",
+	"mountains": "Move mountains",
+	"hearts": "Spread the love",
+	"meteors": "Make an impact",
+	"lava": "Turn up the heat",
+	"zombies": "Raise the dead",
+	"money": "Make it rain",
+}
+
+
+static func trail_cta(id: String) -> String:
+	return TRAIL_CTA.get(id, "Burn rubber with it")
+
+
 ## What the button that puts a new ride to work says: "Take it for a spin", or "Take Him out for a spin".
 static func spin_cta(id: String) -> String:
 	return "Take %s out for a spin" % PRONOUN[id] if PRONOUN.has(id) else "Take it for a spin"

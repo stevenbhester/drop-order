@@ -87,7 +87,7 @@ func _ready() -> void:
 
 	var go := JuicyButton.new()
 	go.icon_name = "play"
-	go.label = "Drive!"
+	go.label = Cosmetics.go_word(Progress.ride, 0)     # (the ride's own word: "Zoom!", "Dive in!"...)
 	go.font_px = 76
 	go.bg = Palette.GOOD
 	go.fg = Color.WHITE
@@ -249,8 +249,8 @@ func _detour_sheet(col: VBoxContainer) -> void:
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(sub)
 	var prize := Progress.side_bonus_says(str(detour.get("id", "")), detour.get("bonus", {}))
-	if prize != "" and not locked:
-		var pl := _label("PRIZE TODAY: " + prize, 36, RushRing.GOLD.darkened(0.3))
+	if prize != "":
+		var pl := _label("PRIZE: " + prize, 36, RushRing.GOLD.darkened(0.3))
 		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		col.add_child(pl)

@@ -27,6 +27,19 @@ var badge := "":
 var badge_icon := ""
 var badge_color := Palette.ACCENT
 var badge_px := 28
+## A square badge (rounded corners), not a pill: for a count that's carried from job to job (hints, Radio calls).
+var badge_square := false
+## Wears the player's control scheme (a "controls" cosmetic: Looks.button_bg/fg) when it has no colours of its
+## own. Only the job's own controls do (Hint, Radio, Undo, Retry, Drive): a button on a card has its own
+## content drawn in the card's colours (a label, an icon, a chevron), which a dark skin hid.
+var skinned := false
+## Not open yet: drawn faded with a padlock over it (it still says when it's pressed: whoever owns it decides
+## what a press does).
+var locked := false:
+	set(v):
+		locked = v
+		dim = v
+		queue_redraw()
 ## A streak: a little flame inside the button, on the right, with the number in it (0: none).
 var flame := 0:
 	set(v):
@@ -79,15 +92,15 @@ func restyle() -> void:
 func _bg() -> Color:
 	if turbo:
 		return Color(0.43, 0.31, 0.72)          # (its lip: the fuel's purple)
-	return bg if bg.a > 0.0 else (Looks.button_bg() if Looks.button_bg().a > 0.0 else Palette.SURFACE)
+	return bg if bg.a > 0.0 else (Looks.button_bg() if skinned and Looks.button_bg().a > 0.0 else Palette.SURFACE)
 
 
 func _fg() -> Color:
-	return fg if fg.a > 0.0 else (Looks.button_fg() if Looks.button_fg().a > 0.0 else Palette.TEXT)
+	return fg if fg.a > 0.0 else (Looks.button_fg() if skinned and Looks.button_fg().a > 0.0 else Palette.TEXT)
 
 
 func _dim_bg() -> Color:
-	return dim_bg if dim_bg.a > 0.0 else (Looks.button_dim() if Looks.button_dim().a > 0.0 else Palette.SURFACE_DIM)
+	return dim_bg if dim_bg.a > 0.0 else (Looks.button_dim() if skinned and Looks.button_dim().a > 0.0 else Palette.SURFACE_DIM)
 
 
 func recolor(new_bg: Color, new_fg: Color) -> void:
@@ -158,7 +171,7 @@ func _draw() -> void:
 		_draw_turbo()
 	var f := UiTheme.font()
 	var mid := size / 2.0 + Vector2(0, (2.0 if is_pressed() else -3.0) + label_dy)
-	var col := Color(_fg(), 0.45) if dim else _fg()
+	var col := Color(_fg(), 0.45) if (dim or locked) else _fg()
 	if turbo:
 		col = Color(1, 1, 1, 0.6 if dim else 1.0)
 	var isz := minf(size.y * 0.5, font_px * 1.3) * icon_scale if icon_name != "" else 0.0
@@ -183,14 +196,20 @@ func _draw() -> void:
 		var np := Vector2(fc.x - nw / 2.0, fc.y - font_px * 0.16)
 		draw_string_outline(f, np, num, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, 10, pal[0].darkened(0.4))
 		draw_string(f, np, num, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, Color.WHITE)
+	if locked:
+		var lc := Vector2(size.x - 30.0, 26.0)
+		draw_circle(lc, 30.0, Color.WHITE)
+		draw_circle(lc, 25.0, Color("6b6478"))
+		Icons.draw(self, "lock", lc, 36.0, Color.WHITE)
+		return
 	if badge != "":
 		var bw := f.get_string_size(badge, HORIZONTAL_ALIGNMENT_LEFT, -1, badge_px).x
 		var bi := badge_px * 1.1 if badge_icon != "" else 0.0
 		var h := badge_px * 1.7
 		var w := maxf(bw + bi + (badge_px * 0.3 if bi > 0.0 else 0.0) + badge_px * 1.0, h)
 		var r := Rect2(size.x - w + 14.0, -h * 0.5, w, h)
-		DrawUtil.rrect(self, r.grow(5.0), Color.WHITE, h)
-		DrawUtil.rrect(self, r, badge_color, h)
+		DrawUtil.rrect(self, r.grow(5.0), Color.WHITE, h * 0.36 if badge_square else h)
+		DrawUtil.rrect(self, r, badge_color, h * 0.26 if badge_square else h)
 		var bx := r.position.x + (w - (bw + bi + (badge_px * 0.3 if bi > 0.0 else 0.0))) / 2.0
 		if bi > 0.0:
 			Icons.draw(self, badge_icon, Vector2(bx + bi / 2.0, r.get_center().y), bi, Color.WHITE)

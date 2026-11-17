@@ -54,6 +54,9 @@ var ph := 56.0               # a parcel's short side: across the chute
 var pw := 76.0               # its long side: along the chute (so the chute stays thin either way)
 var box := 60.0              # the step between places along the chute (for scrolling)
 var boxes: Array = []        # PackageBox, index 0 = bottom (last out)
+## Showing a plan's preview (show_plan), not the real load (show_stack): pickups and deliveries that really
+## happen meanwhile mustn't be pushed or popped into it (Game re-shows it from the real state instead).
+var preview := false
 var colors: Array = []       # colour names, parallel to boxes
 var _capacity := 1
 var _avail := 1000.0
@@ -430,6 +433,7 @@ func rebuild(cols: Array) -> void:
 ## `cols`: "" aboard and staying, "gone" the plan delivers it, "new" the plan picks it up; see PackageBox.plan).
 ## Only a preview, so nothing drops out of the mouth: what changes just shrinks away or pops in.
 func show_plan(cols: Array, marks: Array) -> void:
+	preview = true
 	var keep := 0
 	while keep < mini(colors.size(), cols.size()) and colors[keep] == cols[keep] and (boxes[keep] as PackageBox).plan == str(marks[keep]):
 		keep += 1
@@ -454,6 +458,7 @@ func show_plan(cols: Array, marks: Array) -> void:
 ## Show this load instead (the real one again, unmarked): what it shares with what's showing (from the back
 ## forward) stays put; the rest leave by the mouth or pop in.
 func show_stack(cols: Array) -> void:
+	preview = false
 	var keep := 0
 	while keep < mini(colors.size(), cols.size()) and colors[keep] == cols[keep]:
 		keep += 1

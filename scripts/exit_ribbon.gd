@@ -34,6 +34,9 @@ var jets: bool:                 # (the jets themselves are on it)
 	get:
 		return row == "jets"
 var jets_blocked := false       # ...with the Baron's tape across it
+var jets_waiting := 0           # jobs jumped and not delivered yet (the row says how many of jets_max)
+var jets_max := 3
+var jets_full := false          # ...and that's as many as may wait: no more jumps till one's delivered
 var give_label := "Give up"
 var instant := false
 var jets_row: Control           # the jets' row, as a thing to point a fuel line at
@@ -224,24 +227,27 @@ func _draw() -> void:
 			draw_string(f, Vector2(40, ROW_H * 2.0 - 12), "tap to open", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(INK, 0.5 * k))
 		return
 	# The jump jets themselves.
-	var dim := 0.4 if jets_blocked else 1.0
+	var dim := 0.4 if jets_blocked or jets_full else 1.0
 	var c2 := Vector2(end_x, ROW_H * 1.5 - 10.0 * absf(sin((_t - _pulse) * 9.0)) * hop)
 	if hop > 0.0:
 		draw_circle(c2, 44.0, Color(GasChip.FUEL, 0.25 * hop))
 	_arc_arrow(c2, 30.0, Color(INK, dim))
 	# Held: the row fills from the left straight away, so a hold plainly does something.
-	if _jets_held and not jets_blocked:
+	if _jets_held and not jets_blocked and not jets_full:
 		draw_rect(Rect2(0, ROW_H + 2, (w - NOTCH) * clampf(_jets_t / GasLine.TIME, 0.0, 1.0), ROW_H - 4), Color(GasChip.FUEL, 0.4))
 	if k > 0.05:
 		var jtold := maxf(0.0, 1.0 - (_t - _jets_no) / 1.2)
 		draw_string(f, Vector2(40, ROW_H * 1.5 + 6), "Jump jets", HORIZONTAL_ALIGNMENT_LEFT, -1, 46, Color(INK, k * dim))
-		draw_string(f, Vector2(40, ROW_H * 2.0 - 12), "hold to skip this job" if jtold <= 0.0 else "press and hold!", HORIZONTAL_ALIGNMENT_LEFT, -1, int(24 + 8 * jtold),
-			Color(INK, 0.5 * k * dim).lerp(Color(Palette.ACCENT, k), jtold))
-		# What it costs: a tank.
-		var cx := 40 + f.get_string_size("Jump jets", HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x + 30.0
-		DrawUtil.rrect(self, Rect2(cx, ROW_H * 1.5 - 40, 128, 60), Color(GasChip.FUEL, 0.18 * k * dim), 30)
-		Icons.draw(self, "gas", Vector2(cx + 36, ROW_H * 1.5 - 10), 40.0, Color(GasChip.FUEL, k * dim))
-		draw_string(f, Vector2(cx + 64, ROW_H * 1.5 + 3), "-1", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Color(GasChip.FUEL.darkened(0.25), k * dim))
+		var under := "deliver a waiting job first" if jets_full else ("hold to skip this job" if jtold <= 0.0 else "press and hold!")
+		draw_string(f, Vector2(40, ROW_H * 2.0 - 12), under, HORIZONTAL_ALIGNMENT_LEFT, -1, int(24 + 8 * jtold),
+			Color(INK, (0.8 if jets_full else 0.5 * dim) * k).lerp(Color(Palette.ACCENT, k), jtold))
+		# What it costs: nothing but a place on the map. How many jobs are waiting there, of how many may.
+		var cx := 40 + f.get_string_size("Jump jets", HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x + 26.0
+		var tag := "%d/%d waiting" % [jets_waiting, jets_max]
+		var tw := f.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
+		var tcol := Palette.ACCENT if jets_full else GasChip.FUEL
+		DrawUtil.rrect(self, Rect2(cx, ROW_H * 1.5 - 36, tw + 36, 52), Color(tcol, (0.3 if jets_full else 0.18) * k), 26)
+		draw_string(f, Vector2(cx + 18, ROW_H * 1.5), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(tcol.darkened(0.3), k))
 	if jets_blocked:
 		# The Baron's tape across it: no jumping his jobs.
 		var a := Vector2(-20, ROW_H * 1.5 + 22)

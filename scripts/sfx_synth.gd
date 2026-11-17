@@ -7,7 +7,7 @@ const RATE := 44100
 const NAMES := ["tick", "untick", "thunk", "bonk", "whoosh", "pop", "win", "fail", "click", "rewind", "pickup", "swap", "gate",
 		"coin", "star", "kaching", "jingle", "empty", "hint", "sparkle", "punch", "slam", "whoomp",
 		"crunch", "crash", "screech", "beep"]
-const LAZY := ["laugh", "corp_bed", "corp_sting"]
+const LAZY := ["laugh", "corp_bed", "corp_sting", "radio"]
 
 
 static func make(sound: String) -> AudioStreamWAV:
@@ -41,6 +41,7 @@ static func make(sound: String) -> AudioStreamWAV:
 		"screech": b = _screech()
 		"beep": b = _beep()
 		"laugh": b = _laugh()
+		"radio": b = _radio()
 		"corp_bed": b = _corp_bed()
 		"corp_sting": b = _notes([1046.5, 1318.5, 1568.0, 2349.3], 0.09, 2.6, 0.12, 1.6)
 		_: b = PackedFloat32Array([0.0])
@@ -270,6 +271,30 @@ static func _screech() -> PackedFloat32Array:
 ## A car horn: two buzzy tones a third apart, short.
 ## A big villain's laugh: HAW HAW HAW HAW, each lower than the last. Built from harmonics shaped round an
 ## "aw" vowel (resonances near 700 and 1100 Hz), with a breathy H at the start of each.
+## A walkie-talkie keying up: a crackle of band-limited static that breaks up, then the two-note roger beep.
+static func _radio() -> PackedFloat32Array:
+	var dur := 0.34
+	var b := _buf(dur)
+	var lp := 0.0
+	var hp := 0.0
+	var gate := 1.0
+	for i in b.size():
+		var t := float(i) / RATE
+		if i % 900 == 0:
+			gate = 1.0 if randf() > 0.3 else 0.25        # (it breaks up)
+		var n := randf_range(-1.0, 1.0)
+		lp += (n - lp) * 0.35
+		hp = lp - hp * 0.6
+		var st := hp * gate * 0.5 * clampf((0.2 - t) / 0.05, 0.0, 1.0) * _attack(t, 2.0)
+		var tone := 0.0
+		if t > 0.2 and t < 0.25:
+			tone = signf(sin(TAU * 1400.0 * t)) * 0.13
+		elif t > 0.26 and t < 0.32:
+			tone = signf(sin(TAU * 1050.0 * t)) * 0.13 * clampf((0.32 - t) / 0.02, 0.0, 1.0)
+		b[i] = st + tone
+	return b
+
+
 static func _laugh() -> PackedFloat32Array:
 	var syl := 0.17
 	var gap := 0.06

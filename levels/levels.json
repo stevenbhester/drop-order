@@ -62,19 +62,20 @@
       "stack": ["blue", "red"]
     },
     {
-      "title": "Warm-Up Lap",
-      "hint": "Nothing new here. Just you, the van and the road.",
+      "title": "Shortcut",
+      "hint": "The quick way in isn't always the way out.",
       "no_revisit": true,
-      "flavor": "practice",
+      "flavor": "longcon",
       "map": [
-        "# # # r .",
-        "# b # # .",
-        "# # S . .",
-        "# . # . .",
-        "# # # b .",
-        "r # . . ."
+        ". . # # #",
+        "# . . # b",
+        "# . . # #",
+        "# # S # r",
+        "# . . # r",
+        "# # # # ."
       ],
-      "stack": ["red", "blue", "red", "blue"]
+      "gift": {"at": [1, 5], "item": "monster_truck"},
+      "stack": ["blue", "red", "red"]
     },
     {
       "title": "Rush Hour",
@@ -93,24 +94,19 @@
       "stack": ["red", "blue", "green", "red", "blue"]
     },
     {
-      "title": "Dead End Drive",
-      "hint": "Not every street goes somewhere.",
+      "title": "Victory Lap",
+      "hint": "Nothing new here. Just you, the van and what the Baron left you.",
       "no_revisit": true,
-      "flavor": "intro",
+      "flavor": "practice",
       "map": [
-        "# # # # #",
-        "# . . . #",
-        "# y # . #",
-        "# b # . #",
-        "# r # . #",
-        "# y # . #",
-        "# b # . #",
-        "# r # . #",
-        "# . S . #",
-        "# # # . g"
+        "# # # r .",
+        "# b # # .",
+        "# # S . .",
+        "# . # . .",
+        "# # # b .",
+        "r # . . ."
       ],
-      "gift": {"at": [2, 0], "item": "monster_truck"},
-      "stack": ["green", "yellow", "blue", "red", "yellow", "blue", "red"]
+      "stack": ["red", "blue", "red", "blue"]
     },
     {
       "title": "Wrong Turn Lane",

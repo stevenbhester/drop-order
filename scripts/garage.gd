@@ -186,23 +186,36 @@ func _wip_bar(title: String, note: String) -> Control:
 	return c
 
 
-## Where each cosmetic can be found, from the levels' gifts.
-func _where(id: String) -> String:
+## Where each cosmetic can be found, for its tile while it's still a "?": [a short headline, a smaller line
+## under it] ("Beat the boss", "Hostile Takeover"), or for one won by delivering, the count to reach (the
+## tile shows how far along you are as a bar).
+func _where(id: String) -> Array:
 	if Cosmetics.by_count(id) and Cosmetics.need_for(id) >= 0:
-		return "Unlocks at %s packages delivered (you have %s)" % [Progress.commas(Cosmetics.need_for(id)), Progress.commas(Progress.delivered())]
+		return ["Deliver %s" % Progress.commas(Cosmetics.need_for(id)), ""]
 	for L in levels:
 		if L.gift_item == id:
-			return "Job %d" % L.number
+			return ["Present", "on job %d" % L.number]
 	for L in Daily.puzzles():
 		if L.gift_item == id:
-			return "A daily puzzle"
-	return SideRoads.where(id)
+			return ["Daily puzzle", "a present in one"]
+	var w := SideRoads.where(id)
+	if w.begins_with("Chest at "):
+		return ["Chest", "on " + w.trim_prefix("Chest at ")]
+	var cut := w.find(": ")
+	if cut > 0:
+		var rest := w.substr(cut + 2)
+		return [w.substr(0, cut), ("on " + rest) if rest.begins_with("job ") else rest]
+	return [w, ""]
 
 
 func _tile(id: String) -> Button:
 	var t := ItemTile.new()
 	t.id = id
-	t.where = _where(id)
+	var w := _where(id)
+	t.where = w[0]
+	t.where2 = w[1]
+	if Cosmetics.by_count(id) and Cosmetics.need_for(id) > 0:
+		t.progress = clampf(float(Progress.delivered()) / Cosmetics.need_for(id), 0.0, 1.0)
 	t.custom_minimum_size = Vector2(306, 250)
 	t.pressed.connect(func():
 		if _swallow_tap:
@@ -292,7 +305,9 @@ class ItemTile:
 	extends JuicyButton
 
 	var id := ""
-	var where := ""
+	var where := ""          # not found yet: the headline of how to get it
+	var where2 := ""         # ...and the line under it
+	var progress := -1.0     # won by delivering: how far there (a bar in place of where2)
 	var _t := 0.0
 	var _trail: TrailPreview
 
@@ -322,6 +337,13 @@ class ItemTile:
 		_t += delta
 		if id in Cosmetics.ANIMATED or Looks.is_look(Cosmetics.kind_of(id)):
 			queue_redraw()
+
+	## One line of text, centred, baseline at `y`, shrunk from `px` until it fits the tile.
+	func _line(f: Font, text: String, y: float, px: int, col: Color) -> void:
+		while px > 18 and f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > size.x - 30:
+			px -= 2
+		var w := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		draw_string(f, Vector2((size.x - w) / 2.0, y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, px, col)
 
 	func _draw() -> void:
 		var f := UiTheme.font()
@@ -359,12 +381,18 @@ class ItemTile:
 			draw_circle(mid, 62, Color(Palette.TEXT, 0.08))
 			var qw := f.get_string_size("?", HORIZONTAL_ALIGNMENT_LEFT, -1, 84).x
 			draw_string(f, mid + Vector2(-qw / 2.0, 30), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 84, Color(Palette.TEXT, 0.3))
-		var name := Cosmetics.name_of(id) if owned else (where if where != "" else "Not found yet")
-		var px := 32
-		while px > 20 and f.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > size.x - 30:
-			px -= 2
-		var nw := f.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
-		draw_string(f, Vector2((size.x - nw) / 2.0, size.y - 52), name, HORIZONTAL_ALIGNMENT_LEFT, -1, px, Palette.TEXT if owned else Palette.TEXT_SOFT)
+		if owned or where == "":
+			_line(f, Cosmetics.name_of(id) if owned else "Not found yet", size.y - 52, 32, Palette.TEXT if owned else Palette.TEXT_SOFT)
+		else:
+			# Not found yet: how to get it, in two short lines (or a line and a bar of the way there).
+			_line(f, where, size.y - (64 if (where2 != "" or progress >= 0.0) else 52), 30, Palette.TEXT_SOFT)
+			if progress >= 0.0:
+				var bar := Rect2(size.x * 0.2, size.y - 48, size.x * 0.6, 12)
+				DrawUtil.rrect(self, bar, Color(Palette.TEXT, 0.12), 6)
+				if progress > 0.0:
+					DrawUtil.rrect(self, Rect2(bar.position, Vector2(maxf(12.0, bar.size.x * progress), bar.size.y)), Palette.GOOD, 6)
+			elif where2 != "":
+				_line(f, where2, size.y - 30, 24, Color(Palette.TEXT_SOFT, 0.8))
 		if worn:
 			Icons.star(self, Vector2(size.x - 40, 40), 20.0, Palette.GOOD)
 

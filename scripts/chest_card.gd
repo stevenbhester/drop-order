@@ -36,11 +36,13 @@ func _ready() -> void:
 	theme = UiTheme.theme()
 	_c = Vector2(size.x / 2.0, size.y * 0.36)
 	if int(got.get("gas", 0)) > 0:
-		_loot.append({"icon": "gas", "col": GasChip.FUEL, "text": "+%d gas" % int(got["gas"]), "ink": Color("9fe6ff")})
+		_loot.append({"icon": "gas", "col": GasChip.FUEL, "text": "Tank filled up!", "ink": Color("9fe6ff")})
+	if int(got.get("radio", 0)) > 0:
+		_loot.append({"icon": "radio", "col": Color("9fe6ff"), "text": "+%d calls" % int(got["radio"]), "ink": Color("9fe6ff")})
 	if int(got.get("coins", 0)) > 0:
 		_loot.append({"icon": "coin", "col": Palette.STAR_GOLD, "text": "+%s Dollaroos" % Progress.commas(int(got["coins"])), "ink": Color("ffe08a")})
 	if int(got.get("hints", 0)) > 0:
-		_loot.append({"icon": "bulb", "col": Color("fff3a0"), "text": "+1 hint on every job!", "ink": Color("fff3a0")})
+		_loot.append({"icon": "bulb", "col": Color("fff3a0"), "text": "+%d hint%s" % [int(got["hints"]), "" if int(got["hints"]) == 1 else "s"], "ink": Color("fff3a0")})
 	if got.get("jets", false):
 		_loot.append({"icon": "jump", "col": Color("ff9d5c"), "text": "JUMP JETS!", "ink": Color("ffb37a")})
 	if str(got.get("hat", "")) != "":

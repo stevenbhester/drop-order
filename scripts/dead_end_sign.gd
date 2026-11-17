@@ -2,7 +2,7 @@ class_name DeadEndSign
 extends Control
 ## "DEAD END": what a hint says when there's no way to win from where the van is. A yellow diamond road
 ## sign on a post drops in over the way out (`target`: the Undo button, or Retry), the rest of the screen
-## dims a little (FocusDim), and a plate under the sign says how far back it went wrong (`line`). Any tap
+## dims a little (FocusDim), and a plate over the sign says what to do about it (`line`: how many undos back). Any tap
 ## puts it away (and still does what it was a tap on).
 
 var target := Rect2()

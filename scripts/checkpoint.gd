@@ -88,7 +88,7 @@ func _ready() -> void:
 
 func _label_button() -> void:
 	var asking := state == "ask"
-	_go.label = "Watch ad" if asking else "Drive on!"
+	_go.label = "Watch ad" if asking else Cosmetics.go_word(Progress.ride, 2)
 	_go.icon_name = "ad" if asking else "play"
 	_go.bg = HAZARD if asking else Palette.GOOD
 	_go.fg = HAZARD_INK if asking else Color.WHITE
@@ -136,7 +136,7 @@ func _pass(watched: bool) -> void:
 	state = "cleared" if watched else "waved"
 	_state_t = 0.0
 	if watched:
-		Progress.add_bonus_gas(1)
+		Progress.refuel()
 		Sfx.play("kaching", 1.0, -4.0)
 	Sfx.play("slam", 1.2, -6.0)
 	Sfx.haptic(30)
@@ -199,7 +199,7 @@ func _draw_card() -> void:
 		_text("Entering %s" % zname, Vector2(cx, y), 52, Palette.TEXT)
 		# Said straight: it's an ad, and here's what watching it gets you.
 		var jobs := int(RoadMap.REGIONS[zone]["to"]) - int(RoadMap.REGIONS[zone]["from"]) + 1
-		_lines("Watch one short ad to open %s: %d new jobs, and a free tank of gas." % [zname, jobs],
+		_lines("Watch one short ad to open %s: %d new jobs, and a full tank of gas." % [zname, jobs],
 			Vector2(cx, y + 120), 38, r.size.x - 120.0, Palette.TEXT_SOFT)
 		# (The button sits here: see _process.) Under it, small: who to blame.
 		# Under it, not ready yet (and it says so): the way to never see these again.
@@ -215,7 +215,7 @@ func _draw_card() -> void:
 		_root.draw_rect(Rect2(-300, -60, 600, 120), Color(STAMP, 0.9 * a), false, 10.0)
 		_text("PAPERS IN ORDER", Vector2.ZERO, 58, Color(STAMP, a))
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		var body := "+1 gas, for your trouble. Welcome to %s." % zname if state == "cleared" \
+		var body := "A full tank, for your trouble. Welcome to %s." % zname if state == "cleared" \
 			else "You've watched an ad on your way here. The inspector waves you through to %s." % zname
 		_lines(body, Vector2(cx, y + 170), 38, r.size.x - 120.0, Palette.TEXT)
 		if state == "cleared":

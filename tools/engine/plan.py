@@ -21,7 +21,7 @@ T = {
   1: ("keep", "easy", "", ""), 2: ("keep", "easy", "", ""), 3: ("keep", "easy", "", ""), 4: ("keep", "easy", "", ""),
   # The Suburbs. 5, 8 and 10 are practice (nothing new: what was just taught, used); 7 is hand-made (the Undo
   # and gas lesson, scripts/undo_lesson.gd). All four are kept as they are.
-  5: ("keep", "easy", "", ""), 6: ("decoy", "easy", "", ""), 7: ("keep", "easy", "", ""), 8: ("keep", "easy", "", ""),
+  5: ("longcon", "easy", "", ""), 6: ("decoy", "easy", "", ""), 7: ("keep", "easy", "", ""), 8: ("keep", "easy", "", ""),
   9: ("intro", "easy", "xN", "multi"), 10: ("keep", "easy", "xN", "multi"),
   11: ("twodoor", "medium", "xN", "multi"),
   # Downtown

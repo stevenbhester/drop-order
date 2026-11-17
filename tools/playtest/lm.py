@@ -11,8 +11,11 @@
   lm.py <name> drive UURRD               in a level: drag a route from the van, a tile per letter (Up Down Left Right)
   lm.py <name> drag X,Y X,Y ... [keep]   a finger along those points ("keep": it stays down; `up X Y` lifts it)
   lm.py <name> up X Y                    lift the finger a "keep" drag left down
+  lm.py <name> touch N down|up X Y       a raw finger event (finger N), as a phone sends it
+  lm.py <name> resume                    as if the app just came back from the background
   lm.py <name> drag X,Y X,Y ...          (as above)
   lm.py <name> wait SECS
+  lm.py <name> solve                     drive the job's answer from the start
 Add --shot to any command for a picture after it. Every command prints the screen's text afterwards.
 """
 import json, os, signal, subprocess, sys, time
@@ -70,6 +73,9 @@ def main():
         cmd.update(points=[[float(v) for v in r.split(",")] for r in rest])
     elif op == "up":
         cmd.update(x=float(rest[0]), y=float(rest[1]))
+    elif op == "touch":
+        # touch INDEX down|up X Y : a raw finger event, as a phone sends it
+        cmd.update(index=int(rest[0]), down=(rest[1] == "down"), x=float(rest[2]), y=float(rest[3]))
     elif op == "wait":
         cmd.update(secs=float(rest[0]) if rest else 1.0)
     seqf = os.path.join(d, "seq")

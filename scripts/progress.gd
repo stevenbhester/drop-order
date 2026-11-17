@@ -23,7 +23,7 @@ static func save_path() -> String:
 		if a.begins_with("--profile="):
 			return "user://save_%s.json" % a.trim_prefix("--profile=").validate_filename()
 	return PATH
-const MAX_GAS := 3
+const MAX_GAS := 3                # cans in the tank (the gauge): each comes back by itself; an ad fills it
 ## A tank every half hour: gas only buys extra help now (playing is free), so it can come back slowly.
 const GAS_SECONDS := 60 * 60      # a tank an hour: one tank is a whole level's unlimited help
 const TANK_PRICE := 1500
@@ -31,7 +31,7 @@ const TANK_PRICE := 1500
 ## them, no screen shows them, and the gas station doesn't sell gas.
 const COINS := false
 const AD_UNDOS := 3                # (old: spare undos from the ad; now the ad gives AD_TANKS)
-const AD_TANKS := 2                # one ad: two tanks (an ad is a big ask: unlimited help on two jobs)
+const AD_TANKS := MAX_GAS          # one ad fills the tank (an ad is a big ask)
 ## Dollaroos for finishing a level the first time, and the tip for replaying one.
 const FIRST_PAY := 300
 const REPLAY_TIP := 10
@@ -79,8 +79,25 @@ var hint_tips := 0
 var hint_ad_watched := false
 ## Bonus tanks (from chests, detours and the ad: spent before the ones that come back; at most MAX_RESERVE),
 ## and free hints / free undos until these times (Unix seconds). A side road hands one out once a day.
-const MAX_RESERVE := 5             # extra tanks on top of the gauge: five at most
-var reserve_gas := 0
+const MAX_RESERVE := 0             # (no spare tanks any more: the tank is MAX_GAS cans, and that's all)
+var reserve_gas := 0               # (always 0 now: old saves' spare tanks went into the tank, or became hints)
+## Helpers. Until the Baron meters them (his scene at the start of the second boss job, LIMITS_FROM: seen_new
+## "limits"), hints, the Radio and undos are all unlimited: the tutorial. After it:
+##  - hints: a carried count (`hints`). They never refill by themselves: won as prizes, or a can of gas each.
+##  - the Radio: a carried count too (`radio`), but a common one: one call for every job delivered, more from
+##    chests and bosses, or a can of gas for RADIO_PER_CAN.
+##  - undos and Retry: free, always (a daily keeps count of its undos: tries are scored there).
+const LIMITS_FROM := 11            # the second boss job (the first, job 6, is still on unlimited help)
+const HINTS_START := 5
+const RADIO_START := 5
+const RADIO_PER_CAN := 3
+const RADIO_PER_JOB := 1           # ...for a job delivered the first time
+const RADIO_FROM := 4              # the Radio's button appears from this job (dead ends start to matter there)
+var hints := 0
+var radio := 0
+## What became of an old save's things when the helpers changed (for the Big Changes card): {"hints": n,
+## "radio": n, "spare": spare tanks it had}. Empty: nothing to say.
+var changes_note := {}
 ## Rushes: a detour's power-up is a charge of free undos ("undos") or free hints ("hints"), held until the
 ## player starts it (holding the button once they're out), then running for its seconds, and only while
 ## they're on a job (Game ticks it).
@@ -264,6 +281,10 @@ func _apply_preset(preset: String) -> void:
 					completed[n] = true
 					if Boss.LOOT.has(n):
 						owned[Boss.LOOT[n]] = true
+				if v >= LIMITS_FROM:
+					seen_new["limits"] = true
+					hints = HINTS_START
+					radio = RADIO_START
 			"momentum":
 				momentum = v
 			"keys":
@@ -286,6 +307,12 @@ func _apply_preset(preset: String) -> void:
 				# seen:1 (today's daily screen already opened: the map's ribbon goes plain).
 				if v > 0:
 					daily_seen = Daily.today()
+			"intros":
+				# intros:1 (every one-time card already seen: road hazards, headlights, gas, the Radio, jets).
+				if v > 0:
+					for k in ["headlights", "gas", "gas2", "gas_hint", "radio", "jets_tip", "key_tip", "line_lesson", "oneway", "bridge", "multi", "pickup",
+							"warehouse", "gate", "hub", "ice", "works", "return", "locker", "daily"]:
+						seen_new[k] = true
 			"oneway":
 				# oneway:1 (a level with one-way streets already seen: the next one shows the symbol tip).
 				if v > 0:
@@ -301,6 +328,20 @@ func _apply_preset(preset: String) -> void:
 						owned[id] = true
 			"gateads":
 				gate_ads = v           # (ads already watched at checkpoints)
+			"hints":
+				hints = v
+			"radio":
+				radio = v
+			"limits":
+				# limits:1 the helpers are metered (0: not yet, whatever's been done).
+				if v > 0:
+					seen_new["limits"] = true
+				else:
+					seen_new.erase("limits")
+			"changes":
+				# changes:1 the Big Changes card is due.
+				if v > 0:
+					changes_note = {"hints": hints, "radio": radio, "spare": 2, "due": true}
 			"rush":
 				# rush:1 (a charge of each in hand).
 				if v > 0:
@@ -362,11 +403,7 @@ func _load() -> void:
 	wake = str(d.get("wake", "wreck"))
 	hint_tips = int(d.get("hint_tips", 0))
 	hint_ad_watched = bool(d.get("hint_ad_watched", false))
-	reserve_gas = clampi(int(d.get("reserve_gas", 0)), 0, MAX_RESERVE)
-	# Spare undos from the old undo ad become bonus tanks (undos past the free ones cost gas now).
-	if undo_bank > 0:
-		reserve_gas = mini(reserve_gas + undo_bank, MAX_RESERVE)
-		undo_bank = 0
+	reserve_gas = 0
 	# Bosses already beaten on the main road before they paid out a paint job (Boss.LOOT): theirs now.
 	for n in Boss.LOOT:
 		if completed.has(int(n)):
@@ -439,6 +476,7 @@ func _load() -> void:
 				level_fp[int(n)] = 1
 	if int(d.get("levels_v", 1)) < 4:
 		_renumber_v4()
+	_load_helpers(d)
 	for k in d.get("checkpoints", []):
 		checkpoints[int(k)] = true
 	ads_seen = int(d.get("ads_seen", 0))
@@ -466,7 +504,7 @@ func _save() -> void:
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
 			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
-			"reserve_gas": reserve_gas, "rush_held": rush_held, "rush_secs": rush_secs, "rush_full": rush_full, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
+			"hints": hints, "radio": radio, "changes_note": changes_note, "rush_held": rush_held, "rush_secs": rush_secs, "rush_full": rush_full, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "hoardly_ads": hoardly_ads, "notify_chosen": notify_chosen, "notify_after": notify_after, "daily_seen": daily_seen, "notify_updates": notify_updates, "notify_streak": notify_streak, "notify_fresh": notify_fresh, "rate_levels": rate_levels, "play_stats": play_stats, "device_id": device_id, "rate_asked": rate_asked, "skipped": skipped.keys(), "seen_new": seen_new, "all_open": all_open, "headlights": foresight, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "og_done": og_done.keys(), "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),
 			"mega": mega, "jets": jets, "checkpoints": checkpoints.keys(), "ads_seen": ads_seen, "gate_ads": gate_ads, "recent_ads": recent_ads, "licensed": licensed}))
 
@@ -572,6 +610,14 @@ func skip(n: int) -> void:
 	_save()
 
 
+## Jump jets are free, but only so many jobs can be left waiting on the map at once (a jumped job comes off
+## the list when it's delivered): that, not gas, is what a jump costs.
+const JUMPS_WAITING_MAX := 3
+
+func jumps_waiting() -> int:
+	return skipped.size()
+
+
 func first_incomplete(count: int) -> int:
 	for i in count:
 		if not is_complete(i + 1):
@@ -580,6 +626,9 @@ func first_incomplete(count: int) -> int:
 
 
 func reset() -> void:
+	hints = 0
+	radio = 0
+	changes_note = {}
 	completed.clear()
 	skipped.clear()
 	seen_new.clear()
@@ -655,17 +704,101 @@ func seconds_to_next() -> int:
 	return maxi(1, int(ceil(gas_t + GAS_SECONDS - _now())))
 
 
-## Every tank to hand: the ones that come back, plus bonus ones.
+## Cans in the tank.
 func total_gas() -> int:
 	tick()
-	return gas + reserve_gas
+	return gas
 
 
-## Bonus tanks (the ad's, a chest's): they sit on top of the gauge and never come back once used.
+## Cans into the tank, as many as fit.
 func add_bonus_gas(n: int) -> void:
-	reserve_gas = mini(reserve_gas + n, MAX_RESERVE)
+	tick()
+	gas = mini(gas + n, MAX_GAS)
 	_save()
 	changed.emit()
+
+
+## The tank filled to the top (an ad; a prize). Returns how many cans went in.
+func refuel() -> int:
+	tick()
+	var got := MAX_GAS - gas
+	gas = MAX_GAS
+	gas_t = _now()
+	_save()
+	changed.emit()
+	return got
+
+
+## A prize that fills the tank: if it's full already, a hint instead. Returns what it was, in words.
+func refuel_or_hint() -> String:
+	tick()
+	if gas >= MAX_GAS:
+		add_hints(1)
+		return "+1 hint"
+	refuel()
+	return "Tank filled up"
+
+
+func add_hints(n: int) -> void:
+	hints = maxi(0, hints + n)
+	_save()
+	changed.emit()
+
+
+func add_radio(n: int) -> void:
+	radio = maxi(0, radio + n)
+	_save()
+	changed.emit()
+
+
+## Have the helpers been metered yet (the Baron's scene)? Before that everything's unlimited. The self-tests
+## play as if they have ("-- --helpers-free": as a new player).
+func limits_on() -> bool:
+	if OS.get_cmdline_user_args().has("--helpers-free"):
+		return false
+	return seen_new.has("limits") or auto
+
+
+## The Baron meters the helpers: from here hints and the Radio are counted, starting with these.
+func start_limits() -> void:
+	if seen_new.has("limits"):
+		return
+	seen_new["limits"] = true
+	hints = maxi(hints, HINTS_START)
+	radio = maxi(radio, RADIO_START)
+	_save()
+	changed.emit()
+
+
+## An old save meets the carried helpers (and one from before the Baron's scene that's already past it).
+func _load_helpers(d: Dictionary) -> void:
+	hints = int(d.get("hints", -1))
+	radio = int(d.get("radio", -1))
+	var cn = d.get("changes_note", {})
+	changes_note = cn if cn is Dictionary else {}
+	if hints >= 0 and radio >= 0:
+		return
+	hints = maxi(hints, 0)
+	radio = maxi(radio, 0)
+	# Spare tanks (and the old undo ad's spare undos) go into the bigger tank; what won't fit becomes hints.
+	var spare := maxi(int(d.get("reserve_gas", 0)), 0) + maxi(undo_bank, 0)
+	undo_bank = 0
+	var fits := mini(spare, MAX_GAS - gas)
+	gas += fits
+	if not (completed.has(LIMITS_FROM) or completed.size() >= LIMITS_FROM):
+		return                      # (still in the tutorial: the Baron's scene is ahead of them)
+	# Past the first boss already: metered from here, with the starting counts, a Radio call for every job
+	# done since, and a hint for each spare tank there wasn't room for. The Big Changes card says so.
+	seen_new["limits"] = true
+	hints = HINTS_START + (spare - fits)
+	radio = RADIO_START + mini(completed.size() / 4, 15)
+	# (A rush of free undos in hand is worth nothing now: Radio calls for it.)
+	if rush_held.has("undos") or rush_secs.has("undos"):
+		rush_held.erase("undos")
+		rush_secs.erase("undos")
+		rush_full.erase("undos")
+		radio += 5
+	changes_note = {"hints": hints, "radio": radio, "spare": spare, "due": true}
 
 
 ## Uses a tank: a bonus one first (so the gauge keeps refilling), then one off the gauge. False (and nothing
@@ -680,11 +813,6 @@ func refill_every() -> String:
 
 func spend_gas() -> bool:
 	tick()
-	if reserve_gas > 0:
-		reserve_gas -= 1
-		_save()
-		changed.emit()
-		return true
 	if gas <= 0:
 		return false
 	if gas >= MAX_GAS:
@@ -780,6 +908,22 @@ func wearing(id: String) -> bool:
 	if Looks.is_look(kind):
 		return str(get("look_" + kind)) == id
 	return paint == id or topper == id or ride == id or wake == id
+
+
+## Everything the van and the town are wearing right now (for an undo: restore_look).
+func look_snapshot() -> Dictionary:
+	var d := {"paint": paint, "topper": topper, "ride": ride, "wake": wake}
+	for k in Looks.KINDS:
+		d["look_" + k] = get("look_" + k)
+	return d
+
+
+func restore_look(d: Dictionary) -> void:
+	for k in d:
+		set(k, d[k])
+	Looks.apply(self)
+	_save()
+	changed.emit()
 
 
 ## Puts an owned item on (never takes it off, unlike wear()).
@@ -891,9 +1035,18 @@ static func light_name(n: int) -> String:
 
 
 ## The jump jets (skip a job for a tank of gas: Game, ExitRibbon). Their row is on the ribbon from the
-## start, locked ("do not open till job JETS_FROM"); from that job it's a present with a bow, theirs to tap
+## start, locked ("do not open till job JETS_FROM"); beating the boss just before it hands them over, on the
+## finish (Game._win, JetsCard). Anyone past it without them gets a present with a bow, theirs to tap
 ## open whenever they notice it. Left unopened long enough, the game opens it for them (Game._jets_push).
-const JETS_FROM := 13
+const JETS_FROM := 12              # (beating job 11 hands them over: Game._win)
+## The seen_new key for the gas explainer (GasExplainer). "gas2": the prices changed (a tank no longer makes
+## hints unlimited: it buys one), so players who saw the old card see the new one once.
+const GAS_SEEN := "gas2"
+const GAS_HINT_SEEN := "gas_hint"     # ...and the card for a hint's price (a tank each), seen apart from it
+## The Radio's button is on the bar: the road's reached job RADIO_FROM.
+func has_radio() -> bool:
+	return is_complete(RADIO_FROM - 1) or is_complete(RADIO_FROM) or all_open or auto or OS.get_cmdline_user_args().has("--radio")
+
 var jets := false
 
 func has_jets() -> bool:
@@ -907,11 +1060,9 @@ func grant_jets() -> void:
 		changed.emit()
 
 
+## (Hints used to be so many a job, more with each chest: they're a carried count now, `hints`.)
 func hint_slots() -> int:
-	var n := 1
-	for c in chests:
-		n += int(SideRoads.CHESTS.get(int(c), {}).get("hints", 0))
-	return mini(n, MAX_HINT_SLOTS)
+	return hints
 
 
 func free_hints() -> bool:
@@ -976,7 +1127,13 @@ static func clock(secs: float) -> String:
 func side_bonus_says(id: String, bonus: Dictionary) -> String:
 	var kind := str(bonus.get("kind", ""))
 	if kind == "reserve":
-		return "" if side_bonus_day.has(id) else "+%d gas" % int(bonus.get("amount", 1))
+		return "" if side_bonus_day.has(id) else "a full tank (or a hint, if it's full)"
+	if side_bonus_day.has(id):
+		return ""
+	if kind == "radio":
+		return "+%d calls" % int(bonus.get("amount", 1))
+	if kind == "hint":
+		return "+%d hint%s" % [int(bonus.get("amount", 1)), "" if int(bonus.get("amount", 1)) == 1 else "s"]
 	if not RUSH_SECS.has(kind) or int(side_bonus_day.get(id, -1)) == Daily.today() or rush_ready(kind):
 		return ""
 	return "%s (%s of free %s)" % [RUSH_NAME[kind], clock(rush_len(bonus)), kind]
@@ -994,7 +1151,8 @@ func side_power_up(id: String, bonus: Dictionary) -> String:
 	var today := Daily.today()
 	if bonus.is_empty() or int(side_bonus_day.get(id, -1)) == today:
 		return ""
-	if str(bonus.get("kind", "")) == "reserve" and side_bonus_day.has(id):
+	# (Every detour's prize is for the first time it's won: none of them can be farmed day after day.)
+	if side_bonus_day.has(id):
 		return ""
 	var kind := str(bonus.get("kind", ""))
 	if RUSH_SECS.has(kind) and float(rush_held.get(kind, 0.0)) > 0.0:
@@ -1004,9 +1162,13 @@ func side_power_up(id: String, bonus: Dictionary) -> String:
 	var said := ""
 	match kind:
 		"reserve":
-			var got := mini(n, MAX_RESERVE - reserve_gas)
-			reserve_gas += got
-			said = "+%d gas" % got if got > 0 else "Spare tanks full!"
+			said = refuel_or_hint()
+		"radio":
+			radio += n
+			said = "+%d calls" % n
+		"hint":
+			hints += n
+			said = "+%d hint%s" % [n, "" if n == 1 else "s"]
 		"hints", "undos":
 			rush_held[kind] = rush_len(bonus)
 			said = "%s: %s of free %s" % [RUSH_NAME[kind], clock(rush_len(bonus)), kind]
@@ -1092,22 +1254,30 @@ func open_chest(n: int) -> Dictionary:
 	if c.is_empty() or chests.has(n):
 		return {}
 	tick()
-	# Its gas cans are bonus tanks.
-	var cans := int(c.get("gas", 0))
-	var fits := mini(cans, MAX_RESERVE - reserve_gas)
-	var coins := (int(c.get("coins", 0)) + (cans - fits) * SideRoads.CAN_VALUE) if COINS else 0
-	reserve_gas += fits
+	# A chest fills the tank (a hint instead, if it's full already), and has Radio calls and maybe hints in it.
+	var hints_before := hints
+	var filled := 0
+	if int(c.get("gas", 0)) > 0:
+		if gas >= MAX_GAS:
+			hints += 1
+		else:
+			filled = MAX_GAS - gas
+			gas = MAX_GAS
+			gas_t = _now()
+	hints += int(c.get("hints", 0))
+	var calls := int(c.get("radio", 0))
+	radio += calls
+	var coins := int(c.get("coins", 0)) if COINS else 0
 	dollaroos += coins
 	var hat := str(c.get("hat", ""))
 	var new_hat := ""
 	if hat != "" and not owned.has(hat):
 		owned[hat] = true
 		new_hat = hat
-	var before := hint_slots()
 	chests[n] = true
 	_save()
 	changed.emit()
-	return {"gas": fits, "coins": coins, "hat": new_hat, "cashed": (cans - fits) if COINS else 0, "hints": hint_slots() - before}
+	return {"gas": filled, "coins": coins, "hat": new_hat, "cashed": 0, "hints": hints - hints_before, "radio": calls}
 
 
 ## The patch notes for version `v` have been opened (the title badge stops glowing).
@@ -1214,6 +1384,23 @@ func daily_reached(day: int, n: int) -> void:
 
 ## Today's puzzle is solved: it counts toward the streak, however many tries it took. `extra` is how the
 ## winning try went ({tiles, undos, shortest}); the badges and score come from it (Daily.earn).
+## Seconds a daily try took that didn't solve it (a Retry, or walking away): kept on the day's record as
+## "spent", so the solve's time is the whole day's attempt, not just the winning try.
+func daily_add_time(day: int, secs: float) -> void:
+	var k := Daily.key(day)
+	var r: Dictionary = daily.get(k, {})
+	if r.is_empty() or r.get("done", false) or secs <= 0.0:
+		return
+	r["spent"] = float(r.get("spent", 0.0)) + secs
+	daily[k] = r
+	_save()
+
+
+## Today's time on a daily so far: the unsolved tries' seconds, plus `now` (the try in hand).
+func daily_time(day: int, now: float) -> float:
+	return float(daily.get(Daily.key(day), {}).get("spent", 0.0)) + now
+
+
 func daily_done(day: int, secs: float, order: Array, extra := {}) -> void:
 	var k := Daily.key(day)
 	var r: Dictionary = daily.get(k, {"attempts": 1})

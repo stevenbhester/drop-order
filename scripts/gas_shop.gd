@@ -53,7 +53,7 @@ func _ready() -> void:
 	_art = art
 	col.add_child(art)
 	col.add_child(_label("Gas station", 88, Palette.TEXT) if Progress.total_gas() > 0 else _label("Out of gas!", 88, Palette.TEXT))
-	col.add_child(_label("One tank: unlimited hints and undos on a level.\nA free tank rolls in every %s." % Progress.refill_every(), 38, Palette.TEXT_SOFT))
+	col.add_child(_label("A can of gas buys 1 hint or %d calls.\nA free can rolls in every %s." % [Progress.RADIO_PER_CAN, Progress.refill_every()], 38, Palette.TEXT_SOFT))
 	_timer = _label("", 42, GasChip.FUEL.darkened(0.1))
 	col.add_child(_timer)
 
@@ -64,7 +64,7 @@ func _ready() -> void:
 		_buy.bg = Color("ff3d9a")
 		_buy.fg = Color.WHITE
 		_buy.icon_name = "ad"
-		_buy.label = "Watch an ad (+%d gas)" % Progress.AD_TANKS
+		_buy.label = "Watch an ad: fill the tank"
 		_buy.pressed.connect(_on_ad)
 		col.add_child(_buy)
 		# Gas is scarce on purpose: the station only tops you up once you're out.
@@ -95,7 +95,7 @@ func _ready() -> void:
 	var name_l := _label("Full tank", 56, Palette.TEXT)
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	words.add_child(name_l)
-	var sub_l := _label("%d gas tanks, right now" % Progress.MAX_GAS, 34, Palette.TEXT_SOFT)
+	var sub_l := _label("%d cans of gas, right now" % Progress.MAX_GAS, 34, Palette.TEXT_SOFT)
 	sub_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	words.add_child(sub_l)
 	row.add_child(words)
@@ -166,7 +166,7 @@ func _process(_delta: float) -> void:
 
 func _refresh() -> void:
 	var sec := Progress.seconds_to_next()
-	_timer.text = "Next free tank in %d:%02d" % [sec / 60, sec % 60] if sec > 0 else "Tank's full!"
+	_timer.text = "Next free can in %d:%02d" % [sec / 60, sec % 60] if sec > 0 else "Tank's full!"
 	if not Progress.COINS:
 		return
 	var d := Progress.dollaroos
@@ -210,11 +210,11 @@ func _on_ad() -> void:
 	add_child(ad)
 	ad.finished.connect(func():
 		Progress.ad_watched()
-		Progress.add_bonus_gas(Progress.AD_TANKS)
+		Progress.refuel()
 		Progress.hint_ad_watched = true
 		Sfx.play("kaching")
 		Sfx.haptic(30)
-		_buy.label = "+%d gas!" % Progress.AD_TANKS
+		_buy.label = "Tank filled up!"
 		_buy.icon_name = "gas"
 		var at := _buy.global_position + _buy.size / 2.0
 		_fx.burst(at, GasChip.FUEL, 26, 900.0, 26.0)

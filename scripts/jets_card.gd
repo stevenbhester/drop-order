@@ -11,6 +11,8 @@ var _card: PanelContainer
 var _pic: Control
 var _t := 0.0
 var _done := false
+## Won with a job (beating job 11: FinishScreen.jets_new): they're a prize, not a present opened.
+var won := false
 
 
 func _ready() -> void:
@@ -36,16 +38,16 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 20)
 	_card.add_child(col)
-	col.add_child(_label("DISPATCH SENT HELP YOUR WAY!", 32, Palette.ACCENT))
+	col.add_child(_label("YOU BEAT HIM TWICE! DISPATCH SENT YOU" if won else "DISPATCH SENT HELP YOUR WAY!", 32, Palette.ACCENT))
 	col.add_child(_label("JUMP JETS!", 76, Palette.TEXT))
 	_pic = Control.new()
 	_pic.custom_minimum_size = Vector2(0, 300)
 	_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pic.draw.connect(_draw_pic)
 	col.add_child(_pic)
-	col.add_child(_label("Skip a job for 1 gas.", 44, Palette.TEXT))
+	col.add_child(_label("Stuck? Jump over the job. It's free.", 44, Palette.TEXT))
 	col.add_child(_label("It waits on the map. Come back and deliver it whenever you like.", 34, Palette.TEXT_SOFT))
-	col.add_child(_label("Pull out the ribbon at the top left and hold Jump jets. A skipped job pays nothing until it's delivered, and nobody skips the Baron's jobs.", 28, Color(Palette.TEXT_SOFT, 0.8)))
+	col.add_child(_label("Pull out the ribbon at the top left and hold Jump jets. Up to 3 jobs can wait at once. One thing they can't jump: the Baron's jobs. He has to be beaten.", 28, Color(Palette.TEXT_SOFT, 0.8)))
 	var ok := JuicyButton.new()
 	ok.label = "Got it"
 	ok.font_px = 48

@@ -42,6 +42,10 @@ var _wear_tw: Tween
 var _box_t := -1.0
 var _box_wait := 0.0
 var _items: Array = []    # what the reveal shows (hidden while it's wrapped)
+## What was worn before the big button was pressed (Progress.look_snapshot), for its Undo; and the buttons'
+## words before (put back on an undo).
+var _before := {}
+var _labels := {}
 
 
 func _ready() -> void:
@@ -140,14 +144,14 @@ func _two_buttons(v: Vector2, kind: String) -> void:
 	_keep.fg = Color.WHITE
 	_keep.size = spot.size
 	_keep.position = spot.position
-	_keep.pressed.connect(_close)
+	_keep.pressed.connect(_on_keep)
 	_keep.modulate.a = 0.0
 	add_child(_keep)
 	_wear = JuicyButton.new()
 	_wear.font_px = 44
 	_wear.bg = Palette.ACCENT
 	_wear.fg = Color.WHITE
-	_wear.label = "Paint my ride" if kind == "paint" and Progress.ride != "" else (Cosmetics.spin_cta(item) if kind == "ride" else CTA.get(kind, "Use it now"))
+	_wear.label = "Paint my ride" if kind == "paint" and Progress.ride != "" else (Cosmetics.spin_cta(item) if kind == "ride" else (Cosmetics.trail_cta(item) if kind == "trail" else CTA.get(kind, "Use it now")))
 	_wear.size = Vector2(bw, 150)
 	_wear.position = Vector2(x0 + bw + 30.0, spot.position.y - 186.0)
 	_wear.pressed.connect(_on_wear)
@@ -206,7 +210,7 @@ func _ride_buttons(v: Vector2, painted: bool) -> void:
 	_keep.fg = Color.WHITE
 	_keep.size = spot.size
 	_keep.position = spot.position
-	_keep.pressed.connect(_close)
+	_keep.pressed.connect(_on_keep)
 	_keep.modulate.a = 0.0
 	add_child(_keep)
 
@@ -266,14 +270,24 @@ func _skip_reveal() -> void:
 func _on_classic() -> void:
 	if _worn:
 		return
+	_snap()
 	Progress.put_on("classic")
 	_classic.label = "In Classic!"
 	_on_wear()
 
 
+func _snap() -> void:
+	if _before.is_empty():
+		_before = Progress.look_snapshot()
+		_labels = {"wear": _wear.label, "wear_icon": _wear.icon_name, "keep": _keep.label, "wear_dy": _wear.label_dy,
+			"classic": _classic.label if _classic else ""}
+
+
 func _on_wear() -> void:
 	if _worn:
+		_close()               # (worn: the big button is Continue)
 		return
+	_snap()
 	_worn = true
 	Sfx.play("kaching", 1.1, -3.0)
 	Sfx.haptic(25)
@@ -281,13 +295,53 @@ func _on_wear() -> void:
 	_van.paint = Progress.paint
 	_van.squash()
 	_fx.burst(_van.position, Cosmetics.tint(item), 30, 1000.0, 26.0)
-	_fx.say(_van.position + Vector2(0, -230), "Looking good!", Palette.GOOD, 72)
+	_fx.say(_van.position + Vector2(0, -230), "Riding %s!" % Cosmetics.them(item) if Cosmetics.PRONOUN.has(item) else "Looking good!", Palette.GOOD, 72)
+	# On now, so the big button turns into the way back to the road: green, Continue, gently breathing.
+	_wear.label = "Continue"
+	_wear.icon_name = "next"
+	_wear.recolor(Palette.GOOD, Color.WHITE)
+	_wear.label_dy = 0.0
+	for c in _wear.get_children():
+		if c is Label:
+			c.visible = false     # (the "in your X paint" line: said and done)
+	_wear.breathe(true)
+	# Changed their mind? "Maybe later" turns into Undo: it puts back what was worn.
+	_keep.label = "Undo"
+	_keep.icon_name = "undo"
+	_keep.recolor(Color.WHITE, Color("2b2233"))
+	_keep.pop()
+	if _classic:
+		_classic.visible = false
+
+
+## "Maybe later" (nothing changes), or, once it's on, Undo.
+func _on_keep() -> void:
+	if not _worn:
+		_close()
+		return
+	_worn = false
+	Sfx.play("rewind", 1.1, -4.0)
+	Sfx.haptic(14)
+	Progress.restore_look(_before)
+	_before = {}
+	var kind := Cosmetics.kind_of(item)
+	_van.paint = item if kind == "paint" else ("classic" if kind == "ride" else Progress.paint)
+	_van.squash()
+	_fx.say(_van.position + Vector2(0, -230), "Back how it was", Palette.TEXT_SOFT, 56)
+	_wear.label = str(_labels.get("wear", _wear.label))
+	_wear.icon_name = str(_labels.get("wear_icon", ""))
+	_wear.recolor(Palette.ACCENT, Color.WHITE)
 	_wear.breathe(false)
-	_wear.label = "Riding %s!" % Cosmetics.them(item) if Cosmetics.PRONOUN.has(item) else "Wearing it!"
-	_wear.icon_name = "star"
-	var tw := create_tween()
-	tw.tween_interval(0.45 if paged else 0.9)
-	tw.tween_callback(_close)
+	_wear.label_dy = float(_labels.get("wear_dy", 0.0))
+	for c in _wear.get_children():
+		if c is Label:
+			c.visible = true
+	_keep.label = str(_labels.get("keep", "Maybe later"))
+	_keep.icon_name = ""
+	_keep.recolor(Palette.GOOD, Color.WHITE)
+	if _classic:
+		_classic.visible = true
+		_classic.label = str(_labels.get("classic", _classic.label))
 
 
 func _close() -> void:
@@ -315,8 +369,8 @@ func _gui_input(e: InputEvent) -> void:
 			_open_box()
 	elif not _revealed:
 		_skip_reveal()         # a tap hurries the reveal
-	elif paged and not _worn:
-		_close()               # tapping on through a run of rewards: "Maybe later"
+	elif paged or _worn:
+		_close()               # tapping on through a run of rewards ("Maybe later"), or on once it's worn
 
 
 func _open_box() -> void:

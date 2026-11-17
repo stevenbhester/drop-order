@@ -62,8 +62,10 @@ func _ready() -> void:
 		Progress.daily_shared(day)
 		share_pressed.emit())
 	_stats = _button("Stats", "grid", Color.WHITE, Palette.TEXT, 40)
+	StatsFlair.dress(_stats)
 	_stats.pressed.connect(func():
 		Sfx.play("click")
+		StatsFlair.mark_seen()
 		stats_pressed.emit())
 	_done = _button("Get back to work", "", Palette.GOOD, Color.WHITE, 50)
 	_done.pressed.connect(_close)

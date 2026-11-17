@@ -1,7 +1,7 @@
 class_name BossOutro
 extends CanvasLayer
-## A boss beaten: Baron Von Bottomline pops up in a panic ("My quarterly earnings!!") and runs for it, hat
-## flying. With nothing to hand over he drops his money bag, which bursts in a shower of gold, and it's over
+## A boss beaten: Baron Von Bottomline pops up in a panic, bursts into tears ("This is a coordinated attack
+## on ME!"), and runs for it bawling, WAAAH trailing behind him. With nothing to hand over he drops his money bag, which bursts in a shower of gold, and it's over
 ## in TIME seconds. With `rewards` ([{kind: "lights" | "undos" | "item", value}], one per prize) he drops a
 ## wrapped package for each as he runs; then BOSS REWARD goes up and the packages wait. A tap anywhere opens
 ## them: the one tapped first (the leftmost, for a tap anywhere else), then the rest in turn, each on its own
@@ -38,6 +38,7 @@ func _ready() -> void:
 	_root.draw.connect(_draw_it)
 	add_child(_root)
 	Sfx.play("bonk", 0.7, -2.0)
+	get_tree().create_timer(0.45).timeout.connect(func(): Sfx.play("fail", 0.7, -4.0))
 
 
 func _process(delta: float) -> void:
@@ -179,7 +180,18 @@ func _draw_it() -> void:
 		var u := (_t - 1.3) / 0.9
 		x = lerpf(v.x * 0.62, -320.0, u * u)
 	var feet := Vector2(x, floor_y + (absf(sin(_t * 20.0)) * -18.0 if _t > 1.3 else 0.0))
-	Boss.draw(_root, feet, tall, _t, "panic", -1.0 if _t > 1.3 else 1.0)
+	Boss.draw(_root, feet, tall, _t, "panic" if _t < 0.45 else "cry", -1.0 if _t > 1.3 else 1.0)
+	# Bawling: WAAAH, popping off him.
+	if _t > 0.45:
+		var f := UiTheme.font()
+		for k in 3:
+			var a := fmod(_t - 0.45 + k * 0.33, 1.0)
+			var at := Vector2(feet.x + (k - 1) * 120.0 + (60.0 if _t > 1.3 else -60.0) * a, feet.y - tall * 1.15 - a * 120.0)
+			var w := f.get_string_size("WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50).x
+			_root.draw_set_transform(at, (k - 1) * 0.25, Vector2.ONE * (0.7 + 0.5 * a))
+			_root.draw_string_outline(f, Vector2(-w / 2.0, 0), "WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50, 10, Color(0.1, 0.06, 0.16, 1.0 - a))
+			_root.draw_string(f, Vector2(-w / 2.0, 0), "WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50, Color(0.6, 0.85, 1.0, 1.0 - a))
+			_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Dust kicked up as he runs.
 	if _t > 1.3:
 		for k in 6:

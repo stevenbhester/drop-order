@@ -279,6 +279,16 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 			ci.draw_circle(arc[0], s * 0.06, col)
 			var tip := arc[arc.size() - 1]
 			ci.draw_colored_polygon(PackedVector2Array([tip + Vector2(-0.2, -0.06) * s, tip + Vector2(0.18, -0.06) * s, tip + Vector2(0, 0.24) * s]), col)
+		"radio":
+			# A walkie-talkie: a chunky body with a speaker grille and a little screen, a stubby aerial, and
+			# waves coming off it.
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.27, -0.2) * s, Vector2(0.46, 0.66) * s), col, s * 0.1)
+			ci.draw_line(c + Vector2(-0.14, -0.2) * s, c + Vector2(-0.14, -0.46) * s, col, s * 0.11, true)
+			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.18, -0.1) * s, Vector2(0.28, 0.15) * s), col.lerp(Color.WHITE, 0.7), s * 0.04)
+			for k in 3:
+				ci.draw_line(c + Vector2(-0.16, 0.16 + k * 0.09) * s, c + Vector2(0.08, 0.16 + k * 0.09) * s, col.lerp(Color.WHITE, 0.55), s * 0.04)
+			for k in 2:
+				ci.draw_arc(c + Vector2(0.2, -0.3) * s, s * (0.14 + k * 0.13), -PI * 0.5, PI * 0.12, 10, col, s * 0.07, true)
 		"megaphone":
 			var cone := PackedVector2Array([c + Vector2(-0.22, -0.12) * s, c + Vector2(0.34, -0.38) * s, c + Vector2(0.34, 0.3) * s, c + Vector2(-0.22, 0.08) * s])
 			ci.draw_colored_polygon(cone, col)

@@ -15,6 +15,7 @@ var what := "hint"               # "hint" or "undo"
 var gauge := Vector2.ZERO        # where the gas gauge is (its can), on screen
 var gauge_box := Rect2()         # the whole gauge, on screen (lit up), if known
 var button := Rect2()            # the Hint or Undo button, on screen
+var with_radio := false          # this job has the Radio too (a tank makes it unlimited as well)
 var cost := 1
 var undos_only := false          # the daily: no hints, so a tank's just undos
 
@@ -81,14 +82,24 @@ func _build_card() -> void:
 	col.add_theme_constant_override("separation", 16)
 	_card.add_child(col)
 	# Punchy: what it is, what a tank buys. The rest is small print under the card (_draw_fg).
-	var thing := "hints" if what == "hint" else "undos"
-	col.add_child(_label("Out of free %s!" % thing, 60, Palette.TEXT))
-	var buys := "1 tank = unlimited undos" if undos_only else ("1 tank = unlimited undos + hints" if what == "undo" else "1 tank = unlimited hints + undos")
-	col.add_child(_label(buys, 48, GasChip.FUEL))
-	col.add_child(_label("for the rest of this job", 40, Palette.TEXT))
+	# What a can of gas buys: one hint; Progress.RADIO_PER_CAN Radio calls; on a daily (the one place undos
+	# are counted), unlimited undos for the try.
+	match what:
+		"hint":
+			col.add_child(_label("Out of hints!", 60, Palette.TEXT))
+			col.add_child(_label("1 can of gas = 1 hint", 52, GasChip.FUEL))
+			col.add_child(_label("Hints also come as prizes: from bosses, chests and detours.", 30, Palette.TEXT_SOFT))
+		"radio":
+			col.add_child(_label("Out of calls!", 60, Palette.TEXT))
+			col.add_child(_label("1 can of gas = %d calls" % Progress.RADIO_PER_CAN, 52, GasChip.FUEL))
+			col.add_child(_label("You also earn a call for every job you deliver.", 30, Palette.TEXT_SOFT))
+		_:
+			col.add_child(_label("Out of undos!", 60, Palette.TEXT))
+			col.add_child(_label("1 can of gas = unlimited undos", 48, GasChip.FUEL))
+			col.add_child(_label("for the rest of this try", 40, Palette.TEXT))
 	_go = JuicyButton.new()
 	var have := Progress.total_gas() >= cost
-	_go.label = ("Use %s" % ("1 tank" if cost == 1 else "%d tanks" % cost)) if have else "Watch an ad (+%d gas)" % Progress.AD_TANKS
+	_go.label = ("Use %s" % ("1 can" if cost == 1 else "%d cans" % cost)) if have else "Watch an ad: fill the tank"
 	_go.icon_name = "gas" if have else "ad"
 	_go.font_px = 44
 	_go.bg = FUEL if have else Color("ff3d9a")
@@ -119,7 +130,7 @@ func _choose(go: bool) -> void:
 	if _closing:
 		return
 	_closing = true
-	Progress.seen_new["gas"] = true
+	Progress.seen_new[Progress.GAS_HINT_SEEN if what == "hint" else Progress.GAS_SEEN] = true
 	Progress.set_option("seen_new", Progress.seen_new)
 	Sfx.play("click")
 	var tw := create_tween()
@@ -218,7 +229,7 @@ func _draw_fg() -> void:
 		var f2 := UiTheme.font()
 		var k2 := _card.modulate.a * 0.55
 		var y0 := _card.position.y + _card.size.y + 56.0
-		for line in ["A tank refills every %s. Out? An ad gives %d." % [Progress.refill_every(), Progress.AD_TANKS],
+		for line in ["A can refills every %s. Out? An ad fills the tank." % Progress.refill_every(),
 				"Beta: the ads are pretend and skippable. Options → Testers → Unlimited gas."]:
 			var lw := f2.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
 			ci.draw_string(f2, Vector2(size.x / 2.0 - lw / 2.0, y0), line, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(0.85, 0.82, 0.9, k2))

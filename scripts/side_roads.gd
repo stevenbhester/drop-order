@@ -16,17 +16,18 @@ const PATH := "res://levels/side.json"
 ## Level numbers side levels play as (never real level numbers, so they never touch level progress).
 const NUMBER_BASE := 800
 const CHESTS := {
-	# Gas: two tanks in the first chest, one in each after (it's scarce: a tank is unlimited help on a job).
-	10: {"gas": 2, "coins": 250, "hints": 1},
-	20: {"gas": 1, "coins": 400, "hints": 1},
-	30: {"gas": 1, "coins": 600, "hat": "race_car"},
-	40: {"gas": 1, "coins": 800},
-	50: {"gas": 1, "coins": 1000, "hat": "bassinet"},
-	60: {"gas": 1, "coins": 1100, "hat": "caterpillar"},
-	70: {"gas": 1, "coins": 1200},
-	80: {"gas": 1, "coins": 1300, "hat": "minivan"},
-	90: {"gas": 1, "coins": 1400, "hat": "pillow_tower"},
-	100: {"gas": 1, "coins": 2500},
+	# Every chest fills the tank ("gas": a hint instead, if it's full already: Progress.open_chest), and has
+	# Radio calls in it; the first two (and every other one after) a hint or two as well.
+	10: {"gas": 1, "coins": 250, "hints": 2, "radio": 3},
+	20: {"gas": 1, "coins": 400, "hints": 2, "radio": 3},
+	30: {"gas": 1, "coins": 600, "radio": 3, "hat": "race_car"},
+	40: {"gas": 1, "coins": 800, "hints": 1, "radio": 3},
+	50: {"gas": 1, "coins": 1000, "radio": 5, "hat": "bassinet"},
+	60: {"gas": 1, "coins": 1100, "hints": 1, "radio": 3, "hat": "caterpillar"},
+	70: {"gas": 1, "coins": 1200, "radio": 5},
+	80: {"gas": 1, "coins": 1300, "hints": 1, "radio": 3, "hat": "minivan"},
+	90: {"gas": 1, "coins": 1400, "radio": 5, "hat": "pillow_tower"},
+	100: {"gas": 1, "coins": 2500, "hints": 2, "radio": 5},
 }
 ## What each twist is called on its sign and in the game's top bar.
 const TWISTS := {"fuel": "Small tank", "melt": "Beat the clock", "one_shot": "One drive", "fog": "Fog", "mega": "Mega route", "boss": "Boss fight"}

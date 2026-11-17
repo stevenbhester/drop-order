@@ -102,6 +102,7 @@ func _ready() -> void:
 		st.position = Vector2((v.x - 620) / 2.0 + 320.0, row_y)
 		st.pressed.connect(_open_stats)
 		add_child(st)
+		StatsFlair.dress(st)
 		if not r.has("score"):
 			# (Solved before days had scores: just Stats, the full width.)
 			sc.visible = false
@@ -160,6 +161,7 @@ func _open_stats() -> void:
 	Sfx.play("click")
 	if _modal != null and is_instance_valid(_modal) and not (_modal is DailyScore):
 		return
+	StatsFlair.mark_seen()
 	var card := DailyStats.new()
 	card.day = _day
 	_modal = card
@@ -233,7 +235,7 @@ func _draw() -> void:
 	if r.get("done", false):
 		note = "Solved today! Come back tomorrow."
 	elif Daily.out_of_tries(r):
-		note = "All %d tries used. A new one tomorrow!" % Daily.MAX_TRIES
+		note = "All %d tries used. Press F. You'll get it tomorrow!" % Daily.MAX_TRIES
 	elif Daily.tries_left(r) == 1:
 		note = "Last try today. Solve it to keep the streak!"
 	else:

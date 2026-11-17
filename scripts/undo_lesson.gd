@@ -1,24 +1,23 @@
 class_name UndoLesson
 extends Node
-## Job 7's lesson ("Dead End Drive"): Undo, and what gas is for, taught by making the mistake for them.
+## Job 5's lesson ("Dead End Drive"): Undo, taught by making the mistake for them.
 ##
 ## The van looks up the street ahead: six drop-offs in a row. "So many drop-offs! This HAS to be the
 ## way…" and it drives itself up it, into a dead end, one package still aboard. Then, a tip at a time (each
 ## waits for them to do the thing; nothing's a card to read):
 ##   stuck    "Dead end! Tap Undo": it takes you back to your last stop.
-##   free     the first undo done: you get a few free ones a try; keep going.
-##   gas      free ones gone, still in the dead end: a tank of gas, on us (a bonus tank really is added);
-##            hold Undo to spend it.
-##   rewind   the tank's spent: unlimited undos and hints for the level; hold Undo to rewind fast.
-##   done     back at the start: gas refills by itself, and an ad tops it up when it runs dry. Over.
+##   free     the first undo done: Undo never runs out; hold it down to rewind fast.
+##   done     back at the start: Undo and Retry are always free. Over.
 ## It follows what the game's in, not a script: drive back up the street and it waits; with the headlights
-## off one undo goes all the way back, and it skips to the end (handing over the tank there).
+## off one undo goes all the way back, and it skips to the end.
 ## Retry is put off until it's done (Game._on_retry_pressed), or the lesson would just start again.
-## Shown once (Progress.seen_new "undo_lesson"), to anyone who hasn't beaten job 7 as it is now.
+## Shown once (Progress.seen_new "undo_lesson"), to anyone who hasn't beaten job 5 as it is now.
 ## Debug: --undo-lesson shows it regardless; --undo-lesson-demo plays the player's part too (recordings).
+## (It used to be job 7, after the first boss, and went on to teach gas: undos were counted then. The Baron's
+## scene on job 6 covers what's metered now, LimitsScene, and undos aren't.)
 
-const LEVEL := 7
-const SPUR_MIN := 5              # stops up the street: more than the free undos, so the tank gets its turn
+const LEVEL := 5
+const SPUR_MIN := 4              # stops up the street: enough of them for a few undos
 
 var game: Game
 var step := "wait"
@@ -32,7 +31,6 @@ var _bars: Control               # the letterbox, while the van's driving itself
 var _bar_k := 0.0
 var _zoom_from: Array = []       # the board's [scale, position] before it pushed in
 var _last_n := 1
-var _gave := false
 var _said := {}
 var _demo := false
 var _demo_t := 0.0
@@ -45,9 +43,9 @@ static func due(g: Game) -> bool:
 		return false
 	if OS.get_cmdline_user_args().has("--undo-lesson") or OS.get_cmdline_user_args().has("--undo-lesson-demo"):
 		return true
-	if Progress.auto or Progress.seen_new.has("undo_lesson"):
-		return false
-	return not Progress.is_complete(LEVEL) or Progress.is_stale(LEVEL, g.level.fp)
+	# (Cut, 2026-11-16: Steven didn't want job 5 driving itself or forcing an undo. Undo's free now, and a dead
+	# end already says to undo or retry (Game: the dead-end sign). Kept for the debug flags above.)
+	return false
 
 
 ## The street the van's sent up: the road tiles straight up from its start, as far as they go.
@@ -144,7 +142,7 @@ func _process(delta: float) -> void:
 				_cine_out()
 				step = "stuck"
 				_say("stuck", "Dead end! Tap Undo.\nIt takes you back to your last stop.", _undo_at())
-		"stuck", "free", "gas", "rewind":
+		"stuck", "free":
 			_watch()
 			if _demo:
 				_demo_tick(delta)
@@ -204,48 +202,19 @@ func _watch() -> void:
 	_last_n = n
 	if n <= 1:
 		_finish()
-	elif game._undos_unlimited():
-		step = "rewind"
-		_say("rewind", "That tank buys unlimited undos\nand hints for this whole level.\nHold Undo to rewind fast.", _undo_at())
-	elif game.undo_left > 0:
-		step = "free"
-		_say("free", "Every try comes with a few free undos.\nKeep going!", _undo_at())
 	else:
-		step = "gas"
-		_give()
-		_say("gas", "Out of free undos? Here's a tank\nof gas, on us. Hold Undo to spend it.", _undo_at())
+		step = "free"
+		_say("free", "Undo never runs out.\nHold it down to rewind fast.", _undo_at())
 
 
-## The free tank: a real bonus tank, into the gauge. (And the gas explainer's had its say: this was it.)
-func _give() -> void:
-	if _gave:
-		return
-	_gave = true
-	Progress.add_bonus_gas(1)
-	Progress.seen_new["gas"] = true
-	Progress.set_option("seen_new", Progress.seen_new)
-	game.gas_chip.bump()
-	Sfx.play("kaching", 1.1, -4.0)
-	Sfx.haptic(20)
-	game._say("+1 gas, on the house!", GasChip.FUEL.darkened(0.2))
-	game._update_undo()
-
-
-## Back at the start: the last word (where gas comes from), and it's over.
+## Back at the start: the last word, and it's over.
 func _finish() -> void:
 	step = "done"
 	Progress.seen_new["undo_lesson"] = true
 	Progress.set_option("seen_new", Progress.seen_new)
-	var chip := game.gas_chip.get_global_rect().get_center()
-	if _gave:
-		_say("done", "Gas refills by itself: a tank an hour.\nRun dry? A pretend ad tops you up.", chip, 9.0, true)
-	else:
-		# (One undo brought them all the way back: the tank's handed over here instead.)
-		_give()
-		_said.erase("gas")
-		_say("done", "Out of free undos? Hold Undo to spend\na tank of gas: unlimited for the level.\nHere's one on us. It refills by itself.", chip, 10.0, true)
+	_say("done", "Undo and Retry are always free.\nUse them as much as you like.", _undo_at(), 7.0, true)
 	game._say("Now, the way that actually works…")
-	get_tree().create_timer(10.0).timeout.connect(queue_free)
+	get_tree().create_timer(8.0).timeout.connect(queue_free)
 
 
 ## Debug: the player's part, for recordings. A tap on Undo every so often; a long hold when a tank's due
@@ -260,7 +229,7 @@ func _demo_tick(delta: float) -> void:
 	if _demo_t < 1.6:
 		return
 	_demo_t = 0.0
-	if game._tank_due("undo") or game._undos_unlimited():
+	if game.route.size() > 3:
 		game._hold_down("undo")
 		_demo_hold = 2.4
 	else:

@@ -1,11 +1,11 @@
 {
-	"build": 28,
+	"build": 33,
 	"name": "The Long Road",
 	"notes": [
-		"Undo Rush and Hint Rush: detours that used to give ten minutes of free undos or hints now give a rush you start yourself. When you're out, hold the button: two minutes of free undos (one of free hints) on a clock that only runs while you're on a job.",
-		"Colour gates show how they'll stand at the end of your plan, not where the van has got to.",
-		"The map takes no taps while the van's driving on from a win, and a chest you've earned opens before it sets off."
+		"Play records now include which notifications you chose (or that you haven't been asked yet), so we can see what people want to hear about.",
+		"The garage says how to find things in two short lines (Present · on job 12, Beat the boss · Hostile Takeover), and trails show a bar of how close you are.",
+		"A dead-end hint now pins the last spot on your route you could still win from, not the start of the whole drag. One Undo can land you there, mid-drag."
 	],
-	"ready_at": 1794805369,
+	"ready_at": 1794920709,
 	"version": "0.7"
 }

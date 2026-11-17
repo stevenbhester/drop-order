@@ -45,6 +45,8 @@ var _word := "DELIVERED!" if randf() > 0.02 else "DELIVERED?"
 var bonus_line := ""
 ## A rush still on the clock ("Undo Rush: 0:47 left. Keep going!"), or "": said over the Next button.
 var rush_line := ""
+## What the win paid in helpers ("+1 call", "+4 calls   +1 hint"), or "".
+var prize_line := ""
 ## A line or two of what's next, under the rewards (the first job's: keep an eye out for headlights).
 var note := ""
 ## First win on a challenge level.
@@ -54,6 +56,11 @@ var coin_chip: CoinChip
 var gas_chip: GasChip
 ## The new item's card was already shown (a boss's package): just its tag here.
 var item_opened := false
+## The jump jets came with this win (job 11): their card (JetsCard, `won`) pops up over the finish, after any
+## find's card, before Next.
+var jets_new := false
+var _jets_shown := false
+var _item_done := false
 
 var _t := 0.0
 var _van: Van
@@ -197,6 +204,10 @@ func _process(delta: float) -> void:
 		_equip.label = "Wearing it!"
 		_equip.recolor(Palette.GOOD, Color.WHITE)
 		_equip.pop()
+	elif _equip and not Progress.wearing(new_item) and _equip.label == "Wearing it!":
+		# (Taken off again: its card's Undo.)
+		_equip.label = "Ride %s" % Cosmetics.them(new_item) if Cosmetics.PRONOUN.has(new_item) else "Wear it"
+		_equip.recolor(Palette.ACCENT, Color.WHITE)
 	_shake = maxf(0.0, _shake - delta * 3.0)
 	# The van punches in.
 	var punch := _pop((_t - 0.06) / 0.26)
@@ -240,11 +251,19 @@ func _process(delta: float) -> void:
 		_unlock_shown = true
 		if item_opened:
 			_show_item_tag()          # (already opened, from the boss's package)
+			_item_done = true
 		else:
 			var card := UnlockCard.new()
 			card.item = new_item
 			add_child(card)
-			card.closed.connect(_show_item_tag)
+			card.closed.connect(func():
+				_show_item_tag()
+				_item_done = true)
+	if jets_new and not _jets_shown and _t >= BUTTONS_AT + 0.3 and (new_item == "" or _item_done):
+		_jets_shown = true
+		var jc := JetsCard.new()
+		jc.won = true
+		add_child(jc)
 	if not _next.visible and _t >= BUTTONS_AT:
 		for b in [_next, _share]:
 			if b == null:
@@ -374,6 +393,8 @@ func _draw() -> void:
 			parts.append("+%s Dollaroos" % Progress.commas(reward) + (" (%d bonus!)" % ChallengeIntro.BONUS if crushed else ""))
 		if gas_back:
 			parts.append("+1 gas")
+		if prize_line != "":
+			parts.append(prize_line)
 		if not parts.is_empty():
 			_centered("   ".join(parts), Vector2(v.x / 2.0, y), int(44 * k), Color("ffe08a"))
 		if new_item != "":

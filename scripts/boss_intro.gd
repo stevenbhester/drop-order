@@ -1,6 +1,9 @@
 class_name BossIntro
 extends CanvasLayer
-## Before a boss detour: the lights go down over a skyline of glass towers, HOARDLY INC. blinks on in gold,
+## Before a boss fight, his anime opening (he insists): a gold bolt of greed strikes top to bottom and tears
+## open a window with his face in it, huge, cash sucked in toward him from the dark; a *SHING* off his
+## monocle; his name slams down with what he calls himself. A tap skips it. Then: the lights go down over a skyline of
+## glass towers, HOARDLY INC. blinks on in gold,
 ## and Baron Von Bottomline rises into view on his private lift, laughing at you (HAW HAW HAW) with a line
 ## of corporate trash talk. Then BOSS FIGHT! stamps down, with the detour's name and what he's guarding.
 ## "Bring it on!" (or a tap once it's settled) starts the level. Plays every time you come in: he never
@@ -11,12 +14,16 @@ signal done
 const INK := Color("1b1530")
 const RISE := 0.55          # seconds for the lift to bring him up
 const STAMP_AT := 1.25
+const OPEN := 1.7           # seconds of the anime opening, before all that
 
 var side := {}
 var level: LevelData
 
 var _root: Control
 var _t := 0.0
+var _op := 0.0                   # the opening's clock (the rest waits for it)
+var _shinged := false
+var _named := false
 ## Main-road boss fights laugh you in once a session (not again on every retry).
 static var _seen := {}
 
@@ -43,7 +50,10 @@ func _ready() -> void:
 	_root.theme = UiTheme.theme()
 	_root.draw.connect(_draw_it)
 	_root.gui_input.connect(func(e: InputEvent):
-		if e is InputEventMouseButton and e.pressed and _t > STAMP_AT + 0.3:
+		if e is InputEventMouseButton and e.pressed and _op < OPEN:
+			_op = OPEN                   # (a tap skips his opening)
+			Sfx.play("whoomp", 0.6, -4.0)
+		elif e is InputEventMouseButton and e.pressed and _t > STAMP_AT + 0.3:
 			_close())
 	add_child(_root)
 	_go = JuicyButton.new()
@@ -57,10 +67,33 @@ func _ready() -> void:
 	_go.visible = false
 	_go.pressed.connect(_close)
 	_root.add_child(_go)
-	Sfx.play("whoomp", 0.6, -4.0)
+	Sfx.play("whoosh", 0.7, -2.0)
+	Sfx.play("punch", 1.3, -4.0)
 
 
 func _process(delta: float) -> void:
+	if _op < OPEN:
+		var was := _op
+		_op += delta
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--boss-open="):
+				_op = float(a.trim_prefix("--boss-open="))      # (debug: hold the opening at that moment)
+		if was < 0.14 and _op >= 0.14:
+			Sfx.play("crash", 1.4, -4.0)
+			Sfx.play("kaching", 0.7, -4.0)
+			Sfx.haptic(40, 1.0)
+		if was < 0.62 and _op >= 0.62 and not _shinged:
+			_shinged = true
+			Sfx.play("sparkle", 1.6, -2.0)
+			Sfx.play("swap", 2.0, -8.0)
+		if was < 0.85 and _op >= 0.85 and not _named:
+			_named = true
+			Sfx.play("slam", 1.2, -2.0)
+			Sfx.haptic(25, 0.8)
+		if _op >= OPEN:
+			Sfx.play("whoomp", 0.6, -4.0)
+		_root.queue_redraw()
+		return
 	var before := _t
 	_t += delta
 	if before < RISE and _t >= RISE and not _laughed:
@@ -120,7 +153,7 @@ func _loot_tile(c: Vector2, it: Dictionary, k: float, w: float) -> void:
 	if k <= 0.0:
 		return
 	var kind := str(it["kind"])
-	var rare: Color = {"lights": Color("ffc53d"), "undos": Color("4d9dff"), "paint": Color("b07aff"), "item": Color("ff6fae")}.get(kind, Color("bfc3cc"))
+	var rare: Color = {"lights": Color("ffc53d"), "undos": Color("4d9dff"), "radio": Color("4d9dff"), "hint": Color("ffc53d"), "paint": Color("b07aff"), "item": Color("ff6fae")}.get(kind, Color("bfc3cc"))
 	var s := 110.0
 	_root.draw_set_transform(c, 0.0, Vector2.ONE * k)
 	var r := Rect2(-s / 2.0, -s / 2.0, s, s)
@@ -133,6 +166,12 @@ func _loot_tile(c: Vector2, it: Dictionary, k: float, w: float) -> void:
 		"lights":
 			_root.draw_circle(Vector2(0, -6), 34.0, Color(rare, 0.25 + 0.15 * pulse))
 			Icons.draw(_root, "bulb", Vector2(0, -2), 64.0, rare)
+		"radio", "hint":
+			Icons.draw(_root, "radio" if kind == "radio" else "bulb", Vector2(-8, -6), 58.0, Color.WHITE)
+			var f2 := UiTheme.font()
+			var n2 := "+%d" % int(it["n"])
+			_root.draw_string_outline(f2, Vector2(4, 40), n2, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, 8, Color("231a38"))
+			_root.draw_string(f2, Vector2(4, 40), n2, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, rare)
 		"undos":
 			Icons.draw(_root, "undo", Vector2(-8, -6), 58.0, Color.WHITE)
 			var f := UiTheme.font()
@@ -189,6 +228,9 @@ static func wrap_text(text: String, px: int, w: float) -> Array:
 
 
 func _draw_it() -> void:
+	if _op < OPEN:
+		_draw_opening()
+		return
 	var v := _root.size
 	var ins := UiTheme.insets(_root.get_viewport())
 	var dim := clampf(_t / 0.2, 0.0, 1.0)
@@ -279,3 +321,135 @@ func _draw_it() -> void:
 			for i in loot.size():
 				var at := Vector2(v.x / 2.0 + (i - (loot.size() - 1) / 2.0) * gap, button_top - 150.0)
 				_loot_tile(at, loot[i], _out((_t - STAMP_AT - 0.25 - i * 0.12) / 0.3), gap - 16.0)
+
+
+## His anime opening, nothing like a win's (no sunburst, no slash across): a gold bolt of greed strikes from the
+## top of the screen to the bottom, then tears open into a jagged window down the middle with him in it, huge,
+## on a money-green glow where dollar signs rain down. Outside it, in the dark, cash and coins are sucked in
+## toward him. A *SHING* off his monocle; his name, and what he calls himself.
+const OP_INK := Color("06120c")
+const OP_GREEN := Color("0f3b24")
+const OP_GOLD := Color("ffc53d")
+const OP_RED := Color("ff3b4f")
+
+func _draw_opening() -> void:
+	var v := _root.size
+	var t := _op
+	var cx := v.x / 2.0
+	_root.draw_rect(Rect2(Vector2.ZERO, v), OP_INK)
+	# The jagged edges crackle: a new zigzag every few frames.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(t * 14.0) + 3
+	var steps := 18
+	var jag: Array = []
+	for k in steps + 1:
+		jag.append(rng.randf_range(-1.0, 1.0))
+	# The bolt strikes, top to bottom.
+	var strike := clampf(t / 0.16, 0.0, 1.0)
+	var open := _out((t - 0.14) / 0.24)
+	var half := v.x * 0.29 * open
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	for k in steps + 1:
+		var y := v.y * k / steps
+		var j: float = jag[k] * 34.0
+		left.append(Vector2(cx - half + j - (14.0 if k % 2 == 0 else -14.0), y))
+		right.append(Vector2(cx + half + j + (14.0 if k % 2 == 0 else -14.0), y))
+	if open > 0.0:
+		# Inside: a money-green glow, and dollar signs raining down behind him.
+		var win := PackedVector2Array(left)
+		for k in range(right.size() - 1, -1, -1):
+			win.append(right[k])
+		_root.draw_colored_polygon(win, OP_GREEN)
+		_root.draw_circle(Vector2(cx, v.y * 0.36), v.x * 0.42, Color(OP_GOLD, 0.12))
+		var f := UiTheme.font()
+		var r2 := RandomNumberGenerator.new()
+		r2.seed = 5
+		for k in 22:
+			var x := cx + r2.randf_range(-v.x * 0.34, v.x * 0.34)
+			var y := fmod(r2.randf_range(0.0, v.y) + t * r2.randf_range(500.0, 1100.0), v.y + 100.0) - 50.0
+			var px := int(r2.randf_range(34.0, 70.0))
+			f.draw_string(_root.get_canvas_item(), Vector2(x, y), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color(OP_GOLD, r2.randf_range(0.12, 0.3)))
+		# Him: in from above with the bolt, then a slow push in.
+		var drop := _out((t - 0.14) / 0.3)
+		var zoom := 1.0 + 0.05 * clampf((t - 0.4) / 1.3, 0.0, 1.0)
+		var big := 1700.0 * zoom
+		var head_c := Vector2(cx, lerpf(-400.0, v.y * 0.33, drop))
+		Boss.draw(_root, head_c + Vector2(0, big * 0.82), big, t, "smug")
+		# Dark under his name, so it reads.
+		for k in 8:
+			var y0 := v.y * 0.6 + k * v.y * 0.05
+			_root.draw_rect(Rect2(0, y0, v.x, v.y * 0.05 + 1.0), Color(OP_INK, 0.1 * k))
+		# The dark outside the window.
+		var lc := PackedVector2Array([Vector2(-10, -10)])
+		lc.append_array(left)
+		lc.append(Vector2(-10, v.y + 10))
+		_root.draw_colored_polygon(lc, OP_INK)
+		var rc := PackedVector2Array([Vector2(v.x + 10, -10)])
+		rc.append_array(right)
+		rc.append(Vector2(v.x + 10, v.y + 10))
+		_root.draw_colored_polygon(rc, OP_INK)
+		# Greed: cash and coins out in the dark, pulled in toward him, faster as they go.
+		var r3 := RandomNumberGenerator.new()
+		r3.seed = 17
+		for k in 26:
+			var sd := -1.0 if k % 2 == 0 else 1.0
+			var y := r3.randf_range(v.y * 0.05, v.y * 0.95)
+			var u := fmod(r3.randf_range(0.0, 1.0) + t * r3.randf_range(0.7, 1.3), 1.0)
+			var ease := u * u
+			var from := Vector2(cx + sd * v.x * 0.62, y)
+			var to := Vector2(cx + sd * (half + 10.0), lerpf(y, v.y * 0.36, 0.5))
+			var p := from.lerp(to, ease)
+			var a := 1.0 - u
+			_root.draw_line(p, p + (from - to).normalized() * 90.0 * ease, Color(OP_GOLD, 0.25 * a), 4.0, true)
+			if k % 3 == 0:
+				Icons.draw(_root, "coin", p, 60.0, Color(1, 1, 1, a))
+			else:
+				_root.draw_set_transform(p, t * 5.0 + k, Vector2.ONE * 1.3)
+				DrawUtil.rrect(_root, Rect2(-30, -15, 60, 30), Color(Color("7fcf7a"), a), 5.0)
+				_root.draw_circle(Vector2.ZERO, 8.0, Color(Color("4f9c4a"), a))
+				_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# Falling streaks in the dark.
+		for k in 16:
+			var x := (r3.randf_range(0.0, v.x * 0.16)) if k % 2 == 0 else (v.x - r3.randf_range(0.0, v.x * 0.16))
+			var ln := r3.randf_range(140.0, 380.0)
+			var y := fmod(r3.randf_range(0.0, v.y) + t * r3.randf_range(1600.0, 2600.0), v.y + ln) - ln
+			_root.draw_line(Vector2(x, y), Vector2(x, y + ln), Color(OP_GOLD, r3.randf_range(0.1, 0.3)), r3.randf_range(2.0, 5.0), true)
+		# The window's edges: crackling gold, glowing.
+		for edge in [left, right]:
+			_root.draw_polyline(edge, Color(OP_GOLD, 0.25), 26.0, true)
+			_root.draw_polyline(edge, OP_GOLD, 8.0, true)
+			_root.draw_polyline(edge, Color(1, 1, 0.85), 3.0, true)
+		# *SHING*: a glint off his monocle.
+		var g := t - 0.62
+		if g > 0.0 and g < 0.5:
+			var at := head_c + Vector2(0.06 * big, -0.03 * big)
+			var k := sin(PI * g / 0.5)
+			Icons.star(_root, at, 120.0 * k, Color.WHITE)
+			_root.draw_line(at - Vector2(220, 0) * k, at + Vector2(220, 0) * k, Color(1, 1, 1, 0.8), 6.0, true)
+			_text("*SHING*", at + Vector2(60, -150), 64, Color.WHITE, 12, 0.2, 1.0, k)
+	# The bolt itself, coming down (and lingering as a flash down the middle while it tears open).
+	if t < 0.4:
+		var bolt := PackedVector2Array()
+		for k in steps + 1:
+			var y := v.y * k / steps
+			if y > v.y * strike:
+				break
+			bolt.append(Vector2(cx + float(jag[k]) * 60.0 + (40.0 if k % 2 == 0 else -40.0), y))
+		if bolt.size() >= 2:
+			var fade := 1.0 - clampf((t - 0.2) / 0.2, 0.0, 1.0)
+			_root.draw_polyline(bolt, Color(OP_GOLD, 0.3 * fade), 60.0, true)
+			_root.draw_polyline(bolt, Color(OP_GOLD, fade), 18.0, true)
+			_root.draw_polyline(bolt, Color(1, 1, 0.9, fade), 7.0, true)
+	# His name slams down, with what he calls himself.
+	if t > 0.85:
+		var u := (t - 0.85) / 0.14
+		var s := lerpf(2.4, 1.0, _out(u))
+		var a := clampf(u * 2.0, 0.0, 1.0)
+		var ny := v.y * 0.72
+		_text("BARON", Vector2(cx, ny), 130, OP_GOLD, 22, 0.0, s, a)
+		_text("VON BOTTOMLINE", Vector2(cx, ny + 125.0), 84, Color("fff3c4"), 18, 0.0, s, a)
+		var k2 := _out((t - 1.05) / 0.2)
+		_text("CEO · VISIONARY · LITERALLY THE MAIN CHARACTER", Vector2(cx, ny + 220.0), 32, OP_RED.lightened(0.3), 8, 0.0, 1.0, k2)
+	# The strike's flash: gold, not white.
+	_root.draw_rect(Rect2(Vector2.ZERO, v), Color(Color("fff0b0"), maxf(0.0, 0.85 - absf(t - 0.16) / 0.12)))

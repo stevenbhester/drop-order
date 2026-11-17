@@ -66,7 +66,7 @@ static func maybe_run(game: Game) -> void:
 		return
 	if game._twist() == "mega":
 		_mega_seen = game.part
-	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autocancel", "autofeedback", "autoghost", "autorate", "autosight", "autolesson"]:
+	for m in ["autoplay", "autodrag", "autoseg", "autoundo", "autostuck", "autohint", "autoshop", "autoad", "autogift", "autodpad", "autobrake", "autoreplay", "autoscroll", "autoside", "autotwist", "autoexplain", "autotouch", "autoperf", "autohintad", "autocancel", "autofeedback", "autoghost", "autorate", "autosight", "autolesson", "autoqueue", "autoradio"]:
 		if OS.get_cmdline_user_args().has("--" + m):
 			_ran = true
 			var a := DebugAuto.new()
@@ -317,8 +317,10 @@ func _ready() -> void:
 			# out of gas, Hint plays a pretend ad (skipped straight away) that pays bonus tanks, and the hint
 			# comes straight after it.
 			var notes := []
+			Progress.seen_new["limits"] = true      # (metered: the test turns Progress.auto off further down)
+			Progress.hints = 2
 			Progress.unlimited_hints = true
-			var slots: int = Progress.hint_slots()
+			var slots: int = Progress.hints
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.2).timeout
 			notes.append("option_keeps=%s" % (g.hints_left == slots))
@@ -339,11 +341,12 @@ func _ready() -> void:
 				g._on_hint_pressed()
 				await get_tree().create_timer(0.2).timeout
 			notes.append("left=%d" % g.hints_left)
-			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("free hint")
+			var tipped: bool = g._tip != null and is_instance_valid(g._tip) and g._tip.text.contains("last hint")
 			notes.append("tip=%s" % tipped)
-			# Past the free ones: the first time, the gas explainer; going ahead spends a tank on the hint.
+			# Out of hints: the first time, the gas card; going ahead pours a can in: one more hint in the count
+			# (nothing's shown yet), and the next tap uses it.
 			g._clear_hint()
-			Progress.seen_new.erase("gas")
+			Progress.seen_new.erase(Progress.GAS_HINT_SEEN)
 			var gas0: int = Progress.total_gas()
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.5).timeout
@@ -352,20 +355,19 @@ func _ready() -> void:
 			notes.append("explainer=%s" % explained)
 			if ex:
 				await _click(ex._go)
-				await get_tree().create_timer(0.5).timeout
-			# (One tank: hints and undos are both unlimited on this level now.)
-			var burned: bool = explained and Progress.total_gas() == gas0 - 1 and not g.hint_run.is_empty() and not g._busy_modal() and g.hints_unlimited and g._undos_unlimited()
-			notes.append("gas_hint=%s (%d -> %d)" % [burned, gas0, Progress.total_gas()])
-			# Out of gas (on a level no tank's been spent on yet): the ad, then the bonus tanks, and the hint
-			# straight after, on one of them.
+				await get_tree().create_timer(1.6).timeout
+			var burned: bool = explained and Progress.total_gas() == gas0 - 1 and Progress.hints == 1 and g.hint_run.is_empty() and not g._busy_modal()
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.3).timeout
+			burned = burned and Progress.hints == 0 and not g.hint_run.is_empty() and not g._hints_free()
+			notes.append("can_buys_one=%s (%d -> %d)" % [burned, gas0, Progress.total_gas()])
+			# Out of gas too: the ad, which fills the tank; a can of it goes in for the hint that was asked for.
 			g._clear_hint()
 			Game.gas_bought.erase(g._attempt_key())
-			g.hints_unlimited = false
 			Progress.hoardly_ads = false            # (the Last Mile ad, not a Hoardly one: BaronAd is a roll)
 			Progress.recent_ads = ["celestia"]     # (...nor Frontiers Celestia: AdPicker skips what was seen lately)
 			Progress.gas = 0
 			Progress.gas_t = Time.get_unix_time_from_system()
-			Progress.reserve_gas = 0
 			g._on_hint_pressed()
 			await get_tree().create_timer(0.5).timeout
 			var ad: PromoAd = g.modal as PromoAd
@@ -373,9 +375,21 @@ func _ready() -> void:
 			notes.append("ad=%s" % playing)
 			if ad:
 				await _click(ad._skip)
-				await get_tree().create_timer(0.5).timeout
-			var paid: bool = Progress.reserve_gas == Progress.AD_TANKS - 1 and not g.hint_run.is_empty() and not g._busy_modal() and g.hints_unlimited and g._undos_unlimited()
-			notes.append("after ad: bonus=%d hint_shown=%s modal=%s unlimited=%s" % [Progress.reserve_gas, not g.hint_run.is_empty(), g._busy_modal(), g.hints_unlimited])
+				await get_tree().create_timer(1.6).timeout
+			var paid: bool = Progress.gas == Progress.MAX_GAS - 1 and Progress.hints == 1 and not g._busy_modal() and not g._hints_free()
+			notes.append("after ad: gas=%d hints=%d modal=%s" % [Progress.gas, Progress.hints, g._busy_modal()])
+			# With none in hand a tap only says "Hold..."; a hold pours a can in.
+			Progress.hints = 0
+			g._update_undo()
+			var gas1: int = Progress.total_gas()
+			g._on_hint_pressed()
+			await get_tree().create_timer(0.2).timeout
+			var tap_free: bool = Progress.total_gas() == gas1 and Progress.hints == 0 and g.hint_run.is_empty()
+			g._paid_call("hint", g._on_hint_pressed)
+			await get_tree().create_timer(1.4).timeout
+			var hold_costs: bool = Progress.total_gas() == gas1 - 1 and Progress.hints == 1
+			notes.append("next: tap_spends_nothing=%s hold_pours_a_can=%s" % [tap_free, hold_costs])
+			paid = paid and tap_free and hold_costs
 			var ok: bool = tipped and playing and burned and paid and notes[0] == "option_keeps=true" and spam_free
 			Progress.auto = true
 			print("AUTOTEST hintad L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
@@ -507,6 +521,147 @@ func _ready() -> void:
 		"autoseg":
 			for p in _halve(pieces):
 				await _drag(p)
+		"autoradio":
+			# The Radio (run with --radio): Dispatch's answer at every step of the way that works (yes) and one
+			# step off it in every direction (checked against the full solver: it must never call a job dead
+			# that can still be done); how long the slowest answer took; then the button: nothing spent before
+			# the van's moved, a carried call spent for an answer, and out of them a can of gas buys three.
+			var st := Sim.copy_state(g.sim_state)
+			var r: Array = [sol[0]]
+			var asked := 0
+			var lied := 0          # said "dead end" where the job can be done
+			var missed := 0        # said "still on" where the full solver finds nothing
+			var unsure := 0
+			var worst := 0.0
+			for k in range(1, sol.size()):
+				for d in LevelData.DIRS:
+					var t: Vector2i = (r.back() as Vector2i) + d
+					if t == sol[k] or not Sim.can_extend(g.level, r, t, st):
+						continue
+					var st2 := Sim.copy_state(st)
+					Sim.arrive(g.level, st2, t, r)
+					var r2: Array = r + [t]
+					var t0 := Time.get_ticks_usec()
+					var ans := Solver.can_finish(g.level, r2, st2)
+					worst = maxf(worst, (Time.get_ticks_usec() - t0) / 1000.0)
+					asked += 1
+					if ans < 0:
+						unsure += 1
+						continue
+					var truth: bool = Sim.is_won(g.level, st2, r2) or Solver.solve_from(g.level, r2, st2).size() >= 2
+					if ans == 0 and truth:
+						lied += 1
+					elif ans == 1 and not truth:
+						missed += 1
+				Sim.arrive(g.level, st, sol[k], r)
+				r.append(sol[k])
+				var t1 := Time.get_ticks_usec()
+				var on_way := Solver.can_finish(g.level, r, st)
+				worst = maxf(worst, (Time.get_ticks_usec() - t1) / 1000.0)
+				asked += 1
+				if on_way == 0:
+					lied += 1
+				elif on_way < 0:
+					unsure += 1
+			var notes := ["asked=%d lied=%d missed=%d unsure=%d slowest=%.0fms" % [asked, lied, missed, unsure, worst]]
+			var ok: bool = g.radio_button != null and lied == 0
+			if g.radio_button != null and pieces[0].size() >= 2:
+				Progress.radio = 2
+				Progress.gas = 2
+				g._on_radio_pressed()
+				var start_ok: bool = Progress.radio == 2
+				g.drive_tiles(pieces[0].slice(0, 2))
+				await g.segment_finished
+				await get_tree().create_timer(0.2).timeout
+				var free_ok := true
+				for k in 2:
+					g._on_radio_pressed()
+					free_ok = free_ok and (g._radio_plain() or Progress.radio == 1 - k)
+				# Out of calls: a can of gas buys RADIO_PER_CAN (into the count: the next press makes the call).
+				var gas0: int = Progress.total_gas()
+				g._on_radio_pressed()
+				var tank_ok: bool = g._radio_plain() or (Progress.total_gas() == gas0 - 1 and Progress.radio == Progress.RADIO_PER_CAN)
+				g._on_radio_pressed()
+				tank_ok = tank_ok and (g._radio_plain() or Progress.radio == Progress.RADIO_PER_CAN - 1)
+				notes.append("at_start_free=%s calls_counted=%s can_buys_calls=%s" % [start_ok, free_ok, tank_ok])
+				ok = ok and start_ok and free_ok and tank_ok
+				# (The rest of the way, so the run ends on a win like the others.)
+				await _drag(pieces[0].slice(1))
+				for p in pieces.slice(1):
+					await _drag(p)
+			print("AUTOTEST radio L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
+		"autoqueue":
+			# The queue while a route's planned (Game._queue_plan): the solution is planned a tile at a
+			# time, piece by piece, and at every tile what the chute shows is checked against what the plan
+			# will really do (worked out here from Sim, not from the game's own sums). Then the piece is
+			# driven and the real load checked too. See _check_queue for the rules.
+			# Pieces take turns: one planned whole with the headlights off (checked at every tile), the next
+			# dragged with them on and the finger held at its end, so the van really drives most of it while
+			# the preview's up (pickups, deliveries and spinners on the way; checked once it's all landed).
+			var checked := 0
+			var problems := []
+			var lit := false
+			# (The pieces cut into stretches of a few tiles, so both ways get a turn on every job.)
+			var bits := []
+			for piece in pieces:
+				var at := 0
+				while at < piece.size() - 1:
+					var to := mini(at + 5, piece.size() - 1)
+					bits.append(piece.slice(at, to + 1))
+					at = to
+			for p in bits:
+				if p.size() < 2 or g.state != Game.State.IDLE:
+					break
+				lit = not lit and p.size() >= 3
+				if lit:
+					Progress.foresight_cli = 1
+					var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
+					_mouse(xf * g.board.center(p[0]), true)
+					for k in range(1, p.size()):
+						for s in 4:
+							await get_tree().process_frame
+							var m := InputEventMouseMotion.new()
+							m.position = xf * g.board.center(p[k - 1]).lerp(g.board.center(p[k]), (s + 1) / 4.0)
+							m.button_mask = MOUSE_BUTTON_MASK_LEFT
+							Input.parse_input_event(m)
+					# Finger down at the end: wait for the van to catch up and what it did there to land.
+					for f in 900:
+						await get_tree().process_frame
+						if g._fired >= g._fs_committed and g._effects_end < g._now() - 0.1:
+							break
+					if g.state == Game.State.DRAWING and g.seg.size() >= 2:
+						checked += 1
+						var why := _check_queue()
+						if why != "" and problems.size() < 3:
+							problems.append("held at %s (van %d tiles in): %s" % [p.back(), g._fired, why])
+					_mouse(xf * g.board.center(p.back()), false)
+					if g.state != Game.State.IDLE:
+						await g.segment_finished
+				else:
+					Progress.foresight_cli = 0          # (the whole plan drawn before the van goes)
+					g._begin_plan()
+					for k in range(1, p.size()):
+						g._extend(p[k])
+						g._queue_plan()
+						checked += 1
+						var why := _check_queue()
+						if why != "" and problems.size() < 3:
+							problems.append("tile %d of %s: %s" % [k, p[0], why])
+					g._cancel_plan(false)
+					g.drive_tiles(p)
+					await g.segment_finished
+				var settled := -1.0
+				for k in 40:
+					await get_tree().create_timer(0.1).timeout
+					if g.stack_view.colors == g.sim_state["stack"]:
+						settled = k * 0.1
+						break
+				if OS.get_cmdline_user_args().has("--queue-trace"):
+					print("QUEUE after %s: settled after %.1fs (state %s, effects_end in %.2f)" % [p.back(), settled, Game.State.keys()[g.state], g._effects_end - g._now()])
+				if settled < 0.0 and problems.size() < 3:
+					problems.append("after driving to %s: chute %s, load %s" % [p.back(), g.stack_view.colors, g.sim_state["stack"]])
+			print("AUTOTEST queue L%d %s: %d plan(s) checked%s" % [g.level.number, "ok" if problems.is_empty() else "FAILED", checked,
+				"" if problems.is_empty() else "; " + " | ".join(problems)])
 		"autoundo":
 			g.drive_tiles(sol.slice(0, half))
 			await g.segment_finished
@@ -805,7 +960,11 @@ func _ready() -> void:
 		# A mega route's part: done means parked on the exit; the next part's Game takes over the test.
 		print("AUTOTEST mega part %d/%d: state=%s on_exit=%s" % [g.part + 1, g._parts(), Game.State.keys()[g.state], g.route.back() == g.level.exit])
 		return
-	await get_tree().create_timer(0.5).timeout
+	# (The chute catches up with the last deliveries' animations: a busy machine takes longer.)
+	for k in 30:
+		await get_tree().create_timer(0.1).timeout
+		if k >= 4 and g.stack_view.colors == g.sim_state["stack"]:
+			break
 	var synced: bool = g.stack_view.colors == g.sim_state["stack"]
 	print("AUTOTEST %s L%d: state=%s route=%d tiles, packages left=%d, solution=%d tiles, stack_view_synced=%s" % [
 		mode, g.level.number, Game.State.keys()[g.state], g.route.size(), Sim.remaining(g.level, g.sim_state), sol.size(), synced])
@@ -934,6 +1093,65 @@ func _split_uturns(tiles: Array) -> Array:
 
 
 ## Same pieces, with the longest one split in two (to exercise multi-segment drawing).
+## The chute while a plan's drawn, against the plan (Sim, replayed here from the van over `g.seg`):
+## - the parcels not marked delivered are exactly the load at the end of the plan, in its order;
+## - the ones marked delivered all sit at the mouth (they leave first), and there are as many of each colour
+##   as the plan takes off net; the ones marked picked up, as many as it puts on net;
+## - nothing's marked delivered in a colour the plan delivers none of, or picked up in a colour it picks
+##   none of (a spinner only reorders: no ticks, no plusses for that);
+## - the chute shows the plan's load, not the real one. "" if it's all right, else what's wrong.
+func _check_queue() -> String:
+	var cur: Array = g.sim_state["stack"]
+	var st := Sim.copy_state(g.sim_state)
+	var delivered := {}
+	var picked := {}
+	# (With the headlights the van has already driven the first tiles: the load is from there on.)
+	for i in range((g._fired if g._fs > 0 else 0) + 1, g.seg.size()):
+		var res := Sim.arrive(g.level, st, g.seg[i], g.route + g.seg.slice(1, i))
+		for ev in res["events"]:
+			if ev["type"] == "deliver":
+				delivered[str(ev["color"])] = true
+			elif ev["type"] == "pickup":
+				picked[str(ev["color"])] = true
+	var end: Array = st["stack"]
+	# (Ticks and plusses are for the part of the plan still to drive: what the van has done is real.)
+	if end != g.seg_states.back()["stack"]:
+		return "the game's plan ends with %s, Sim says %s" % [g.seg_states.back()["stack"], end]
+	var shown: Array = g.stack_view.colors
+	var marks: Array = g.stack_view.boxes.map(func(b): return (b as PackageBox).plan)
+	if shown.size() != marks.size():
+		return "chute has %d colours and %d boxes" % [shown.size(), marks.size()]
+	var kept := []
+	var gone := {}
+	var new := {}
+	var seen_gone := false
+	for i in shown.size():
+		var c := str(shown[i])
+		if marks[i] == "gone":
+			seen_gone = true
+			gone[c] = int(gone.get(c, 0)) + 1
+			if not delivered.has(c):
+				return "%s ticked as delivered but the plan delivers no %s" % [c, c]
+		else:
+			if seen_gone:
+				return "a parcel still aboard sits past a delivered one (shown %s, marks %s)" % [shown, marks]
+			kept.append(c)
+			if marks[i] == "new":
+				new[c] = int(new.get(c, 0)) + 1
+				if not picked.has(c):
+					return "%s marked picked up but the plan picks up no %s" % [c, c]
+	if kept != end:
+		return "chute shows %s aboard after the plan, it'll be %s" % [kept, end]
+	var colours := {}
+	for c in cur + end:
+		colours[c] = true
+	for c in colours:
+		var net := cur.count(c) - end.count(c)
+		if int(gone.get(c, 0)) != maxi(net, 0) or int(new.get(c, 0)) != maxi(-net, 0):
+			return "%s: %d ticked, %d plussed; the plan takes %d off net (load %s -> %s)" % [c, int(gone.get(c, 0)), int(new.get(c, 0)), net, cur, end]
+	return ""
+
+
 func _halve(pieces: Array) -> Array:
 	var out := []
 	for p in pieces:

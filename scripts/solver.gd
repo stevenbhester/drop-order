@@ -110,6 +110,31 @@ static func solve_from(level: LevelData, route: Array, state: Dictionary, max_no
 	return _solve_from(level, route, state, max_nodes, [])
 
 
+## Can the job still be finished from here (the Radio)? 1 yes, 0 no, -1 couldn't tell in `max_nodes` (then
+## it's treated as a yes: the Radio never cries "dead end" when it doesn't know).
+static func can_finish(level: LevelData, route: Array, state: Dictionary, max_nodes := 600000) -> int:
+	if Sim.is_won(level, state, route):
+		return 1
+	var s := Solver.new()
+	s.L = level
+	s.limit = 1
+	s.node_limit = max_nodes
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	var from: Array = route.duplicate()
+	if level.no_revisit:
+		for t in from:
+			s._visits[t] = s._visits.get(t, 0) + 1
+	else:
+		from = [route.back()]
+		s._visits = {route.back(): 1}
+	if s._hopeless(from, state):
+		return 0
+	s._dfs(from, Sim.copy_state(state))
+	if not s.shortest.is_empty():
+		return 1
+	return -1 if s.capped else 0
+
+
 static func _solve_from(level: LevelData, route: Array, state: Dictionary, max_nodes: int, avoid: Array) -> Array:
 	var s := Solver.new()
 	for t in avoid:

@@ -1,13 +1,16 @@
 class_name DailyRules
 extends CanvasLayer
 ## Shown once, at the start of your first daily: how the daily works. One puzzle a day (the same for
-## everyone), no hints, Daily.MAX_TRIES tries, and solving it (in however many) keeps the streak.
+## everyone), no hints or calls or gas, Progress.undo_slots() undos a try, Daily.MAX_TRIES tries, and solving it (in however many) keeps the streak.
 
 signal closed
 
 var _root: Control
 var _card: PanelContainer
 var _closing := false
+## Opened again from the Rules button mid-daily: today's tries left (-1 on the first daily, which says it
+## in general), and the button says "Back to it".
+var tries_left := -1
 
 
 func _ready() -> void:
@@ -35,10 +38,15 @@ func _ready() -> void:
 	_card.add_child(col)
 	col.add_child(_label("The Daily", 72, Palette.TEXT, true))
 	col.add_child(_row("calendar", "One new puzzle a day. The same one for everyone."))
-	col.add_child(_row("bulb", "No hints. Just you and the map."))
-	col.add_child(_row("retry", "%d tries a day. Solve it to keep your streak going." % Daily.MAX_TRIES))
+	col.add_child(_row("bulb", "No hints, no calls, no gas. Just you and the map."))
+	var u := Progress.undo_slots()
+	col.add_child(_row("undo", "%d undo%s a try. Out of them? Retry for a fresh start." % [u, "" if u == 1 else "s"]))
+	if tries_left >= 0:
+		col.add_child(_row("retry", "%d tries a day, %d left today. Solve it to keep your streak going." % [Daily.MAX_TRIES, tries_left]))
+	else:
+		col.add_child(_row("retry", "%d tries a day. Solve it to keep your streak going." % Daily.MAX_TRIES))
 	var go := JuicyButton.new()
-	go.label = "Let's go"
+	go.label = "Back to it" if tries_left >= 0 else "Let's go"
 	go.icon_name = "play"
 	go.font_px = 50
 	go.bg = Palette.ACCENT

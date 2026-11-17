@@ -229,9 +229,23 @@ func open_update() -> UpdateCard:
 	return c
 
 
+## The Big Changes card (ChangesCard): once, for a save that was past the first boss when the helpers changed,
+## on the title or the map with nothing else open.
+func _offer_changes() -> void:
+	if not bool(Progress.changes_note.get("due", false)) or Progress.auto or not (screen is TitleScreen or screen is LevelSelect):
+		return
+	if screen is TitleScreen and (screen as TitleScreen).quiet:
+		return
+	for c in get_children():
+		if c is PatchNotes or c is OptionsMenu or c is FeedbackCard or c is UpdateCard or c is ChangesCard or c is StudioCard:
+			return
+	add_child(ChangesCard.new())
+
+
 ## Offers the newer build when the player's on the title with nothing else open: once a launch, and again if
 ## they come back to the game hours later.
 func _offer_update() -> void:
+	_offer_changes()
 	if not UpdateCheck.available() or not (screen is TitleScreen) or (screen as TitleScreen).quiet:
 		return
 	var build := int(UpdateCheck.latest.get("build", 0))
@@ -321,6 +335,11 @@ func _input(event: InputEvent) -> void:
 
 func _pace() -> void:
 	if Progress.auto:
+		if Engine.time_scale == 1.0:
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--test-speed="):
+					# Self-tests: everything that's timed (tweens, timers, the game's clock) runs N times as fast.
+					Engine.time_scale = clampf(a.trim_prefix("--test-speed=").to_float(), 1.0, 20.0)
 		if Engine.max_fps != 0:
 			Engine.max_fps = 0      # self-tests run flat out
 		return
@@ -353,6 +372,26 @@ func _process(_delta: float) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		Notify.refresh(Progress)
+		_let_go_of_touches()
+	elif what == NOTIFICATION_APPLICATION_RESUMED or what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_let_go_of_touches()
+
+
+## Lets go of every finger the game thinks is down. A phone doesn't always tell a game that a touch ended
+## when the app's put away in the middle of one (the swipe up to go home starts as a touch on the game), and
+## the engine waits for the finger it took for "the mouse" to lift before any other finger counts: with that
+## lift lost, the game came back showing the job and took no taps at all until it was closed and opened again.
+## So going away and coming back both lift every finger (as cancelled: nothing's pressed by it, and a route
+## being drawn is dropped, not driven).
+func _let_go_of_touches() -> void:
+	for i in 12:
+		var t := InputEventScreenTouch.new()
+		t.index = i
+		t.pressed = false
+		t.canceled = true
+		t.position = Vector2(-200, -200)
+		Input.parse_input_event(t)
+	Input.flush_buffered_events()
 
 
 func show_title() -> void:
