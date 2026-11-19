@@ -71,9 +71,21 @@ func _draw() -> void:
 	# Him, under the options button.
 	var top := game.exit_ribbon.position.y if game.exit_ribbon else 40.0
 	var feet := Vector2(v.x - 96.0, top + 110.0 + 200.0)
-	draw_circle(feet + Vector2(0, -4), 62.0, Color(0, 0, 0, 0.0))
-	DrawUtil.rrect(self, Rect2(feet + Vector2(-58, -8), Vector2(116, 18)), Color(0, 0, 0, 0.14), 9)
-	Boss.draw(self, feet, 178.0, _t, _mood())
+	var h := 178.0
+	# Never on the chute's mouth (the next package, and its NEXT tag): on a tall map the chute rides up under
+	# him, so he stands on top of it instead, smaller if that's tight.
+	var sv: StackView = game.stack_view
+	if sv and sv.is_visible_in_tree():
+		var sx := sv.get_global_transform_with_canvas()
+		var m := sv._item_size() * sv._ns()
+		var mouth_top := (sx * Vector2(0, -(m.y / 2.0 + sv.ph * 0.75))).y
+		var mouth_left := (sx * Vector2(-(m.x / 2.0 + sv.ph * 0.2), 0)).x
+		if mouth_left < feet.x + 60.0 and feet.y > mouth_top - 6.0:
+			feet.y = mouth_top - 6.0
+			h = clampf(feet.y - (top + 96.0), 96.0, 178.0)
+	var k := h / 178.0
+	DrawUtil.rrect(self, Rect2(feet + Vector2(-58, -8) * k, Vector2(116, 18) * k), Color(0, 0, 0, 0.14), 9 * k)
+	Boss.draw(self, feet, h, _t, _mood())
 
 
 func _frame(r: Rect2, col: Color, w: float) -> void:

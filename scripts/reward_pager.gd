@@ -92,7 +92,7 @@ func _next() -> void:
 	get_tree().create_timer(0.3).timeout.connect(func():
 		if _cur.get("page") == page and not _cur["open"]:
 			Sfx.play("thunk", 0.9, -4.0)
-			Sfx.haptic(16))
+			Sfx.haptic(16, 1.0, "reward_pager:_next"))
 
 
 func _process(delta: float) -> void:
@@ -141,13 +141,13 @@ func _pop() -> void:
 	_cur["wait"] = 0.001
 	Sfx.play("punch", 1.2, -2.0)
 	Sfx.play("whoomp", 1.1, -4.0)
-	Sfx.haptic(45, 1.0)
+	Sfx.haptic(45, 1.0, "reward_pager:_pop")
 
 
 ## A tap on the present: no waiting, it's open.
 func _open() -> void:
 	Sfx.play("punch", 1.2, -2.0)
-	Sfx.haptic(30, 0.8)
+	Sfx.haptic(30, 0.8, "reward_pager:_open")
 	_show_card()
 
 

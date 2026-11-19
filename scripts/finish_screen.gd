@@ -77,7 +77,8 @@ var _center := Vector2.ZERO
 var _band := 0.0
 var _unlock_shown := false
 var _tag: ItemTag
-var _equip: JuicyButton          # "Wear it", beside the tag, while the find isn't being worn
+var _equip: JuicyButton          # beside the tag: "Wear it" while the find isn't on, Undo once it is
+var _look_before := {}           # what was worn before the find's card opened (for that Undo)
 
 
 func _ready() -> void:
@@ -148,7 +149,7 @@ func _ready() -> void:
 		_layout_points()
 		_layout_buttons())
 	Sfx.play("punch", 1.0, -1.0)
-	Sfx.haptic(40)
+	Sfx.haptic(40, 1.0, "finish_screen:_ready")
 
 
 func _layout_points() -> void:
@@ -199,15 +200,8 @@ func _gui_input(e: InputEvent) -> void:
 func _process(delta: float) -> void:
 	var before := _t
 	_t += delta
-	if _equip and Progress.wearing(new_item) and _equip.label != "Wearing it!":
-		# (Put on here, or on its card, opened again from the tag.)
-		_equip.label = "Wearing it!"
-		_equip.recolor(Palette.GOOD, Color.WHITE)
-		_equip.pop()
-	elif _equip and not Progress.wearing(new_item) and _equip.label == "Wearing it!":
-		# (Taken off again: its card's Undo.)
-		_equip.label = "Ride %s" % Cosmetics.them(new_item) if Cosmetics.PRONOUN.has(new_item) else "Wear it"
-		_equip.recolor(Palette.ACCENT, Color.WHITE)
+	if _equip and Progress.wearing(new_item) != (_equip.label == "Undo"):
+		_equip_label()             # (put on or taken off: here, or on its card opened again from the tag)
 	_shake = maxf(0.0, _shake - delta * 3.0)
 	# The van punches in.
 	var punch := _pop((_t - 0.06) / 0.26)
@@ -216,13 +210,13 @@ func _process(delta: float) -> void:
 	if before < SLAM_AT and _t >= SLAM_AT:
 		_shake = 1.0
 		Sfx.play("slam", 1.0, -2.0)
-		Sfx.haptic(30)
+		Sfx.haptic(30, 1.0, "finish_screen:_process")
 		if momentum > 0:
 			Sfx.play("whoomp", 1.0 + 0.04 * mini(momentum, 8), -2.0)
 		if crushed:
 			_shake = 1.6
 			Sfx.play("kaching", 0.8, -2.0)
-			Sfx.haptic(50, 1.0)
+			Sfx.haptic(50, 1.0, "finish_screen:_process")
 			for col in ["red", "yellow", "blue", "green", "purple", "orange"]:
 				_fx.burst(_center + Vector2(0, 260), Palette.pkg(col), 16, 1100.0, 24.0)
 	while _panels < 3 and _t >= PANEL_AT + _panels * PANEL_EVERY:
@@ -253,6 +247,7 @@ func _process(delta: float) -> void:
 			_show_item_tag()          # (already opened, from the boss's package)
 			_item_done = true
 		else:
+			_look_before = Progress.look_snapshot()
 			var card := UnlockCard.new()
 			card.item = new_item
 			add_child(card)
@@ -532,6 +527,18 @@ func _panel(c: Vector2, label: String, value: String, i: int) -> void:
 			AnimeFire.draw_flame(self, Vector2(vx - 40, c.y + 26), 44, 64, _t, 3.0, AnimeFire.palette(momentum))
 
 
+## The tag's button, for whether the find is on: Undo (white, quiet) or the way to put it on.
+func _equip_label() -> void:
+	if Progress.wearing(new_item):
+		_equip.label = "Undo"
+		_equip.icon_name = "undo"
+		_equip.recolor(Color.WHITE, Color("2b2233"))
+	else:
+		_equip.label = "Ride %s" % Cosmetics.them(new_item) if Cosmetics.PRONOUN.has(new_item) else "Wear it"
+		_equip.icon_name = ""
+		_equip.recolor(Palette.ACCENT, Color.WHITE)
+
+
 ## The find, as a little item tile with its name tag, under the rewards: tap it to see its card again.
 func _show_item_tag() -> void:
 	if _tag != null or new_item == "":
@@ -539,24 +546,33 @@ func _show_item_tag() -> void:
 	_tag = ItemTag.new()
 	_tag.item = new_item
 	var y := _stat_pos(2).y + 160.0
-	# Not wearing it (they said "Maybe later")? A button beside the tag, in case they've changed their mind.
-	var can_wear := Cosmetics.kind_of(new_item) != "" and Cosmetics.kind_of(new_item) != "topper" and Progress.owns(new_item) and not Progress.wearing(new_item)
+	# A button beside the tag: put it on (they said "Maybe later"), or take it back off (Undo).
+	if _look_before.is_empty() and not Progress.wearing(new_item):
+		_look_before = Progress.look_snapshot()
+	# (Put on somewhere with nothing to go back to, like a boss's package: no Undo here; the garage has it.)
+	var can_wear := Cosmetics.kind_of(new_item) != "" and Cosmetics.kind_of(new_item) != "topper" and Progress.owns(new_item) \
+			and not (Progress.wearing(new_item) and _look_before.is_empty())
 	var total := 620.0 + (250.0 if can_wear else 0.0)
 	_tag.position = Vector2((get_viewport_rect().size.x - total) / 2.0, y)
 	if can_wear:
 		_equip = JuicyButton.new()
-		_equip.label = "Ride %s" % Cosmetics.them(new_item) if Cosmetics.PRONOUN.has(new_item) else "Wear it"
 		_equip.font_px = 38
-		_equip.bg = Palette.ACCENT
-		_equip.fg = Color.WHITE
 		_equip.size = Vector2(230, 110)
 		_equip.position = _tag.position + Vector2(640, 20)
+		_equip_label()
 		_equip.pressed.connect(func():
 			if Progress.wearing(new_item):
-				return
-			Sfx.play("kaching", 1.1, -3.0)
-			Sfx.haptic(25)
-			Progress.put_on(new_item))
+				if _look_before.is_empty():
+					return
+				Sfx.play("rewind", 1.1, -4.0)
+				Sfx.haptic(14, 1.0, "finish_screen:_show_item_tag")
+				Progress.restore_look(_look_before)
+			else:
+				Sfx.play("kaching", 1.1, -3.0)
+				Sfx.haptic(25, 1.0, "finish_screen:_show_item_tag")
+				Progress.put_on(new_item)
+			_equip_label()
+			_equip.pop())
 		add_child(_equip)
 	_tag.pressed.connect(func():
 		Sfx.play("click")

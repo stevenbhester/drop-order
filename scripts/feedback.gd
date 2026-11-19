@@ -109,7 +109,7 @@ static func payload(kind: String, message: String, where: String, shot: PackedBy
 		"where": where.substr(0, 80),
 		"made_at": Time.get_datetime_string_from_system(true).substr(0, 19),
 		"system": system_info(),
-		"logs": {"godot": recent_log()},
+		"logs": {"godot": recent_log() + "\n" + Sfx.haptic_report()},     # (the haptics last: they show in the report's log tail)
 	}
 	if shot.size() > 0:
 		d["screenshot"] = Marshalls.raw_to_base64(shot)

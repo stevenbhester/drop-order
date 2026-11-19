@@ -7,6 +7,7 @@ var L: LevelData
 var tile := 180.0
 var house_nodes: Array = []      # House, same order as L.houses
 var shop_nodes: Array = []       # Shop, same order as L.shops
+var locker_nodes: Array = []     # House (park), same order as L.lockers
 var gate_nodes := {}             # Vector2i -> Gate
 var hub_nodes := {}              # Vector2i -> Hub
 var depot: DepotGlow
@@ -116,6 +117,16 @@ func setup(level: LevelData, tile_size: float) -> void:
 		add_child(pulse)
 		add_child(n)
 		house_nodes.append(n)
+	for lk in L.lockers:
+		var n := House.new()
+		n.locker = true
+		n.park = true
+		n.color = Color("6f7a90")
+		n.size = tile
+		n.base_pos = center(lk.pos) + Vector2(0, tile * 0.3)
+		n.position = n.base_pos
+		add_child(n)
+		locker_nodes.append(n)
 	for sh in L.shops:
 		var n := Shop.new()
 		n.stock = sh.count

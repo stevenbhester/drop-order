@@ -128,7 +128,7 @@ func _build_choices() -> void:
 	never.icon_name = "monkey"
 	never.icon_scale = 1.25
 	never.font_px = 26
-	never.bg = Color.WHITE
+	never.bg = Palette.SURFACE
 	never.fg = Palette.TEXT
 	never.custom_minimum_size = Vector2(0, 96)
 	never.pressed.connect(func():
@@ -188,7 +188,7 @@ func _choice(c: Array) -> Control:
 			row.accept_event()
 			_on[key] = not _on[key]
 			Sfx.play("tick", 1.2 if _on[key] else 0.9, -6.0)
-			Sfx.haptic(8, 0.4)
+			Sfx.haptic(8, 0.4, "notify_prefs:_choice")
 			box.queue_redraw()
 			_relabel())
 	return row
@@ -201,7 +201,7 @@ func _relabel() -> void:
 	_go.label = ("Save" if from_options else "Sounds good") if any else "Nothing, thanks"
 	_go.icon_name = "caller" if any else ""
 	_go.icon_scale = 1.2
-	_go.bg = Palette.ACCENT if any else Color.WHITE
+	_go.bg = Palette.ACCENT if any else Palette.SURFACE
 	_go.fg = Color.WHITE if any else Palette.TEXT
 	if _go.is_inside_tree():
 		_go.restyle()

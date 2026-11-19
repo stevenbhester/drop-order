@@ -57,6 +57,8 @@ var night := false
 var landscape := false
 var left_hand := false
 var volume := 1.0
+## The title's theme and the background music (the Sound slider still sets how loud everything is).
+var music := true
 var haptics := 0.7
 var stack_side := "auto"
 ## The player picked a chute spot themselves (else it's Auto), and the "your queue moved" tip's been shown.
@@ -311,7 +313,7 @@ func _apply_preset(preset: String) -> void:
 				# intros:1 (every one-time card already seen: road hazards, headlights, gas, the Radio, jets).
 				if v > 0:
 					for k in ["headlights", "gas", "gas2", "gas_hint", "radio", "jets_tip", "key_tip", "line_lesson", "oneway", "bridge", "multi", "pickup",
-							"warehouse", "gate", "hub", "ice", "works", "return", "locker", "daily"]:
+							"warehouse", "gate", "hub", "ice", "works", "return", "locker", "park", "daily"]:
 						seen_new[k] = true
 			"oneway":
 				# oneway:1 (a level with one-way streets already seen: the next one shows the symbol tip).
@@ -387,6 +389,7 @@ func _load() -> void:
 	landscape = bool(d.get("landscape", false))
 	left_hand = bool(d.get("left_hand", false))
 	volume = clampf(float(d.get("volume", 1.0)), 0.0, 1.0)
+	music = bool(d.get("music", true))
 	haptics = clampf(float(d.get("haptics", 0.7)), 0.0, 1.0)
 	stack_side = str(d.get("stack_side", "auto"))
 	# Saves from before Auto had "left" as the default: only a choice made since counts.
@@ -502,7 +505,7 @@ func _save() -> void:
 		f.store_string(JSON.stringify({"levels_v": 4, "prefs_v": 1, "completed": completed.keys(), "gas": gas, "gas_t": gas_t,
 			"undo_bank": undo_bank, "dollaroos": dollaroos, "owned": owned.keys(), "paint": paint, "topper": topper, "ride": ride,
 			"daily": daily, "best_streak": best_streak, "drive_mode": drive_mode,
-			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "haptics": haptics,
+			"night": night, "landscape": landscape, "left_hand": left_hand, "volume": volume, "music": music, "haptics": haptics,
 			"stack_side": stack_side, "stack_chosen": stack_chosen, "queue_moved_seen": queue_moved_seen, "last_auto_side": last_auto_side, "oneway_levels": oneway_levels.keys(), "symbol_tip_seen": symbol_tip_seen, "exit_tip_seen": exit_tip_seen, "unlimited_hints": unlimited_hints, "wake": wake, "hint_tips": hint_tips, "hint_ad_watched": hint_ad_watched,
 			"hints": hints, "radio": radio, "changes_note": changes_note, "rush_held": rush_held, "rush_secs": rush_secs, "rush_full": rush_full, "side_bonus_day": side_bonus_day, "speed_best": speed_best, "peek": peek, "seen_version": seen_version,
 			"colorblind": colorblind, "trail": trail, "ghost_path": ghost_path, "hoardly_ads": hoardly_ads, "notify_chosen": notify_chosen, "notify_after": notify_after, "daily_seen": daily_seen, "notify_updates": notify_updates, "notify_streak": notify_streak, "notify_fresh": notify_fresh, "rate_levels": rate_levels, "play_stats": play_stats, "device_id": device_id, "rate_asked": rate_asked, "skipped": skipped.keys(), "seen_new": seen_new, "all_open": all_open, "headlights": foresight, "look_package": look_package, "look_building": look_building, "look_queue": look_queue, "look_road": look_road, "look_controls": look_controls, "side_done": side_done, "chests": chests.keys(), "keys": keys, "og_done": og_done.keys(), "keys_found": keys_found.keys(), "sides_unlocked": sides_unlocked.keys(), "level_fp": _fp_out(),

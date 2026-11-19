@@ -6,6 +6,7 @@ extends RefCounted
 ##   "stack":  Array[String]  packages in the van, bottom..top
 ##   "fills":  Array[int]     packages each house has received
 ##   "picked": Array[int]     parcels taken from each shop so far (a warehouse holds several)
+##   "held":   Array[String]  what each parking locker is keeping ("" empty)
 ##
 ## A route is an Array[Vector2i] starting at the van's start tile. The player builds it in
 ## segments, but the rules only ever look at the whole route so far plus the state after it.
@@ -18,7 +19,10 @@ static func new_state(L: LevelData) -> Dictionary:
 	var picked := []
 	picked.resize(L.shops.size())
 	picked.fill(0)
-	return {"stack": L.stack.duplicate(), "fills": fills, "picked": picked}
+	var held := []
+	held.resize(L.lockers.size())
+	held.fill("")
+	return {"stack": L.stack.duplicate(), "fills": fills, "picked": picked, "held": held}
 
 
 ## Packages delivered so far (roadworks open after enough of them).
@@ -30,7 +34,8 @@ static func delivered_count(s: Dictionary) -> int:
 
 
 static func copy_state(s: Dictionary) -> Dictionary:
-	return {"stack": s["stack"].duplicate(), "fills": s["fills"].duplicate(), "picked": s["picked"].duplicate()}
+	return {"stack": s["stack"].duplicate(), "fills": s["fills"].duplicate(), "picked": s["picked"].duplicate(),
+		"held": s.get("held", []).duplicate()}
 
 
 static func top_color(_L: LevelData, s: Dictionary) -> String:
@@ -125,8 +130,10 @@ static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
 ##     otherwise collect one waiting parcel from an adjacent shop (it goes on top). A warehouse
 ##     keeps handing them over one by one, so passing it loads its whole stock (deliveries can
 ##     happen in between, if a house right there wants what just came aboard).
+## (Parking lockers do nothing on arrival: the player uses one by tapping it, use_locker.)
 ## Returns { "events": [ {type: "swap"} | {type: "deliver", house, color} |
-##                       {type: "pickup", shop, color} ], "nopes": [house idx] }.
+##                       {type: "pickup", shop, color} | {type: "unpark"|"park", locker, color} ],
+##           "nopes": [house idx] }.
 ##
 ## Two houses beside the tile that both want the package on top: the one this is the LAST CHANCE for gets
 ## it (every other road tile beside it is already driven: `route`, the tiles driven so far, says). Failing
@@ -136,13 +143,20 @@ static func has_move(L: LevelData, route: Array, s: Dictionary) -> bool:
 static func arrive(L: LevelData, s: Dictionary, tile: Vector2i, route: Array = []) -> Dictionary:
 	var events := []
 	var stack: Array = s["stack"]
-	var fills: Array = s["fills"]
-	var picked: Array = s["picked"]
 	if L.hubs.has(tile) and stack.size() >= 2:
 		var a = stack[stack.size() - 1]
 		stack[stack.size() - 1] = stack[stack.size() - 2]
 		stack[stack.size() - 2] = a
 		events.append({"type": "swap"})
+	return _settle(L, s, tile, route, events)
+
+
+## Deliveries and pickups at `tile` until nothing more happens (arrive's step 2), then which houses there
+## were passed over ("nopes").
+static func _settle(L: LevelData, s: Dictionary, tile: Vector2i, route: Array, events: Array) -> Dictionary:
+	var stack: Array = s["stack"]
+	var fills: Array = s["fills"]
+	var picked: Array = s["picked"]
 	var adj_h: Array = L.adjacent_houses.get(tile, [])
 	var adj_s: Array = L.adjacent_shops.get(tile, [])
 	var delivered := {}
@@ -188,6 +202,50 @@ static func arrive(L: LevelData, s: Dictionary, tile: Vector2i, route: Array = [
 	return {"events": events, "nopes": nopes}
 
 
+## The parking locker the van can use from `tile` right now (stopped beside it): it's keeping a package to
+## give back, or it's empty and there's a package on top to leave. -1 if none.
+static func locker_here(L: LevelData, s: Dictionary, tile: Vector2i) -> int:
+	var held: Array = s.get("held", [])
+	for k in L.adjacent_lockers.get(tile, []):
+		if k < held.size() and (held[k] != "" or not s["stack"].is_empty()):
+			return k
+	return -1
+
+
+## The player taps the parking locker the van's stopped beside (locker_here): it takes the top package, or
+## gives back the one it's keeping, on top. Then, as on arriving, a house right there that wants what's now
+## on top gets it. Same result shape as arrive. (Never automatic: you choose when, and whether.)
+static func use_locker(L: LevelData, s: Dictionary, tile: Vector2i, route: Array = []) -> Dictionary:
+	var events := []
+	var k := locker_here(L, s, tile)
+	if k < 0:
+		return {"events": events, "nopes": []}
+	var held: Array = s["held"]
+	var stack: Array = s["stack"]
+	if held[k] != "":
+		stack.append(held[k])
+		events.append({"type": "unpark", "locker": k, "color": held[k]})
+		held[k] = ""
+	else:
+		held[k] = stack.pop_back()
+		events.append({"type": "park", "locker": k, "color": held[k]})
+	return _settle(L, s, tile, route, events)
+
+
+## Steps (a route with locker uses written in as a repeated tile) back to just the tiles driven.
+static func tiles_of(steps: Array) -> Array:
+	var out := []
+	for i in steps.size():
+		if i == 0 or steps[i] != steps[i - 1]:
+			out.append(steps[i])
+	return out
+
+
+## (The same as run: kept for the name.)
+static func run_steps(L: LevelData, steps: Array) -> Dictionary:
+	return run(L, steps)
+
+
 ## Is `tile` the last road tile beside house `h` that the van can still stand on? (Every other one is in
 ## `route` already; a bridge, or the depot on a round trip, can be driven again, so those still count.)
 static func _last_chance(L: LevelData, h: int, tile: Vector2i, route: Array) -> bool:
@@ -199,34 +257,51 @@ static func _last_chance(L: LevelData, h: int, tile: Vector2i, route: Array) -> 
 	return true
 
 
-## The most packages aboard at any point along `route` (from a fresh start), counting the start.
+## The most packages aboard at any point along `route` (from a fresh start), counting the start. (A route
+## may have locker uses in it: the same tile twice in a row.)
 static func max_load(L: LevelData, route: Array) -> int:
 	var s := new_state(L)
 	var most: int = s["stack"].size()
+	var tiles := [route[0]]
 	for i in range(1, route.size()):
 		var before: int = s["stack"].size()
-		var res := arrive(L, s, route[i])
+		var res := use_locker(L, s, route[i], tiles) if route[i] == route[i - 1] else arrive(L, s, route[i], tiles)
+		if route[i] != route[i - 1]:
+			tiles.append(route[i])
 		# Within one stop the load can rise and fall: count the pickups before any delivery after them.
 		var load := before
 		for ev in res["events"]:
-			load += 1 if ev["type"] == "pickup" else (-1 if ev["type"] == "deliver" else 0)
+			load += 1 if ev["type"] == "pickup" or ev["type"] == "unpark" else (-1 if ev["type"] == "deliver" or ev["type"] == "park" else 0)
 			most = maxi(most, load)
 	return most
 
 
-## Runs a whole route from a fresh state (no legality checks). Returns the final state.
+## Runs a whole route from a fresh state (no legality checks). Returns the final state. (Locker uses written
+## in as the same tile twice in a row are used, Sim.use_locker.)
 static func run(L: LevelData, route: Array) -> Dictionary:
 	var s := new_state(L)
+	var tiles := [route[0]]
 	for i in range(1, route.size()):
-		arrive(L, s, route[i], route.slice(0, i))
+		if route[i] == route[i - 1]:
+			use_locker(L, s, route[i], tiles)
+		else:
+			arrive(L, s, route[i], tiles)
+			tiles.append(route[i])
 	return s
 
 
 ## Runs a route checking every step is legal. Returns the final state, or {} if illegal.
 static func run_checked(L: LevelData, route: Array) -> Dictionary:
 	var s := new_state(L)
+	var tiles := [route[0]]
 	for i in range(1, route.size()):
-		if not can_extend(L, route.slice(0, i), route[i], s):
+		if route[i] == route[i - 1]:
+			if (i >= 2 and route[i - 1] == route[i - 2]) or locker_here(L, s, route[i]) < 0:
+				return {}
+			use_locker(L, s, route[i], tiles)
+			continue
+		if not can_extend(L, tiles, route[i], s):
 			return {}
-		arrive(L, s, route[i], route.slice(0, i))
+		arrive(L, s, route[i], tiles)
+		tiles.append(route[i])
 	return s

@@ -73,7 +73,7 @@ func _coin_landed(c: Node2D, i: int, coins: int, start: float, amount: int) -> v
 	shown = start + amount * float(i + 1) / coins
 	_bump = 1.0
 	Sfx.play("coin", 1.0 + 0.05 * i, -8.0)
-	Sfx.haptic(6)
+	Sfx.haptic(6, 1.0, "coin_chip:_coin_landed")
 	if i == coins - 1:
 		frozen = false
 		shown = Progress.dollaroos

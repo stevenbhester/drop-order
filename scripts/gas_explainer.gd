@@ -61,7 +61,7 @@ void fragment() {
 	add_child(_fg)
 	_build_card()
 	Sfx.play("sparkle", 1.0, -3.0)
-	Sfx.haptic(16)
+	Sfx.haptic(16, 1.0, "gas_explainer:_ready")
 
 
 func _build_card() -> void:

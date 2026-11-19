@@ -48,7 +48,7 @@ func _ready() -> void:
 	_root.add_child(_card)
 
 	# On the tile's foot: Copy and Send.
-	var copy := _button("Copy", "", Color.WHITE, Palette.TEXT, _copy)
+	var copy := _button("Copy", "", Palette.SURFACE, Palette.TEXT, _copy)
 	copy.position = Vector2(40, SIZE.y - 190.0)
 	copy.size = Vector2(330, 150)
 	_card.add_child(copy)
@@ -104,7 +104,7 @@ func _copy() -> void:
 func _send() -> void:
 	if ShareSheet.open(_text):
 		Sfx.play("click")
-		Sfx.haptic(12)
+		Sfx.haptic(12, 1.0, "share_card:_send")
 		return
 	DisplayServer.clipboard_set(_text)
 	var err := OS.shell_open("sms:&body=" + _text.uri_encode()) if not DebugRemote.on() else ERR_UNAVAILABLE
@@ -115,7 +115,7 @@ func _say(msg: String) -> void:
 	_toast = msg
 	_toast_t = 2.2
 	Sfx.play("kaching", 1.2, -6.0)
-	Sfx.haptic(12)
+	Sfx.haptic(12, 1.0, "share_card:_say")
 	_fx.burst(_card.position + Vector2(_card.size.x / 2.0, _card.size.y - 260.0), Palette.STAR_GOLD, 16, 700.0, 20.0)
 
 
@@ -201,7 +201,7 @@ func _draw_card(r: Dictionary) -> void:
 	_centered(c, "Think you can beat it?", Vector2(w / 2.0, 1000), 40, Color(1, 1, 1, 0.8))
 	if _toast_t > 0.0:
 		var a := minf(_toast_t * 3.0, 1.0)
-		DrawUtil.rrect(c, Rect2(w / 2.0 - 330, h - 316, 660, 96), Color(1, 1, 1, a), 48)
+		DrawUtil.rrect(c, Rect2(w / 2.0 - 330, h - 316, 660, 96), Color(Palette.BUBBLE, a), 48)
 		_centered(c, _toast, Vector2(w / 2.0, h - 268), 40, Color(Palette.TEXT, a))
 
 

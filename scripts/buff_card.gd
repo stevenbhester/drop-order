@@ -74,7 +74,7 @@ func _ready() -> void:
 		if _van:
 			_van.visible = false
 		Sfx.play("thunk", 0.8, -4.0)
-		Sfx.haptic(20)
+		Sfx.haptic(20, 1.0, "buff_card:_ready")
 	else:
 		Sfx.play("whoomp", 0.9, -6.0)
 
@@ -99,7 +99,7 @@ func _open_box() -> void:
 	_box_wait = 0.001
 	Sfx.play("punch", 1.2, -2.0)
 	Sfx.play("whoomp", 1.1, -4.0)
-	Sfx.haptic(45, 1.0)
+	Sfx.haptic(45, 1.0, "buff_card:_open_box")
 
 
 func _reveal_at() -> float:
@@ -130,10 +130,10 @@ func _process(delta: float) -> void:
 	while _lit < want:
 		_lit += 1
 		Sfx.play("tick", 0.9 + 0.12 * _lit, -4.0)
-		Sfx.haptic(8)
+		Sfx.haptic(8, 1.0, "buff_card:_process")
 		if _lit == lights:
 			Sfx.play("sparkle", 1.0, -4.0)
-			Sfx.haptic(22)
+			Sfx.haptic(22, 1.0, "buff_card:_process")
 	_demo_tick()
 	if _t >= _reveal_at() and _go.modulate.a == 0.0:
 		if lights == 0:

@@ -4,7 +4,8 @@ extends Node2D
 ## `fogged`: lost in the fog (a side road's twist): a plain grey crate with a "?".
 ## `plan`: only a preview, while a route is planned (the real load is untouched until it's driven):
 ## "gone", the plan delivers it (washed out, with the houses' outlined ghost tick); "new", the plan picks it
-## up (a see-through outline with a "+"). Solid parcels and solid green ticks are the real thing.
+## up (a see-through outline with a "+"); "park", the plan leaves it in a parking locker (washed out, a "P").
+## Solid parcels and solid green ticks are the real thing.
 
 var color := Color.WHITE
 var size := 64.0
@@ -45,11 +46,11 @@ func _draw() -> void:
 
 ## The plan delivers it: washed out, and the houses' ghost tick (an outlined one; the real one's solid).
 func _plan_mark(sz: Vector2) -> void:
-	if plan != "gone":
+	if plan != "gone" and plan != "park":
 		return
 	var m := minf(sz.x, sz.y)
 	DrawUtil.rrect(self, Rect2(-sz / 2.0, sz).grow(1.0), Color(1, 1, 1, 0.55), m * 0.2)
-	_badge(sz, "tick")
+	_badge(sz, "tick" if plan == "gone" else "P")
 
 
 ## A little round badge on its top-right corner: the ghost tick, or a "+".
@@ -57,7 +58,15 @@ func _badge(sz: Vector2, what: String) -> void:
 	var m := minf(sz.x, sz.y)
 	var c := Vector2(sz.x * 0.38, -sz.y * 0.36)
 	var r := m * 0.3
-	if what == "tick":
+	if what == "P":
+		# Left in a parking locker: its sign.
+		draw_circle(c, r, Color.WHITE)
+		draw_circle(c, r * 0.8, Color("6f7a90"))
+		var f := UiTheme.font()
+		var px := int(r * 1.3)
+		var w := f.get_string_size("P", HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		draw_string(f, c + Vector2(-w / 2.0, px * 0.36), "P", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)
+	elif what == "tick":
 		draw_circle(c, r, Color(1, 1, 1, 0.95))
 		draw_arc(c, r * 0.86, 0, TAU, 28, Palette.CHECK, r * 0.2, true)
 		draw_polyline(PackedVector2Array([c + Vector2(-0.43, 0.0) * r, c + Vector2(-0.13, 0.3) * r, c + Vector2(0.46, -0.3) * r]),

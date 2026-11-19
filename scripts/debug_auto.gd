@@ -470,9 +470,9 @@ func _ready() -> void:
 					ok = Progress.mega_part(id) == 1 and g.route.back() == g.level.exit
 					note = "part 1 done on the exit, saved as part %d" % Progress.mega_part(id)
 				"boss":
-					# Hints and undos allowed; the map's hard (1,000+ search nodes); winning pays the prize.
+					# Hints and undos allowed; the map's hard (500+ search nodes); winning pays the prize.
 					var hard: int = Solver.solve(g.level)["nodes"]
-					Progress.completed[1] = true     # (past the tutorial, so the lights count from one bulb)
+					Progress.completed[Progress.LIGHTS_LEVEL] = true     # (past the tutorial, so the lights count from one bulb)
 					var reward := str(g.side.get("reward", ""))
 					g.drive_tiles(sol)
 					await g.segment_finished
@@ -482,7 +482,9 @@ func _ready() -> void:
 					var late: bool = int(g.side.get("after", 0)) >= 20
 					var paid: bool = (reward == "" or Progress.owns(reward)) and Progress.headlights() == 1 + int(buff.get("lights", 0)) \
 							and Progress.undo_slots() == 1 + int(buff.get("undos", 0))
-					ok = not g._strict_side() and (hard >= 1000 or not late) and g.state == Game.State.WON and paid
+					# (500: Hostile Takeover lost some of its search when no stop could touch two houses, or a pickup and a
+					# house, of one colour; it was 1,113 before.)
+					ok = not g._strict_side() and (hard >= 500 or not late) and g.state == Game.State.WON and paid
 					note = "hints/undos allowed=%s, nodes=%d, won=%s, prize %s paid=%s, headlights=%d, undo slots=%d" % [not g._strict_side(), hard,
 							g.state == Game.State.WON, reward, paid, Progress.headlights(), Progress.undo_slots()]
 				"fog":
@@ -534,6 +536,18 @@ func _ready() -> void:
 			var unsure := 0
 			var worst := 0.0
 			for k in range(1, sol.size()):
+				if sol[k] == sol[k - 1]:
+					# A locker stop: use it, and ask from there.
+					Sim.use_locker(g.level, st, sol[k], r.slice(0, r.size() - 1))
+					var t2 := Time.get_ticks_usec()
+					var after := Solver.can_finish(g.level, r, st)
+					worst = maxf(worst, (Time.get_ticks_usec() - t2) / 1000.0)
+					asked += 1
+					if after == 0:
+						lied += 1
+					elif after < 0:
+						unsure += 1
+					continue
 				for d in LevelData.DIRS:
 					var t: Vector2i = (r.back() as Vector2i) + d
 					if t == sol[k] or not Sim.can_extend(g.level, r, t, st):
@@ -586,7 +600,8 @@ func _ready() -> void:
 				notes.append("at_start_free=%s calls_counted=%s can_buys_calls=%s" % [start_ok, free_ok, tank_ok])
 				ok = ok and start_ok and free_ok and tank_ok
 				# (The rest of the way, so the run ends on a win like the others.)
-				await _drag(pieces[0].slice(1))
+				if pieces[0].size() >= 3:
+					await _drag(pieces[0].slice(1))
 				for p in pieces.slice(1):
 					await _drag(p)
 			print("AUTOTEST radio L%d %s: %s" % [g.level.number, "ok" if ok else "FAILED", " ".join(notes)])
@@ -612,6 +627,8 @@ func _ready() -> void:
 			for p in bits:
 				if p.size() < 2 or g.state != Game.State.IDLE:
 					break
+				if await _tap_locker_piece(p):
+					continue
 				lit = not lit and p.size() >= 3
 				if lit:
 					Progress.foresight_cli = 1
@@ -676,8 +693,11 @@ func _ready() -> void:
 			var view_ok: bool = g.stack_view.colors == g.sim_state["stack"]
 			print("AUTOTEST undo L%d: route back to %d tile(s), remaining %d -> %d, stack %s -> %s, view_matches=%s, undo_left=%d" % [
 				g.level.number, g.route.size(), before, Sim.remaining(g.level, g.sim_state), stack_before, g.sim_state["stack"], view_ok, g.undo_left])
-			for p in _halve(pieces):
-				await _drag(p)
+			# On to the win from wherever the undo left it (with locker stops, that needn't be the start).
+			var rest := Solver.solve_from(g.level, g.route, g.sim_state)
+			if rest.size() >= 2:
+				for p in _halve(_split_uturns(rest)):
+					await _drag(p)
 		"autosight":
 			# Headlights (--foresight=N, 1 if not given): the van trails the finger by N tiles, what it's
 			# committed to can't be undrawn, and Undo goes back to the last stop.
@@ -829,6 +849,11 @@ func _ready() -> void:
 			while g.state != Game.State.WON and presses < 80:
 				g._on_hint_pressed()
 				presses += 1
+				if g.hint_run.size() < 2 and g._locker_ready() >= 0:
+					# "Tap the locker."
+					await _tap_locker_piece([g.route.back(), g.route.back()])
+					await get_tree().create_timer(0.3).timeout
+					continue
 				if g.hint_run.size() < 2:
 					break
 				if OS.get_cmdline_user_args().has("--peek"):
@@ -873,18 +898,25 @@ func _ready() -> void:
 			get_tree().quit()
 			return
 		"autodpad":
-			await _dpad(sol)
+			for p in pieces:
+				await _dpad(p)
 		"autobrake":
 			# The first point on the route where turning straight back runs into the wreckage (on some
 			# levels an arrow or a gate forbids that U-turn anyway, which isn't the same thing).
 			var k := 2
 			var st := Sim.run(g.level, sol.slice(0, 3))
-			while k < sol.size() - 2 and not Sim.wrecked(g.level, sol.slice(0, k + 1), sol[k - 1], st):
+			# (Not at a locker stop: the same tile twice in the steps.)
+			while k < sol.size() - 2 and (sol[k] == sol[k - 1] or sol[k - 1] == sol[k - 2] or sol[k + 1] == sol[k] \
+					or not Sim.wrecked(g.level, Sim.tiles_of(sol.slice(0, k + 1)), sol[k - 1], st)):
 				k += 1
-				Sim.arrive(g.level, st, sol[k])
+				if sol[k] == sol[k - 1]:
+					Sim.use_locker(g.level, st, sol[k])
+				else:
+					Sim.arrive(g.level, st, sol[k])
 			g.drive_tiles(sol.slice(0, k + 1))
 			await g.segment_finished
 			var at := g.route.size()
+			var marks := g.history.size()
 			var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
 			if g.dpad_mode:
 				print("AUTOTEST brake needs draw mode")
@@ -903,7 +935,7 @@ func _ready() -> void:
 				await get_tree().create_timer(1.0).timeout
 			_mouse(xf * g.board.center(sol[k - 1]), false)
 			await get_tree().process_frame
-			var kept: bool = g.state == Game.State.IDLE and g.route.size() == at and g.history.size() == 1
+			var kept: bool = g.state == Game.State.IDLE and g.route.size() == at and g.history.size() == marks
 			# 2. Plan the next tile, then send it off while pushing into wreckage: it drives, brakes, carries on.
 			g._press(g.board.center(sol[k]))
 			g._drag(g.board.center(sol[k + 1]))
@@ -974,6 +1006,8 @@ func _ready() -> void:
 
 ## Plots `tiles` on the D-pad with real clicks on its arrows, then clicks DRIVE BABY DRIVE.
 func _dpad(tiles: Array) -> void:
+	if await _tap_locker_piece(tiles):
+		return
 	if not g.dpad_mode:
 		g.set_dpad_mode(true)
 	await get_tree().process_frame
@@ -1084,6 +1118,13 @@ func _split_uturns(tiles: Array) -> Array:
 	var out := []
 	var cur := [tiles[0]]
 	for i in range(1, tiles.size()):
+		if tiles[i] == tiles[i - 1]:
+			# A locker use (the same tile twice): the drive so far, then a tap on the locker, as a piece of its own.
+			if cur.size() >= 2:
+				out.append(cur)
+			out.append([tiles[i], tiles[i]])
+			cur = [tiles[i]]
+			continue
 		cur.append(tiles[i])
 		if i + 1 < tiles.size() and tiles[i + 1] == tiles[i - 1]:
 			out.append(cur)
@@ -1105,14 +1146,17 @@ func _check_queue() -> String:
 	var st := Sim.copy_state(g.sim_state)
 	var delivered := {}
 	var picked := {}
+	var parked := {}
 	# (With the headlights the van has already driven the first tiles: the load is from there on.)
 	for i in range((g._fired if g._fs > 0 else 0) + 1, g.seg.size()):
 		var res := Sim.arrive(g.level, st, g.seg[i], g.route + g.seg.slice(1, i))
 		for ev in res["events"]:
 			if ev["type"] == "deliver":
 				delivered[str(ev["color"])] = true
-			elif ev["type"] == "pickup":
+			elif ev["type"] == "pickup" or ev["type"] == "unpark":
 				picked[str(ev["color"])] = true
+			elif ev["type"] == "park":
+				parked[str(ev["color"])] = true
 	var end: Array = st["stack"]
 	# (Ticks and plusses are for the part of the plan still to drive: what the van has done is real.)
 	if end != g.seg_states.back()["stack"]:
@@ -1127,11 +1171,13 @@ func _check_queue() -> String:
 	var seen_gone := false
 	for i in shown.size():
 		var c := str(shown[i])
-		if marks[i] == "gone":
+		if marks[i] == "gone" or marks[i] == "park":
 			seen_gone = true
 			gone[c] = int(gone.get(c, 0)) + 1
-			if not delivered.has(c):
+			if marks[i] == "gone" and not delivered.has(c):
 				return "%s ticked as delivered but the plan delivers no %s" % [c, c]
+			if marks[i] == "park" and not parked.has(c):
+				return "%s marked parked but the plan parks no %s" % [c, c]
 		else:
 			if seen_gone:
 				return "a parcel still aboard sits past a delivered one (shown %s, marks %s)" % [shown, marks]
@@ -1164,8 +1210,31 @@ func _halve(pieces: Array) -> Array:
 	return out
 
 
+## A locker-use piece ([tile, tile], from _split_uturns): taps the locker beside the van, as a player would.
+## True if `tiles` was one (and it's been done).
+func _tap_locker_piece(tiles: Array) -> bool:
+	if tiles.size() != 2 or tiles[0] != tiles[1]:
+		return false
+	var k := Sim.locker_here(g.level, g.sim_state, tiles[0])
+	if k < 0:
+		print("AUTOTEST locker tap: nothing to use at ", tiles[0])
+		return true
+	var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
+	var at: Vector2 = xf * g.board.center(g.level.lockers[k].pos)
+	var before: Array = g.sim_state["held"].duplicate()
+	_mouse(at, true)
+	await get_tree().process_frame
+	_mouse(at, false)
+	await get_tree().create_timer(0.35).timeout
+	if g.sim_state["held"] == before:
+		print("AUTOTEST locker tap: the tap did nothing at ", tiles[0])
+	return true
+
+
 ## Presses on the van and drags through the centres of `tiles`, then releases.
 func _drag(tiles: Array) -> void:
+	if await _tap_locker_piece(tiles):
+		return
 	var xf := get_viewport().get_final_transform() * g.board.get_global_transform_with_canvas()
 	var pts: Array = []
 	for k in tiles.size() - 1:

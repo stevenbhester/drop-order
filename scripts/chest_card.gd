@@ -67,12 +67,12 @@ func _process(delta: float) -> void:
 	_t += delta
 	if before < LANDS and _t >= LANDS:
 		Sfx.play("thunk", 0.8)
-		Sfx.haptic(20)
+		Sfx.haptic(20, 1.0, "chest_card:_process")
 	if _open_t < 0.0:
 		# Rattling: a knock now and then, quicker as it goes.
 		if _t > LANDS + 0.2 and fmod(_t, 0.42) < delta:
 			Sfx.play("tick", 0.7 + 0.2 * (_t - LANDS), -10.0)
-			Sfx.haptic(6, 0.3)
+			Sfx.haptic(6, 0.3, "chest_card:_process")
 		if _t >= LANDS + AUTO_OPEN:
 			_open()
 	else:
@@ -80,7 +80,7 @@ func _process(delta: float) -> void:
 			var it: Dictionary = _loot[_out]
 			Sfx.play("pickup", 0.9 + 0.12 * _out, -3.0)
 			Sfx.play("pop", 1.0 + 0.08 * _out, -8.0)
-			Sfx.haptic(14, 0.5)
+			Sfx.haptic(14, 0.5, "chest_card:_process")
 			_fx.burst(_row_at(_out) + Vector2(-200, 0), it["col"], 10, 420.0, 14.0)
 			_out += 1
 		if not _ok.visible and _t >= _open_t + 0.35 + _loot.size() * EACH + 0.3:
@@ -101,7 +101,7 @@ func _open() -> void:
 	Sfx.play("punch", 1.2, -2.0)
 	Sfx.play("kaching", 1.0, -2.0)
 	Sfx.play("sparkle")
-	Sfx.haptic(45, 1.0)
+	Sfx.haptic(45, 1.0, "chest_card:_open")
 	_fx.ring(_c + Vector2(0, -40), BAND, 300.0)
 	_fx.burst(_c + Vector2(0, -40), BAND, 34, 1200.0, 26.0)
 	_fx.burst(_c + Vector2(0, -40), Color("fff1b8"), 20, 850.0, 18.0)

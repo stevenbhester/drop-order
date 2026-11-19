@@ -115,7 +115,7 @@ func _ready() -> void:
 	tw.tween_property(_card, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_card, "modulate:a", 1.0, 0.15)
 	Sfx.play("pop", 1.1, -6.0)
-	Sfx.haptic(14, 0.6)
+	Sfx.haptic(14, 0.6, "update_card:_ready")
 	print("[update] offered build %d" % int(info.get("build", 0)))
 
 

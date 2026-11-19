@@ -15,7 +15,7 @@
   lm.py <name> resume                    as if the app just came back from the background
   lm.py <name> drag X,Y X,Y ...          (as above)
   lm.py <name> wait SECS
-  lm.py <name> solve                     drive the job's answer from the start
+  lm.py <name> solve [N]                 drive the job's answer from the start (only its first N steps)
 Add --shot to any command for a picture after it. Every command prints the screen's text afterwards.
 """
 import json, os, signal, subprocess, sys, time
@@ -76,6 +76,8 @@ def main():
     elif op == "touch":
         # touch INDEX down|up X Y : a raw finger event, as a phone sends it
         cmd.update(index=int(rest[0]), down=(rest[1] == "down"), x=float(rest[2]), y=float(rest[3]))
+    elif op == "solve" and rest:
+        cmd.update(steps=int(rest[0]))
     elif op == "wait":
         cmd.update(secs=float(rest[0]) if rest else 1.0)
     seqf = os.path.join(d, "seq")

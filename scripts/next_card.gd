@@ -229,7 +229,7 @@ func _detour_sheet(col: VBoxContainer) -> void:
 			if Progress.use_key(str(detour.get("id", ""))):
 				Sfx.play("thunk", 1.4, -4.0)
 				Sfx.play("sparkle", 1.0, -4.0)
-				Sfx.haptic(25)
+				Sfx.haptic(25, 1.0, "next_card:_detour_sheet")
 			_finish("detour"))
 	elif locked:
 		go.icon_name = "lock"

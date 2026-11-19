@@ -53,7 +53,7 @@ func _ready() -> void:
 	var done: bool = r.get("done", false)
 	_play = JuicyButton.new()
 	_play.font_px = 72
-	_play.bg = Palette.ACCENT if not done else Color.WHITE
+	_play.bg = Palette.ACCENT if not done else Palette.SURFACE
 	_play.fg = Color.WHITE if not done else Palette.TEXT
 	_play.label = "Play" if int(r.get("attempts", 0)) == 0 else ("Play again" if done else "Keep going")
 	if Daily.out_of_tries(r):
@@ -154,6 +154,7 @@ func _open_score() -> void:
 	card.done_pressed.connect(func():
 		_modal = null
 		NotifyPrefs.ask_if_needed(self, func(): work_pressed.emit(), true))
+	card.dismissed.connect(func(): _modal = null)
 
 
 ## How everyone did today (DailyStats).

@@ -27,7 +27,7 @@ func _gui_input(e: InputEvent) -> void:
 			queue_redraw()
 			if Rect2(Vector2.ZERO, size).grow(20.0).has_point(e.position):
 				Sfx.play("click")
-				Sfx.haptic(10, 0.5)
+				Sfx.haptic(10, 0.5, "close_x:_gui_input")
 				pressed.emit()
 
 

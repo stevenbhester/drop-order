@@ -5,6 +5,15 @@ extends Node2D
 var color := Color.RED
 ## A parcel locker: takes whatever package is on top (drawn as a bank of little doors).
 var locker := false
+## A parking locker (`locker` too): keeps one package till the van passes again. `held` is the colour name
+## of the package it's keeping ("" empty): it shows through the open door.
+var park := false
+var held := "":
+	set(v):
+		if held != v:
+			held = v
+			set_process(true)       # (a kept package bobs)
+			queue_redraw()
 var order := 1
 var filled := 0
 var size := 180.0
@@ -57,6 +66,7 @@ func _ready() -> void:
 	_outline.silhouette = true
 	_outline.color = color
 	_outline.locker = locker
+	_outline.park = park
 	_outline.order = order
 	_outline.size = size
 	_outline.theme = theme
@@ -139,7 +149,7 @@ func _process(delta: float) -> void:
 	var cyc := fmod(_gt, 1.7)
 	var env := clampf(1.0 - cyc / 0.55, 0.0, 1.0)
 	rotation = 0.11 * _glow * sin(cyc * 34.0) * env
-	if _glow > 0.0:
+	if _glow > 0.0 or (park and held != ""):
 		queue_redraw()
 	elif not next_up:
 		rotation = 0.0
@@ -196,7 +206,9 @@ func _shape(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, 
 
 ## The usual buildings: each colour a different kind of place.
 func _building(s: float, w: float, h: float, wall: Color, roof: Color, ink: Color, glass: Color, done: bool) -> void:
-	match "locker" if locker else Palette.kind_of(color):
+	match ("park" if park else "locker") if locker else Palette.kind_of(color):
+		"park":
+			_park_locker(s, w, h)
 		"locker":
 			_locker(s, w, h, done, glass)
 		"biohazard":
@@ -325,6 +337,44 @@ func _soft_poly(pts: PackedVector2Array, col: Color, rad: float) -> void:
 	draw_polyline(outline, col, rad * 2.0, true)
 	for p in pts:
 		draw_circle(p, rad, col)
+
+
+## A parking locker: a slate cabinet that's mostly one big cubby, and a "P" sign on top. Empty, it's all grey
+## and the door's shut. Keeping a package, the door hangs open, the package sits inside in its colour (bobbing
+## a little, so it catches the eye) and the sign turns that colour too.
+func _park_locker(s: float, w: float, h: float) -> void:
+	var body := Color("6f7a90")
+	var lw := w * 1.12
+	var lh := h * 1.5
+	DrawUtil.rrect(self, Rect2(-lw / 2, -lh, lw, lh), body.darkened(0.2), s * 0.05)
+	DrawUtil.rrect(self, Rect2(-lw / 2 + s * 0.02, -lh + s * 0.02, lw - s * 0.04, lh - s * 0.04), body, s * 0.04)
+	var cub := Rect2(Vector2(-lw / 2 + s * 0.05, -lh + s * 0.05), Vector2(lw - s * 0.1, lh - s * 0.09))
+	var pc := Palette.pkg(held) if held != "" else Color.WHITE
+	if held == "":
+		DrawUtil.rrect(self, cub, Color("dfe4ec"), s * 0.03)
+		draw_circle(cub.position + Vector2(cub.size.x * 0.86, cub.size.y * 0.5), s * 0.022, Color("6b7385"))
+	else:
+		DrawUtil.rrect(self, cub, Color("2f3442"), s * 0.03)
+		var t := Time.get_ticks_msec() / 1000.0
+		var bs := Vector2(cub.size.x * 0.8, cub.size.y * 0.72)
+		var bc := cub.get_center() + Vector2(0, cub.size.y * 0.06 + sin(t * 3.2) * s * 0.014)
+		draw_set_transform(bc, sin(t * 2.1) * 0.06, Vector2.ONE)
+		DrawUtil.parcel(self, Vector2.ZERO, bs, pc)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# The door, swung open to the side.
+		var dw := s * 0.06
+		_soft_poly(PackedVector2Array([cub.position + Vector2(cub.size.x, 0), cub.position + Vector2(cub.size.x + dw, -s * 0.02),
+			cub.end + Vector2(dw, s * 0.02), cub.end]), Color("dfe4ec"), s * 0.01)
+	if not silhouette:
+		# The "P" sign: grey till it's keeping something, then the colour of what it's keeping.
+		var sign_col := pc if held != "" else Color("9aa1b0")
+		var c := Vector2(0, -lh - s * 0.11)
+		DrawUtil.rrect(self, Rect2(c - Vector2(s * 0.11, s * 0.1), Vector2(s * 0.22, s * 0.2)), Color.WHITE, s * 0.045)
+		DrawUtil.rrect(self, Rect2(c - Vector2(s * 0.085, s * 0.075), Vector2(s * 0.17, s * 0.15)), sign_col, s * 0.03)
+		var f := UiTheme.font()
+		var px := int(s * 0.15)
+		var tw := f.get_string_size("P", HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+		draw_string(f, c + Vector2(-tw / 2.0, px * 0.36), "P", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)
 
 
 ## A parcel locker: a grey bank of little doors (one swings open as each package goes in) and a "?" on

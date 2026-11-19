@@ -39,7 +39,7 @@ func _ready() -> void:
 		var p := _path_to(b, top)
 		_paths.append(p)
 		_longest = maxf(_longest, (p[1] as PackedFloat32Array)[(p[1] as PackedFloat32Array).size() - 1])
-	Sfx.haptic(10, 0.4)
+	Sfx.haptic(10, 0.4, "gas_line:_ready")
 	Sfx.play("tick", 0.8, -10.0)
 
 
@@ -113,11 +113,11 @@ func _process(delta: float) -> void:
 		_tick += delta
 		if _tick >= 0.08 and _k < 1.0:
 			_tick = 0.0
-			Sfx.haptic(6 + int(10.0 * _k), 0.25 + 0.5 * _k)
+			Sfx.haptic(6 + int(10.0 * _k), 0.25 + 0.5 * _k, "gas_line:_process")
 			Sfx.play("tick", 0.9 + 0.7 * _k, -14.0 + 4.0 * _k)
 		if _k >= 1.0:
 			_done = 0.0001
-			Sfx.haptic(30, 1.0)
+			Sfx.haptic(30, 1.0, "gas_line:_process")
 			Sfx.play("pop", 1.2, -3.0)
 			for b in buttons:
 				if is_instance_valid(b) and b.has_method("pop"):

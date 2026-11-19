@@ -130,6 +130,12 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, s: float, col: Color)
 				c + Vector2(0.04, 0.36) * s, c + Vector2(-0.2, 0.14) * s, c + Vector2(-0.42, 0.14) * s]), col)
 			for k in 2:
 				ci.draw_arc(c + Vector2(0.06, 0) * s, s * (0.18 + k * 0.16), -0.9, 0.9, 12, col, s * 0.07, true)
+		"note":
+			# Two beamed quavers.
+			for x in [-0.22, 0.24]:
+				ci.draw_circle(c + Vector2(x, 0.26) * s, s * 0.14, col)
+				ci.draw_line(c + Vector2(x + 0.11, 0.26) * s, c + Vector2(x + 0.11, -0.34) * s, col, s * 0.07, true)
+			ci.draw_line(c + Vector2(-0.11, -0.32) * s, c + Vector2(0.35, -0.32) * s, col, s * 0.14)
 		"buzz":
 			# A phone with buzz marks.
 			DrawUtil.rrect(ci, Rect2(c + Vector2(-0.18, -0.36) * s, Vector2(0.36, 0.72) * s), col, s * 0.08)

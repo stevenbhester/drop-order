@@ -35,7 +35,7 @@ so rows can be aligned when some tokens are two characters). Every row needs the
 | `S` | Road where the van starts (exactly one) |
 | `^` `>` `v` `<` | One-way road: you must **leave** it moving the way the arrow points. You can turn onto it from the side, but never drive onto it head-on against the arrow. Point it at road |
 | `+` | Bridge: crossable once horizontally and once vertically, always straight across. Needs road on all four sides |
-| `r` `b` `g` `y` `p` `o` | House: red, blue, green, yellow, purple, orange. Wants 1 package |
+| `r` `b` `g` `y` `p` `o` | House: red, blue, green, yellow, purple, orange. Wants 1 package. No road tile may touch two houses of the same colour (which one got the package would come down to a hidden tie-break). Nor may a road tile touch a pickup and a house of the same colour |
 | `r2`, `b3`, ... | House wanting that many packages of its colour (shows "×2") |
 | `R` `B` `G` `Y` `P` `O` | Parcel shop (uppercase colour): its parcel goes onto the **top** of the van's stack when the van drives past |
 | `R4`, `B3`, ... | Warehouse: a pickup holding that many parcels of its colour (shows "+4"). Driving past loads them all, one by one onto the top, unless a house right there wants the one that just came aboard (then it's delivered in between) |
@@ -43,7 +43,8 @@ so rows can be aligned when some tokens are two characters). Every row needs the
 | `@` | Sorting hub (road): swaps the top two packages when the van drives onto it |
 | `E` | Exit (road, on the map's edge): a mega route's part is won by delivering everything and then finishing here |
 | `~` | Ice (road): no turning on it; you leave it the way you drove on |
-| `w`, `w2`, ... | Parcel locker: takes whatever package is on top (that many). Colour totals: every colour still needs enough packages, and the lockers take the spare ones |
+| `L` | Parking locker: nothing happens on arrival. Stopped beside it, the player taps it: empty, it keeps the top package; keeping one, it gives it back on top (then deliveries happen there as on arriving). The solvers treat a tap as a move of its own, at most once per stop, written in routes as the same tile twice. Holds one. Doesn't count in the colour totals. Needs two roads beside it, and no road tile may touch two lockers |
+| `w`, `w2`, ... | Old-style parcel locker (the OG levels only): takes whatever package is on top (that many), for good. Colour totals: every colour still needs enough packages, and the lockers take the spare ones |
 | `c2`, `c3`, ... | Roadworks (road): closed until that many packages have been delivered |
 
 The loader rejects levels where:
@@ -74,6 +75,11 @@ validator checks them; `tools/autotest_all.sh` drives each one and checks its tw
 ## Daily puzzles
 `daily.json` has the same format: `{"levels": [ ... ]}`. Today's puzzle is the next one in the list
 each day, repeating (see `scripts/daily.gd`). The validator checks them too.
+
+They come from `tools/engine/dailies.py` (three spice bands). Unlike most main-road jobs, a daily may have
+several winning routes (up to 8 mild, 6 medium, 4 spicy): the search leans toward one shortest route that
+the likeliest winning line misses by two tiles or more, so the Straight shot badge is something to find.
+A single answer is fine now and then; it isn't the aim.
 
 ## Other fields
 - `title`: shown under the board.

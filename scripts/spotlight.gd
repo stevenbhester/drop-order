@@ -20,6 +20,7 @@ const KINDS := {
 	"hub": ["NEW ROAD HAZARD!", "Spinner", "Drive over it and your top two packages swap."],
 	"ice": ["NEW ROAD HAZARD!", "Ice", "No turning on it. You slide straight across."],
 	"locker": ["NEW BUILDING!", "Locker", "A drop-off that takes whatever package is on top. Any colour at all."],
+	"park": ["NEW BUILDING!", "Parking locker", "Stop by and tap it to leave your top package. Tap again later to take it back."],
 	"works": ["NEW ROAD HAZARD!", "Roadworks", "Closed until you've made that many deliveries. The sign counts down."],
 	"warehouse": ["NEW BUILDING!", "Big pick-up", "A warehouse: it loads all its parcels at once (+N), one after another on top."],
 }
@@ -37,7 +38,7 @@ var _fg: Control        # the rings and the card, drawn over the dimming
 var _pic: SymbolPicture   # the looping demo on the card
 ## What the demo shows: SymbolCard's kind for this, and a colour for gates, pickups and houses.
 const PIC_KIND := {"multi": "houses", "oneway": "oneway", "bridge": "bridge", "pickup": "pickup", "gate": "gate", "return": "pitstop",
-	"hub": "hub", "ice": "ice", "locker": "locker", "works": "works", "warehouse": "warehouse"}
+	"hub": "hub", "ice": "ice", "locker": "locker", "park": "park", "works": "works", "warehouse": "warehouse"}
 var pic_color := Color("e03131")
 var pic_color_name := "red"
 ## For big orders: the order of the house it points at (the picture and the words say the same number).
@@ -60,6 +61,7 @@ static func new_kind(L: LevelData, in_daily := false) -> String:
 	if not L.hubs.is_empty(): have["hub"] = true
 	if not L.ice.is_empty(): have["ice"] = true
 	if L.houses.any(func(h): return h.color == "any"): have["locker"] = true
+	if not L.lockers.is_empty(): have["park"] = true
 	if not L.works.is_empty(): have["works"] = true
 	for k in KINDS:
 		if have.has(k) and not Progress.seen_new.has(k) and not (in_daily and Progress.seen_new.has("daily_" + k)):
@@ -89,6 +91,8 @@ static func tiles_of(L: LevelData, k: String) -> Array:
 		"locker":
 			for h in L.houses:
 				if h.color == "any": out.append(h.pos)
+		"park":
+			for lk in L.lockers: out.append(lk.pos)
 		"works": out = L.works.keys()
 	return out.slice(0, 8)
 
@@ -133,7 +137,7 @@ void fragment() {
 	_pic.count = count if count > 0 else (2 if kind in ["multi", "works"] else (3 if kind == "warehouse" else 1))
 	add_child(_pic)
 	Sfx.play("sparkle", 1.0, -3.0)
-	Sfx.haptic(16)
+	Sfx.haptic(16, 1.0, "spotlight:_ready")
 
 
 func _input(e: InputEvent) -> void:

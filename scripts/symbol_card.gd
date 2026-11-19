@@ -40,7 +40,7 @@ func _ready() -> void:
 	y = clampf(y, 170.0, v.y - h - 30.0)
 	_box = Rect2(Vector2((v.x - w) / 2.0, y), Vector2(w, h))
 	Sfx.play("pop", 1.15, -6.0)
-	Sfx.haptic(10, 0.5)
+	Sfx.haptic(10, 0.5, "symbol_card:_ready")
 
 
 ## The one line for this symbol.
@@ -63,6 +63,7 @@ func line() -> String:
 		"key": return "A key! Pick it up and win: it opens a locked detour."
 		"ice": return "Ice! No turning on it: slide straight across."
 		"locker": return "Locker: a drop-off that takes whatever's on top." if count <= 1 else "Locker: a drop-off for the next %d packages, whatever they are." % count
+		"park": return "Parking locker: keeping a %s package. Stop beside it and tap it to get it back on top." % n if count > 0 else "Parking locker: stop beside it and tap it to leave your top package here for later."
 		"works": return "Roadworks: opens after %d more deliver%s." % [count, "y" if count == 1 else "ies"] if count > 0 else "Roadworks: open now!"
 		"wreck": return "Torn-up road. You can't drive here again."
 	return ""
@@ -109,10 +110,11 @@ func _draw() -> void:
 		var d := tl.normalized()
 		var side := Vector2(-d.y, d.x)
 		var edge := Vector2(clampf(tl.x, lr.position.x + 60.0, lr.end.x - 60.0), lr.end.y if tl.y > 0 else lr.position.y)
-		draw_colored_polygon(PackedVector2Array([edge + Vector2(-24, 0), edge + Vector2(24, 0), tl - d * 40.0]), Color.WHITE)
+		draw_colored_polygon(PackedVector2Array([edge + Vector2(-24, 0), edge + Vector2(24, 0), tl - d * 40.0]), Palette.BUBBLE)
 		draw_arc(tl, 46.0 + 6.0 * sin(_t * 5.0), 0, TAU, 32, Color(Palette.ACCENT, 0.9), 6.0, true)
 	DrawUtil.rrect(self, Rect2(lr.position + Vector2(0, 10), lr.size), Color(0, 0, 0, 0.2), 36)
-	DrawUtil.rrect(self, lr, Color.WHITE, 36)
+	DrawUtil.rrect(self, lr.grow(3), Palette.BUBBLE_RIM, 39)
+	DrawUtil.rrect(self, lr, Palette.BUBBLE, 36)
 	# The picture, in its own little panel on the left.
 	var pic := Rect2(lr.position + Vector2(18, 18), Vector2(lr.size.y - 36, lr.size.y - 36))
 	DrawUtil.rrect(self, pic, Color("eaf6e1"), 26)
@@ -292,6 +294,28 @@ func _picture(p: Rect2) -> void:
 					var at := (c + Vector2(-s * 0.32, s * 0.15)).lerp(c + Vector2(s * 0.17, -s * 0.02), u) + Vector2(0, -sin(PI * u) * s * 0.2)
 					DrawUtil.parcel(self, at, Vector2(s * 0.2, s * 0.15), cl, false)
 			draw_string(UiTheme.font(), c + Vector2(s * 0.12, s * 0.04), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, int(s * 0.22), Color.WHITE)
+		"park":
+			# In it goes, it waits, and out it comes again.
+			var box := Rect2(c + Vector2(-s * 0.15, -s * 0.24), Vector2(s * 0.3, s * 0.36))
+			DrawUtil.rrect(self, box, Color("6f7a90"), s * 0.04)
+			DrawUtil.rrect(self, box.grow(-s * 0.05), Color("2f3442") if loop > 0.35 and loop < 0.65 else Color("dfe4ec"), s * 0.03)
+			var cl := Palette.pkg("purple")
+			var inside := box.get_center() + Vector2(0, s * 0.02)
+			if loop <= 0.35:
+				var u := loop / 0.35
+				var at := (c + Vector2(-s * 0.4, s * 0.2)).lerp(inside, u) + Vector2(0, -sin(PI * u) * s * 0.2)
+				DrawUtil.parcel(self, at, Vector2(s * 0.16, s * 0.12), cl, false)
+			elif loop < 0.65:
+				DrawUtil.parcel(self, inside, Vector2(s * 0.16, s * 0.12), cl, false)
+			else:
+				var u := (loop - 0.65) / 0.35
+				var at := inside.lerp(c + Vector2(s * 0.4, s * 0.2), u) + Vector2(0, -sin(PI * u) * s * 0.2)
+				DrawUtil.parcel(self, at, Vector2(s * 0.16, s * 0.12), cl, false)
+			var sc := c + Vector2(0, -s * 0.33)
+			DrawUtil.rrect(self, Rect2(sc - Vector2(s * 0.07, s * 0.07), Vector2(s * 0.14, s * 0.14)), cl if loop > 0.35 and loop < 0.65 else Color("9aa1b0"), s * 0.03)
+			var px := int(s * 0.11)
+			var tw := UiTheme.font().get_string_size("P", HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+			draw_string(UiTheme.font(), sc + Vector2(-tw / 2.0, px * 0.36), "P", HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color.WHITE)
 		"works":
 			_road(c + Vector2(-s * 0.42, 0), c + Vector2(s * 0.42, 0), s * 0.3)
 			var open := loop > 0.55

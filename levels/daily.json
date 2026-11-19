@@ -6,14 +6,15 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "# b # . .",
+        "# # # g #",
+        "# r # # #",
+        "# . S . #",
         "# # # # #",
-        ". # b g #",
-        "b # # # #",
-        "g # . . #",
-        "# # # S #"
+        "# b # r #",
+        "# # # . #",
+        "b g # # #"
       ],
-      "stack": ["blue", "green", "blue", "blue", "green"]
+      "stack": ["blue", "green", "red", "blue", "red", "green"]
     },
     {
       "title": "Lost Mittens",
@@ -21,14 +22,14 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        "# S # # # #",
-        "# . r # . #",
-        ". # # # # #",
-        "# v r # b #",
-        "r # # # # #",
-        "# # . b . #"
+        "# # # # # #",
+        "# r . # g #",
+        "# # # # # #",
+        "# g r # . S",
+        "# # # # < #",
+        "b . # . g ."
       ],
-      "stack": ["red", "red", "red", "blue", "blue"]
+      "stack": ["green", "blue", "red", "green", "red", "green"]
     },
     {
       "title": "Snow Day",
@@ -36,15 +37,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
+        ". b r # . #",
         "# # # # # #",
-        "# . b g b #",
-        "# # # # # #",
-        "# . r # g #",
-        "# S # # # #",
-        "# . # b . #",
-        "# # # # # #"
+        "# . # r # .",
+        "# # # g # .",
+        "# . # # # r",
+        "# . # b # #",
+        "S # # # # ."
       ],
-      "stack": ["green", "blue", "red", "blue", "blue", "green"]
+      "stack": ["red", "blue", "red", "green", "red", "blue"]
     },
     {
       "title": "Two Doors Down",
@@ -52,15 +53,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". # g . .",
-        "# S # # #",
-        "# . # b #",
-        "# # # g #",
-        "# r # # #",
-        "# # # g #",
-        "# b # # #"
+        "# # # S #",
+        "# g # . #",
+        "# r # . #",
+        "# # # # #",
+        "# g # r #",
+        "# b # g #",
+        "# # # # #"
       ],
-      "stack": ["green", "blue", "blue", "green", "red", "green"]
+      "stack": ["green", "green", "red", "blue", "green", "red"]
     },
     {
       "title": "Sock Drawer",
@@ -68,15 +69,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # #",
-        "# r # b # b",
-        "# # # # # g",
-        "# r # g # .",
-        "# # # # @ .",
-        "# . # b # .",
-        "# S # # # ."
+        ". # # S . #",
+        ". # . # # #",
+        ". # # # b #",
+        "# # g # r #",
+        "b # # # # @",
+        "r # . # g #",
+        "# # # @ # #"
       ],
-      "stack": ["blue", "blue", "green", "green", "blue", "red", "red"]
+      "stack": ["green", "blue", "green", "red", "red", "blue"]
     },
     {
       "title": "Library Run",
@@ -85,15 +86,15 @@
       "return": true,
       "no_revisit": true,
       "map": [
-        "# # # r g",
+        "# S # # #",
+        "# . # r #",
         "# b # # #",
-        "# . S . #",
+        "# # # b #",
+        "# g # r #",
         "# # # # #",
-        "# r # b #",
-        "# # # # #",
-        "g . . # ."
+        "r . . . #"
       ],
-      "stack": ["green", "red", "blue", "green", "red", "blue"]
+      "stack": ["red", "blue", "red", "green", "red", "blue"]
     },
     {
       "title": "Night Market",
@@ -101,15 +102,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # .",
-        "# . g r # B",
+        "# # # S # #",
+        "# r # . . #",
         "# # # # # #",
-        "S . # b # R",
-        "# # # # # #",
-        "# g # g # r",
-        "# # # # # ."
+        "# . b # r #",
+        "# . r # # #",
+        "# # # # b #",
+        "B b g # # #"
       ],
-      "stack": ["green", "red", "green", "green"]
+      "stack": ["blue", "green", "red", "red", "blue", "red"]
     },
     {
       "title": "Switchbacks",
@@ -117,16 +118,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". . . # r #",
-        ". # # # # #",
-        "# # b # g #",
-        "g # # # # S",
-        "# # . # . #",
-        "g # # # # #",
-        ". # b # b #",
-        ". # # # # #"
+        "# # # # # .",
+        "# b r # . #",
+        "# # # # # #",
+        "# r # g r #",
+        "# # # # # #",
+        "# b b # . #",
+        "# . . # . S",
+        "# # # # # #"
       ],
-      "stack": ["green", "red", "green", "blue", "green", "blue", "blue"]
+      "stack": ["blue", "red", "red", "red", "green", "blue", "blue"]
     },
     {
       "title": "Pothole Patrol",
@@ -134,14 +135,15 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". # # # .",
-        ". # . # g",
-        "# S . # #",
-        "r # # # g",
-        "# # g # .",
-        "r # # # ."
+        ". g . . #",
+        "# # # # S",
+        "# r # b #",
+        "# # # # #",
+        "# g # . #",
+        "# g # r #",
+        "# # # # #"
       ],
-      "stack": ["green", "red", "red", "green", "green"]
+      "stack": ["green", "blue", "green", "red", "green", "red"]
     },
     {
       "title": "Bakery Dash",
@@ -149,15 +151,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
+        "r b G . .",
         "# # # # #",
-        "S . g # .",
-        "# # # # g",
-        "# . r # #",
-        "# # # # G",
-        "B # b # g",
-        "# # # # b"
+        "# g # r #",
+        "# # # # #",
+        "S . # g #",
+        "# . # r #",
+        "# # # # #"
       ],
-      "stack": ["blue", "red", "green", "green"]
+      "stack": ["blue", "red", "red", "green", "red"]
     },
     {
       "title": "Rubber Ducks",
@@ -165,15 +167,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "#  #  #  #  S  #",
-        "#  g2 #  r  .  #",
-        "#  #  #  #  #  #",
-        "#  g  #  .  .  #",
-        "#  r3 #  g  .  #",
-        "#  #  #  #  #  #",
-        "g  b  #  .  .  ."
+        "g2 #  #  #  #  #",
+        ".  #  r2 #  g2 #",
+        ".  #  r2 #  #  #",
+        ".  #  #  #  b  #",
+        "b  #  .  S  #  #",
+        "#  #  #  #  .  #",
+        "#  .  .  #  #  #"
       ],
-      "stack": ["blue", "red", "green", "red", "green", "red", "green", "green", "green", "red"]
+      "stack": ["red", "blue", "red", "green", "green", "red", "red", "green", "green", "blue"]
     },
     {
       "title": "Red Tape",
@@ -181,16 +183,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ".  r  .  #  .  .",
-        "#  #  S  #  #  #",
-        "#  .  #  .  r  #",
+        ".  .  #  #  #  #",
+        ".  .  #  .  .  S",
+        "#  =b #  #  #  #",
+        "#  b  g  #  b  #",
         "#  #  #  #  #  #",
-        "#  g  #  g  #  .",
-        "#  #  #  #  #  #",
-        "#  .  r  g  #  b",
-        "#  #  #  =g #  #"
+        ".  .  #  r  r  #",
+        ".  b  #  #  =g #",
+        ".  #  #  g  .  ."
       ],
-      "stack": ["red", "blue", "green", "red", "green", "green", "red"]
+      "stack": ["red", "blue", "green", "red", "blue", "green", "blue"]
     },
     {
       "title": "Rainy Tuesday",
@@ -198,14 +200,15 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". . b r .",
         "# # # # #",
-        "# . b # g",
+        "# . # . S",
+        "# r # # #",
+        "# # # b #",
+        "# b # r #",
         "# # # # #",
-        "# b # . #",
-        "# # # S #"
+        "b # g . #"
       ],
-      "stack": ["green", "blue", "red", "blue", "blue"]
+      "stack": ["blue", "red", "green", "blue", "blue", "red"]
     },
     {
       "title": "Birthday Rush",
@@ -213,16 +216,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "#  #  #  #  #  .",
-        "#  .  #  .  #  .",
-        "#  b  #  .  S  .",
-        "#  #  #  #  #  b",
-        "#  .  #  g  #  .",
-        "#  .  #  r3 #  #",
-        "#  #  #  #  #  .",
-        "#  g  b  #  g  ."
+        "#  #  #  #  #  #",
+        ".  #  .  S  .  #",
+        "#  #  #  #  r  #",
+        "#  .  b  #  #  #",
+        "#  #  #  #  g3 #",
+        "#  b  r  #  b  #",
+        "#  #  #  #  #  #",
+        ".  g  .  .  #  ."
       ],
-      "stack": ["green", "red", "red", "blue", "green", "red", "blue", "green", "blue"]
+      "stack": ["blue", "blue", "green", "green", "green", "blue", "red", "green", "red"]
     },
     {
       "title": "Llama Drama",
@@ -230,32 +233,32 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
+        "S # # # # #",
+        "# . # r . #",
         "# # # # # #",
-        "# . S . # g",
-        "# . # . v #",
-        "# # # # # b",
-        "# r # g # .",
-        "# # # # # .",
-        ". g b . # ."
+        "# g . # r #",
+        "# # # # # #",
+        "# r . g b #",
+        "# # # < # #"
       ],
-      "stack": ["green", "blue", "green", "blue", "green", "red"]
+      "stack": ["blue", "red", "green", "red", "red", "green"]
     },
     {
       "title": "The Big Map",
-      "hint": "Lots of packages, one way through. Take your time.",
+      "hint": "Lots of packages. Take your time.",
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". . # # # .",
-        ". b # . # .",
-        "# # # S # .",
-        "# b # . # .",
-        "# # # # # .",
-        "# g # b # #",
-        "# # # # # g",
-        ". r g # . ."
+        "# # # # # #",
+        ". # r # b #",
+        "# # # # . #",
+        ". # b # g #",
+        "g # # # # #",
+        ". S . # r #",
+        ". # # # # #",
+        ". . . g # ."
       ],
-      "stack": ["green", "red", "green", "blue", "green", "blue", "blue"]
+      "stack": ["blue", "red", "green", "blue", "red", "green", "green"]
     },
     {
       "title": "Lunchbox Shuffle",
@@ -263,15 +266,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". # # # S #",
-        ". # b # . #",
-        ". # g # # #",
-        "g # # # r #",
-        "# # r # # #",
-        ". # . . r #",
-        "# # # # # #"
+        "# # # # # .",
+        "# g # r # g",
+        "# # # # # .",
+        "# b # . S .",
+        "# g # # # #",
+        "# g . . # .",
+        "# # # # # ."
       ],
-      "stack": ["blue", "red", "green", "green", "red", "red"]
+      "stack": ["green", "red", "green", "blue", "green", "green"]
     },
     {
       "title": "Kite Festival",
@@ -279,15 +282,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". b . # .",
-        "# # # # S",
-        "# g # . #",
+        "# # # b .",
+        "# g # b r",
         "# # + # #",
-        "# r # r #",
+        "# r # . #",
         "# # # # #",
-        "b . g # ."
+        "# . # r #",
+        "# S # # #"
       ],
-      "stack": ["blue", "red", "green", "red", "blue", "green"]
+      "stack": ["blue", "green", "red", "red", "blue", "red"]
     },
     {
       "title": "Hot Cocoa Run",
@@ -295,15 +298,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". . # b . .",
+        "# # # . # .",
+        "# b # r # .",
+        "# # # # # <",
+        "# . S . b #",
         "# # # # # #",
-        "# r b # . #",
-        "# # # # g #",
-        ". # b # # #",
-        ". ^ . # . #",
-        "r # # # S #"
+        "g # b # . g",
+        ". # # # . ."
       ],
-      "stack": ["red", "red", "blue", "blue", "blue", "green"]
+      "stack": ["green", "blue", "red", "blue", "green", "blue"]
     },
     {
       "title": "Cul-de-Sac",
@@ -311,15 +314,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
+        "# # S # #",
+        "# . # g #",
+        "# . # # #",
+        "# # # b #",
+        "# . # r #",
         "# # # # #",
-        "S . # g #",
-        "# g # . #",
-        "# # # # #",
-        "# b # g #",
-        "# # # # #",
-        "r . b . ."
+        "# g b . b"
       ],
-      "stack": ["red", "green", "blue", "blue", "green", "green"]
+      "stack": ["blue", "green", "blue", "red", "blue", "green"]
     },
     {
       "title": "Moving Day",
@@ -328,15 +331,15 @@
       "return": true,
       "no_revisit": true,
       "map": [
-        "# # # # # g",
-        "# b # r # .",
-        "# g # # # .",
-        "S . # r # #",
-        "# . # b # .",
-        "# # # # # .",
-        ". . . . # #"
+        "b # # # # #",
+        ". # r . r #",
+        ". # # # # #",
+        "# # . S . #",
+        "b # # # # #",
+        ". # r # g #",
+        "# # # # # #"
       ],
-      "stack": ["green", "blue", "red", "green", "red", "blue"]
+      "stack": ["green", "red", "blue", "red", "blue", "red"]
     },
     {
       "title": "Garden Gnomes",
@@ -344,14 +347,14 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". . # r # #",
-        ". # # # # g",
-        ". g # b # g",
-        ". # # # # .",
-        "# # . . # .",
-        ". # # # S ."
+        "# # # # # #",
+        "# r # b . #",
+        "# g # # # #",
+        "# # # r g #",
+        "# . # r . #",
+        "# S # # # #"
       ],
-      "stack": ["red", "green", "green", "blue", "green"]
+      "stack": ["green", "red", "red", "green", "blue", "red"]
     },
     {
       "title": "Science Fair",
@@ -359,15 +362,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ".  .  .  #  #  #",
-        "b  .  r  #  .  #",
+        "r  #  =r #  b  #",
+        "#  #  r  #  #  #",
+        "#  .  .  #  g  #",
+        "#  .  r  #  .  #",
         "#  #  #  #  S  #",
-        "#  g  =b r  .  #",
-        "#  #  #  #  #  #",
-        "#  r  #  b  .  =r",
+        "g  =g b  #  .  #",
         "#  #  #  #  #  #"
       ],
-      "stack": ["green", "red", "blue", "red", "blue", "red"]
+      "stack": ["red", "green", "blue", "red", "red", "green", "blue"]
     },
     {
       "title": "Sort It Out",
@@ -375,16 +378,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". # . # # @",
-        "# # # # . #",
-        "# . . @ # #",
-        "# g . S . #",
-        "# # # # # #",
-        "# r # b r #",
-        "# # # # # #",
-        "# r . g g #"
+        "# # . . . #",
+        ". S # # # #",
+        "# # . # g #",
+        ". # # # # @",
+        "g # . # r #",
+        "g # # # b #",
+        "# # . # b #",
+        ". # # @ # #"
       ],
-      "stack": ["blue", "red", "green", "green", "red", "green", "red"]
+      "stack": ["blue", "green", "blue", "red", "green", "green"]
     },
     {
       "title": "Fridge Raid",
@@ -392,15 +395,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# r # # # b",
-        "# # # b # B",
-        "# g # # # #",
-        "# # # r # g",
-        "# . # # # g",
-        "# . S . # #",
-        "# # # # # G"
+        "# . r b # R",
+        "# # # # # #",
+        "# . g # b #",
+        "# . g # # #",
+        "# # # # G #",
+        "# . r # g #",
+        "# S # # # #"
       ],
-      "stack": ["red", "blue", "green", "red", "green"]
+      "stack": ["green", "blue", "blue", "green", "red"]
     },
     {
       "title": "Laundry Day",
@@ -408,14 +411,14 @@
       "spice": 1,
       "no_revisit": true,
       "map": [
-        ". # # # S #",
-        "b # b # . #",
-        "r # # # # #",
-        ". # g . b #",
-        "# # # # # #",
-        "# . . . . ."
+        "# # # # # S",
+        ". # . # g #",
+        "b # # # # #",
+        ". # r # b #",
+        "# # r # . #",
+        "b # # # # #"
       ],
-      "stack": ["green", "blue", "red", "blue", "blue"]
+      "stack": ["blue", "green", "red", "blue", "red", "blue"]
     },
     {
       "title": "Pet Parade",
@@ -423,15 +426,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "# # # # # #",
-        "# . r # . S",
-        "# # # # # #",
-        "# g r # g #",
+        "# # # # g .",
+        "# . g # r .",
         "# # # + # #",
-        ". # r # b #",
-        ". # b # # #"
+        "b # r # . #",
+        "# # # # S #",
+        "# g # r . #",
+        "# # # # # #"
       ],
-      "stack": ["red", "red", "green", "blue", "blue", "green", "red"]
+      "stack": ["green", "red", "red", "green", "blue", "red", "green"]
     },
     {
       "title": "The Scenic Route",
@@ -439,16 +442,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". # b # r .",
         "# # # # # #",
-        "# . g b b #",
-        "# # # # # #",
-        "# . . # r #",
-        "# # # # # #",
-        "# . r # . #",
-        "# S # # # #"
+        "# . . b # r",
+        "# . # # # .",
+        "# # # r # #",
+        "# . # # # b",
+        "# # # . # b",
+        "# g # r # #",
+        "S # # # # ."
       ],
-      "stack": ["blue", "blue", "red", "green", "blue", "red", "red"]
+      "stack": ["red", "blue", "blue", "red", "blue", "red", "green"]
     },
     {
       "title": "Cheese Wheel",
@@ -456,15 +459,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ".  #  #  #  #  #",
-        ".  #  b  #  .  #",
-        "r  #  #  #  .  #",
-        "#  #  r2 #  #  #",
-        ".  #  g  #  g3 #",
-        ".  #  #  #  #  S",
-        ".  .  #  b  #  ."
+        ".  .  #  g  b  .",
+        "#  #  #  #  #  #",
+        ".  #  r2 #  g  #",
+        "#  #  .  #  .  #",
+        "b  #  #  #  #  #",
+        "#  #  g2 #  .  #",
+        ".  #  #  #  #  S"
       ],
-      "stack": ["red", "green", "green", "blue", "green", "red", "red", "blue", "green"]
+      "stack": ["red", "blue", "green", "green", "red", "green", "blue", "green"]
     },
     {
       "title": "Owl Post",
@@ -472,15 +475,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
+        "# # < # #",
+        "# b # g #",
+        "# # # b #",
+        "# r # . S",
         "# # # # #",
-        "# g # r #",
-        "# r # > #",
-        "# b # . g",
-        "# < # # #",
-        "# r # . #",
-        "# # # # S"
+        "# b # g #",
+        "# # # # #"
       ],
-      "stack": ["blue", "red", "green", "red", "green", "red"]
+      "stack": ["blue", "green", "red", "blue", "blue", "green"]
     },
     {
       "title": "Garage Sale",
@@ -489,15 +492,15 @@
       "return": true,
       "no_revisit": true,
       "map": [
-        "S # # # # #",
-        "# . # r . #",
-        "# g # . g #",
+        "# # # # # S",
+        "# r # g b #",
         "# # # # # #",
-        "# r b # . #",
-        "# g . # . #",
+        "# . # r r #",
+        "# # # # . #",
+        "# g . . . #",
         "# # # # # #"
       ],
-      "stack": ["green", "red", "green", "blue", "green", "red"]
+      "stack": ["green", "red", "red", "green", "red", "blue"]
     },
     {
       "title": "Short Cut",
@@ -505,15 +508,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". b # # #",
-        "# # # . #",
-        "# . # S #",
-        "# . # . #",
-        "# g # r #",
-        "# # # # #",
-        "r b # . b"
+        "# # # g .",
+        "# . # r #",
+        "# b # # #",
+        "# # # g #",
+        "# r # # #",
+        "# . # r #",
+        "# S # # #"
       ],
-      "stack": ["green", "red", "blue", "blue", "red", "blue"]
+      "stack": ["green", "red", "red", "blue", "green", "red"]
     },
     {
       "title": "Postcard Season",
@@ -522,14 +525,15 @@
       "return": true,
       "no_revisit": true,
       "map": [
-        ". . r r .",
+        ". . g . #",
         "# # # # #",
-        "# r # b #",
+        "# . # g #",
         "# # # # #",
-        "# b . . #",
-        "# # S # #"
+        "# b # r #",
+        "# b # # #",
+        "S # # g #"
       ],
-      "stack": ["blue", "blue", "red", "red", "red"]
+      "stack": ["green", "blue", "red", "green", "green", "blue"]
     },
     {
       "title": "Bubble Wrap",
@@ -537,16 +541,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ".  .  .  .  .  .",
-        "#  #  #  #  #  #",
-        "#  .  .  S  .  #",
-        "#  #  #  #  g  #",
-        "#  r  b2 #  .  #",
-        "#  #  #  #  #  #",
-        "#  g  b3 #  r  #",
-        "#  #  #  #  g  ."
+        "#  #  #  #  #  .",
+        "#  b  #  .  #  #",
+        "#  #  #  r2 #  .",
+        "S  .  #  b  #  .",
+        "#  .  #  g2 #  .",
+        "#  r  #  #  #  #",
+        "#  .  #  b  #  r",
+        "#  #  #  #  #  ."
       ],
-      "stack": ["green", "blue", "blue", "red", "blue", "green", "blue", "blue", "green", "red"]
+      "stack": ["green", "red", "green", "blue", "red", "blue", "red", "red", "blue"]
     },
     {
       "title": "Tooth Fairy",
@@ -554,15 +558,15 @@
       "spice": 2,
       "no_revisit": true,
       "map": [
-        ". b g . # g",
-        ". # # # # #",
-        "r # . # r #",
         "# # # # # #",
-        "# . S . b #",
+        "# r # . S .",
         "# # # # # #",
-        ". # . . # R"
+        "# b # . # R",
+        "# # # r # .",
+        "# g # # # g",
+        ". . # g # #"
       ],
-      "stack": ["blue", "green", "green", "blue", "red"]
+      "stack": ["green", "green", "green", "blue", "red"]
     },
     {
       "title": "Toll Booth",
@@ -570,16 +574,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "#  #  #  #  #  #",
-        "#  .  S  .  #  .",
-        "#  r  #  #  #  #",
-        "#  r  #  b  #  .",
-        "#  #  #  #  #  b",
-        "#  b  #  g  #  .",
-        "#  #  #  =r #  r",
-        "#  .  .  .  #  #"
+        "#  =b #  #  #  .",
+        "#  .  #  b  #  #",
+        "#  b  #  #  #  r",
+        "#  g  #  r  #  g",
+        "#  r  #  #  #  .",
+        "S  #  #  .  #  #",
+        "#  .  #  .  #  .",
+        "#  =r #  #  #  ."
       ],
-      "stack": ["green", "red", "blue", "red", "red", "blue", "blue"]
+      "stack": ["red", "green", "blue", "blue", "red", "green", "red"]
     },
     {
       "title": "Thunderstorm",
@@ -587,15 +591,15 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        "r # . . . .",
-        "# # < # # #",
-        "# b g # . S",
+        "# r > # # #",
+        "# . # . # b",
+        "# S # # # g",
+        "# . # b # .",
         "# # # # # #",
-        "# r . # b #",
-        "# g . # r #",
-        "# # # # # #"
+        "# b # g r #",
+        "# # # # < #"
       ],
-      "stack": ["green", "red", "blue", "red", "green", "red", "blue"]
+      "stack": ["red", "blue", "green", "red", "blue", "green", "blue"]
     },
     {
       "title": "Ring Road",
@@ -603,16 +607,16 @@
       "spice": 3,
       "no_revisit": true,
       "map": [
-        ". . . # S #",
-        ". # . # . #",
-        "r # # # # #",
-        ". # . # r #",
-        ". # # # # #",
-        ". # b # b #",
-        "b # # # # #",
-        "# # g r # ."
+        "# # # # # #",
+        "# . # b g #",
+        "# S # # # #",
+        "# . # . . #",
+        "# . # g g #",
+        "# # # # # #",
+        "# b # . # r",
+        "# # # b # ."
       ],
-      "stack": ["red", "green", "blue", "blue", "red", "blue", "red"]
+      "stack": ["blue", "green", "red", "green", "green", "blue", "blue"]
     }
   ]
 }

@@ -285,8 +285,9 @@ static func draw_beg(ci: CanvasItem, at: Vector2, text: String, t: float, alpha 
 	var x := clampf(at.x - w / 2.0, 30.0, ci.get_viewport_rect().size.x - 30.0 - w)
 	var box := Rect2(x, at.y - 30.0 - h + bob, w, h)
 	DrawUtil.rrect(ci, Rect2(box.position + Vector2(0, 8), box.size), Color(0, 0, 0, 0.22 * alpha), 30)
-	DrawUtil.rrect(ci, box, Color(1, 1, 1, alpha), 30)
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(at.x - 22, box.end.y - 1), Vector2(at.x + 22, box.end.y - 1), Vector2(at.x, box.end.y + 26)]), Color(1, 1, 1, alpha))
+	DrawUtil.rrect(ci, box.grow(3), Color(Palette.BUBBLE_RIM, Palette.BUBBLE_RIM.a * alpha), 33)
+	DrawUtil.rrect(ci, box, Color(Palette.BUBBLE, alpha), 30)
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(at.x - 22, box.end.y - 1), Vector2(at.x + 22, box.end.y - 1), Vector2(at.x, box.end.y + 26)]), Color(Palette.BUBBLE, alpha))
 	var f := UiTheme.font()
 	for i in lines.size():
 		var lw := f.get_string_size(str(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, px).x

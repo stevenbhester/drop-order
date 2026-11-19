@@ -651,7 +651,7 @@ func open_zone(zk: int) -> void:
 		Sfx.play("kaching", 1.0, -2.0)
 		Sfx.play("jingle", 1.1, -4.0)
 		Sfx.play("whoosh", 0.7, -4.0)
-		Sfx.haptic(45, 1.0)
+		Sfx.haptic(45, 1.0, "road_map:open_zone")
 		for g in gates:
 			if int(g["zone"]) == zk:
 				var c := _o(g["pos"])
@@ -718,7 +718,7 @@ func _roll_van() -> void:
 			van.inviting = true
 			Sfx.play("pop", 1.1, -2.0)
 			Sfx.play("star", 1.2, -8.0)
-		Sfx.haptic(16)
+		Sfx.haptic(16, 1.0, "road_map:_roll_van")
 		drive_done.emit()
 
 
@@ -831,13 +831,13 @@ func _gui_input(event: InputEvent) -> void:
 						# Behind a boss who has to be beaten first: his ticket jumps.
 						Sfx.play("bonk", 0.9, -4.0)
 						Sfx.play("laugh", 1.2, -10.0)
-						Sfx.haptic(14)
+						Sfx.haptic(14, 1.0, "road_map:_gui_input")
 						_pop_stop = Boss.blocker(levels[hit].number) - 1
 						_pop_t0 = _t
 					elif hit >= 0 and hit == _pressed and Zones.is_open(Zones.of(levels[hit].number)) and not Zones.reached(levels[hit].number):
 						# Not got that far yet: the job in the way hops, and a note says which.
 						Sfx.play("bonk", 0.9, -4.0)
-						Sfx.haptic(14)
+						Sfx.haptic(14, 1.0, "road_map:_gui_input")
 						var way := Zones.in_the_way(levels[hit].number)
 						_pop_stop = way - 1
 						_pop_t0 = _t
@@ -847,7 +847,7 @@ func _gui_input(event: InputEvent) -> void:
 					elif hit >= 0 and hit == _pressed and not Zones.level_open(levels[hit].number):
 						# A locked zone: the gate's sign says how many packages it wants.
 						Sfx.play("bonk", 0.9, -4.0)
-						Sfx.haptic(14)
+						Sfx.haptic(14, 1.0, "road_map:_gui_input")
 						_gate_flash = Zones.of(levels[hit].number)
 						_gate_flash_t = _t
 					elif hit >= 0 and hit == _pressed:
@@ -1039,14 +1039,19 @@ func _draw() -> void:
 
 ## Background things (scenery, the board's clippings and notes) are drawn faint and outlined in pencil,
 ## as if sketched on the map, so that what can be tapped (anything on a pinned ticket) stands out.
-const PENCIL := Color(0.25, 0.22, 0.3, 0.28)
+## (Night mode: a charcoal board instead of cork, charcoal sheets, chalk-grey pencil. The tickets stay paper,
+## so what can be tapped is what's bright.)
+var PENCIL := Color(0.25, 0.22, 0.3, 0.28) if not Palette.night else Color(0.85, 0.86, 0.92, 0.22)
 
 
 static func _bg(c: Color) -> Color:
+	if Palette.night:
+		return Color.from_hsv(c.h, c.s * 0.3, lerpf(c.v, 0.42, 0.7), c.a * 0.8)
 	return Color.from_hsv(c.h, c.s * 0.38, lerpf(c.v, 0.96, 0.42), c.a * 0.85)
 
 
-const CORK := Color("c99560")
+var CORK := Color("c99560") if not Palette.night else Color("25272d")
+const NIGHT_SHEET := Color("33363e")
 const PAPER := Color("fbf6ea")
 const STRING := Color("d6303d")
 
@@ -1071,6 +1076,8 @@ func _draw_ground(y0: float, y1: float) -> void:
 		var def: Dictionary = reg["def"]
 		var night: bool = def["kind"] == "night"
 		var col: Color = (def["ground"] as Color).lerp(PAPER, 0.62) if not night else Color("2a3156")
+		if Palette.night:
+			col = NIGHT_SHEET.lerp(def["ground"] as Color, 0.1 if not night else 0.3)
 		var rect := Rect2(Vector2(46, top - scroll), Vector2(W - 92, bot - top))
 		var tilt := 0.006 * (1.0 if k % 2 == 0 else -1.0)
 		draw_set_transform(rect.get_center(), tilt, Vector2.ONE)
@@ -1079,6 +1086,8 @@ func _draw_ground(y0: float, y1: float) -> void:
 		draw_rect(r, col)
 		# The printed streets.
 		var line := col.darkened(0.06) if not night else Color(0.55, 0.7, 1.0, 0.18)
+		if Palette.night:
+			line = Color(1, 1, 1, 0.06)
 		var gx := r.position.x + 40.0
 		while gx < r.end.x:
 			draw_line(Vector2(gx, r.position.y), Vector2(gx, r.end.y), line, 3.0)
@@ -1093,7 +1102,7 @@ func _draw_ground(y0: float, y1: float) -> void:
 		# Tape at the corners.
 		for c in [r.position, Vector2(r.end.x, r.position.y), Vector2(r.position.x, r.end.y), r.end]:
 			draw_set_transform(rect.get_center() + c.rotated(tilt), tilt + (0.6 if c.x * c.y > 0 else -0.6), Vector2.ONE)
-			draw_rect(Rect2(-46, -16, 92, 32), Color(1, 0.97, 0.85, 0.7))
+			draw_rect(Rect2(-46, -16, 92, 32), Color(1, 0.97, 0.85, 0.7 if not Palette.night else 0.3))
 			draw_set_transform(rect.get_center(), tilt, Vector2.ONE)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Board clutter (a coffee ring, clippings, photos, stray pins).
@@ -1160,8 +1169,8 @@ func _draw_depot() -> void:
 	DrawUtil.rrect(self, Rect2(-232, -102, 464, 210), PAPER, 10)
 	draw_rect(Rect2(-232, -102, 464, 54), Palette.ACCENT)
 	_text("LAST MILE COURIERS", Vector2(0, -74), 34, Color.WHITE)
-	_text("DISPATCH", Vector2(0, -16), 46, Palette.TEXT)
-	_text("the last independent courier in town", Vector2(0, 30), 22, Palette.TEXT_SOFT)
+	_text("DISPATCH", Vector2(0, -16), 46, Palette.INK)
+	_text("the last independent courier in town", Vector2(0, 30), 22, Palette.INK_SOFT)
 	draw_circle(Vector2(0, -102), 13.0, Color("e03131"))
 	draw_circle(Vector2(-4, -106), 4.0, Color(1, 1, 1, 0.6))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1237,7 +1246,7 @@ func _draw_stop(i: int) -> void:
 	# Each shows its packages along the bottom: what winning it adds to the count delivered.
 	var untried := not done and not is_next
 	var band := Color("b9b2a4")
-	var ink := Palette.TEXT
+	var ink := Palette.INK
 	if stale:
 		band = Color("4a7bd6")
 	elif done:
@@ -1435,7 +1444,7 @@ func _tap_spur(k: int) -> void:
 		return
 	# Not open yet: it shakes its head.
 	Sfx.play("bonk", 1.1, -6.0)
-	Sfx.haptic(14, 0.6)
+	Sfx.haptic(14, 0.6, "road_map:_tap_spur")
 	sp["shake"] = 0.35
 
 
@@ -1500,7 +1509,7 @@ func reveal_detour(id: String) -> bool:
 				if _reveal == k:
 					Sfx.play("pop", 1.1, -4.0)
 					Sfx.play("sparkle", 1.2, -6.0)
-					Sfx.haptic(16))
+					Sfx.haptic(16, 1.0, "road_map:reveal_detour"))
 			var mid: float = ((spurs[k]["a"] as Vector2).y + (spurs[k]["b"] as Vector2).y) / 2.0
 			var visible_mid := pad_top + (size.y - pad_top - pad_bottom) * 0.6
 			scroll = clampf(mid - visible_mid, min_scroll(), max_scroll())
@@ -1519,7 +1528,7 @@ func reveal_chest(n: int) -> bool:
 				if _reveal == k:
 					Sfx.play("pop", 1.1, -4.0)
 					Sfx.play("sparkle", 1.2, -6.0)
-					Sfx.haptic(16))
+					Sfx.haptic(16, 1.0, "road_map:reveal_chest"))
 			var mid: float = ((spurs[k]["a"] as Vector2).y + (spurs[k]["b"] as Vector2).y) / 2.0
 			var visible_mid := pad_top + (size.y - pad_top - pad_bottom) * 0.6
 			scroll = clampf(mid - visible_mid, min_scroll(), max_scroll())
@@ -1585,9 +1594,10 @@ func _draw_intro() -> void:
 	draw_set_transform(piv, 0.0, Vector2.ONE * s)
 	var rr := Rect2(r.position - piv, r.size)
 	DrawUtil.rrect(self, Rect2(rr.position + Vector2(0, 8), rr.size), Color(0, 0, 0, 0.18 * k), 28)
-	DrawUtil.rrect(self, rr, Color(1, 1, 1, k), 28)
+	DrawUtil.rrect(self, rr.grow(3), Color(Palette.BUBBLE_RIM, Palette.BUBBLE_RIM.a * k), 31)
+	DrawUtil.rrect(self, rr, Color(Palette.BUBBLE, k), 28)
 	var tail := PackedVector2Array([Vector2(-18, 0), Vector2(18, 0), Vector2(0, 26)]) if not below else PackedVector2Array([Vector2(-18, 0), Vector2(18, 0), Vector2(0, -26)])
-	draw_colored_polygon(tail, Color(1, 1, 1, k))
+	draw_colored_polygon(tail, Color(Palette.BUBBLE, k))
 	var y := rr.position.y + 58.0
 	for ln in lines:
 		_text(str(ln[0]), Vector2(rr.position.x + bw / 2.0, y), int(ln[1]), Color(ln[2] as Color, k))
@@ -1595,7 +1605,7 @@ func _draw_intro() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if t > 1.4:
 		var hint_a := clampf((t - 1.4) / 0.4, 0.0, 1.0) * (0.55 + 0.25 * sin(t * 3.0))
-		_text("Tap the detour for a look, or anywhere else to carry on", Vector2(W / 2.0, size.y - pad_bottom - 40.0), 26, Color(Palette.TEXT, hint_a), 8, Color(1, 1, 1, hint_a))
+		_text("Tap the detour for a look, or anywhere else to carry on", Vector2(W / 2.0, size.y - pad_bottom - 40.0), 26, Color(Palette.TEXT, hint_a), 8, Color(Palette.BG, hint_a))
 
 
 func _ease_io(x: float) -> float:
@@ -1702,7 +1712,7 @@ func _ticket_pin(title: String, live: bool, pin: Color) -> void:
 	var tpx := 21
 	while tpx > 14 and f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tpx).x > w - 18:
 		tpx -= 1
-	draw_string(f, Vector2(-w / 2.0, h / 2.0 - 16), title, HORIZONTAL_ALIGNMENT_CENTER, w, tpx, Color(Palette.TEXT, 0.8 if live else 0.4))
+	draw_string(f, Vector2(-w / 2.0, h / 2.0 - 16), title, HORIZONTAL_ALIGNMENT_CENTER, w, tpx, Color(Palette.INK, 0.8 if live else 0.4))
 	draw_circle(Vector2(0, -h / 2.0 + 4), 15.0, Color(0, 0, 0, 0.2))
 	draw_circle(Vector2(-2, -h / 2.0), 14.0, pin)
 	draw_circle(Vector2(-6, -h / 2.0 - 4), 4.5, Color(1, 1, 1, 0.65))
@@ -2104,7 +2114,8 @@ func _draw_fog(y0: float, y1: float) -> void:
 	var gy := _fog_line()
 	if gy == -INF or gy < y0:
 		return
-	var fog := Color(0.86, 0.83, 0.78)
+	# (At night a dusk-dark fog over the charcoal board: a cream one washed the top of the map out.)
+	var fog := Color(0.86, 0.83, 0.78) if not Palette.night else Color(0.12, 0.13, 0.16)
 	var top := maxf(y0, -400.0)
 	var y := top
 	while y < gy - 130.0:

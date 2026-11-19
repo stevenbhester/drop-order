@@ -41,7 +41,7 @@ static func count_badge(ci: CanvasItem, c: Vector2, s: float, n: int, col: Color
 	rrect(ci, Rect2(r.position + Vector2(0, s * 0.03), r.size).grow(s * 0.025), Color(0, 0, 0, 0.18), h)
 	rrect(ci, r.grow(s * 0.025), col.darkened(0.1), h)
 	rrect(ci, r, Color.WHITE, h)
-	ci.draw_string(f, c + Vector2(-tw / 2.0, fs * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+	ci.draw_string(f, c + Vector2(-tw / 2.0, fs * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.INK)
 
 
 ## A cardboard-ish package in its colour, centred on `c` (square, `s` across).

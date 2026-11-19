@@ -98,12 +98,16 @@ var _fs := 0                     # the foresight this stroke was begun with (0: 
 var _fs_committed := 0           # tiles of `seg` the van's committed to
 var _fs_dist := 0.0              # how far along `seg` the van has got (tiles)
 var _fs_released := false        # finger up: the van's driving the rest, then the stroke ends
+var _fs_hold := 0.0              # (game clock) the van waits on its tile till then: packages are coming and going
+var _last_handoff := 0.0         # how long the last stop's packages take to leave or reach the van (_handoff_time)
 var _fs_rot0 := 0.0              # the way the van faced when the stroke began (for undo)
 var _seg_cols: Array = []        # while driving: the tint of each stretch of `seg`
 var _load_drag := {}             # a press on the chute: {at, view, moved}
 ## True when the last retry_requested took a gas tank (Main shows the "-1" on the gauge).
 var retry_paid := false
 var history: Array = []          # per driven segment: { "len", "state", "rot" } before it
+var _ev_gen := 0                 # bumped by each undo: event animations set off before it don't play
+var _auto_rest: Array = []        # drive_tiles: the steps left after a locker stop (see _auto_continue)
 var undo_left := UNDOS_PER_ATTEMPT   # undos left this attempt (free ones, then the 3 a tank buys)
 ## Gas spent on each level this session, kept across retries: _attempt_key() -> {"undo": tanks, "hint": tanks}.
 ## On a level, the first tank for undos buys 3 more, the second makes them unlimited; the first for hints
@@ -145,6 +149,7 @@ var sim_state: Dictionary
 var combo := 0
 var _fired := 0
 var _drive_len := 0.0
+var _legs: Array = []              # the drive in stretches: [from tile, tiles, seconds driving, seconds stopped after]
 var _vis_cursor := 0.0           # timeline: when the next stack animation may start (s)
 var _effects_end := 0.0          # timeline: when the last scheduled animation finishes (s)
 var _denied := Vector2i(-99, -99)
@@ -434,7 +439,7 @@ func _part_done() -> void:
 		Progress.set_mega_part(str(side.get("id", "")), part + 1)
 		Progress.momentum += 1
 	Sfx.play("win")
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "game:_part_done")
 	var dir := level.exit_dir()
 	fx.say(board.size_px() / 2.0, ("ZONE %d!" if _speedrun() else "PART %d DONE!") % (part + 1), Palette.GOOD.darkened(0.15), int(board.tile * 0.5))
 	fx.burst(van.position, Color("38d9a9"), 16, board.tile * 3.0, board.tile * 0.1)
@@ -466,8 +471,8 @@ func _start_side() -> void:
 			timing = true
 		_side_status()
 		return
-	if part == 0 and Boss.is_boss(side) and not Progress.auto:
-		# The villain laughs you in, every time.
+	if part == 0 and BossIntro.should_show_side(side):
+		# The villain laughs you in (once a session: a retry goes straight back to the job).
 		var bi := BossIntro.new()
 		bi.side = side
 		bi.level = level
@@ -559,7 +564,7 @@ func _twist_fail(msg: String) -> void:
 	timing = false
 	_update_drive_button()
 	Sfx.play("fail", 1.0, -2)
-	Sfx.haptic(25)
+	Sfx.haptic(25, 1.0, "game:_twist_fail")
 	van.shake()
 	stack_view.flash_remaining()
 	_say(msg + "\nRetry?", Palette.ACCENT.darkened(0.12))
@@ -582,6 +587,11 @@ func _symbol_at(t: Vector2i) -> Dictionary:
 			if hd.color == "any":
 				return {"kind": "locker" if left > 0 else "house_done", "color": Color("8f98aa"), "name": "any", "count": left, "at": at}
 			return {"kind": k, "color": Palette.pkg(hd.color), "name": _color_word(hd.color), "count": left, "at": at}
+	for k in level.lockers.size():
+		if level.lockers[k].pos == t:
+			var hc: String = str(sim_state.get("held", [])[k]) if k < sim_state.get("held", []).size() else ""
+			return {"kind": "park", "color": Palette.pkg(hc) if hc != "" else Color("6f7a90"), "name": _color_word(hc) if hc != "" else "",
+				"count": 1 if hc != "" else 0, "at": at}
 	for k in level.shops.size():
 		var sd = level.shops[k]
 		if sd.pos == t:
@@ -929,7 +939,7 @@ func _cz_track(at: Vector2) -> void:
 	_cz_in = d < (150.0 if _cz_in else 95.0)
 	if _cz_in and not was:
 		Sfx.play("tick", 0.7, -4.0)
-		Sfx.haptic(8)
+		Sfx.haptic(8, 1.0, "game:_cz_track")
 
 
 func _cancel_zone_tick(delta: float) -> void:
@@ -950,7 +960,7 @@ func _cancel_zone_tick(delta: float) -> void:
 		_cz_t = maxf(_cz_t - delta * 3.0, 0.0)
 	if before < CANCEL_HOLD and _cz_t >= CANCEL_HOLD:
 		Sfx.play("gate", 0.8, -4.0)
-		Sfx.haptic(16)
+		Sfx.haptic(16, 1.0, "game:_cancel_zone_tick")
 	_cz.position = Vector2.ZERO
 	_cz.size = get_viewport_rect().size
 	_cz.queue_redraw()
@@ -993,7 +1003,7 @@ func _draw_cancel_zone() -> void:
 	var txt := "RELEASE TO CANCEL" if full else "HOLD TO CANCEL"
 	var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x
 	var ty := c.y - r - 30.0
-	DrawUtil.rrect(_cz, Rect2(c.x - tw / 2.0 - 22.0, ty - 46.0, tw + 44.0, 64.0), Color(1, 1, 1, 0.95), 32)
+	DrawUtil.rrect(_cz, Rect2(c.x - tw / 2.0 - 22.0, ty - 46.0, tw + 44.0, 64.0), Color(Palette.BUBBLE, 0.95), 32)
 	_cz.draw_string(f, Vector2(c.x - tw / 2.0, ty), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Color("d7192a") if full else Palette.TEXT)
 
 
@@ -1533,7 +1543,7 @@ func _pump_locked() -> bool:
 ## Something on the bar that isn't open yet (a padlock on it) was tapped: when it comes.
 func _on_locked_pressed(what: String) -> void:
 	Sfx.play("untick", 0.9, -6.0)
-	Sfx.haptic(8, 0.4)
+	Sfx.haptic(8, 0.4, "game:_on_locked_pressed")
 	var tip := TipBubble.new()
 	tip.above = true
 	if what == "radio":
@@ -1588,7 +1598,7 @@ func _draw_stars() -> void:
 func _layout() -> void:
 	# The pump's in its place all along: padlocked till the helpers are metered (the Baron installs it:
 	# LimitsScene), so nothing on the bar ever moves.
-	gas_chip.visible = true
+	gas_chip.visible = state != State.WON          # (the finish card's up: it showed through "Replay")
 	gas_chip.locked = _pump_locked()
 	_pump_gap.visible = false
 	var vp := get_viewport_rect().size
@@ -1870,8 +1880,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not event.pressed and not _sym_press.is_empty():
 			var sp := _sym_press
 			_sym_press = {}
-			if event.position.distance_to(sp["pos"]) < 24.0:
-				_explain(sp["tile"])
+			# A quick tap does what can be done first: a locker beside the van is used. A locker that can't
+			# be used yet says how (holding it still explains it); anything else explains itself.
+			if event.position.distance_to(sp["pos"]) < 24.0 and not _tap_locker(sp["tile"]):
+				if _locker_at(sp["tile"]) >= 0 and state == State.IDLE:
+					_say("Stop beside the locker, then tap it.")
+				else:
+					_explain(sp["tile"])
 			return
 		if dpad_mode:
 			return
@@ -1901,7 +1916,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## The houses still waiting for a package of `color_name` hop, with a ring in their colour.
 func _point_out(color_name: String) -> void:
 	Sfx.play("tick", 1.2, -4)
-	Sfx.haptic(6)
+	Sfx.haptic(6, 1.0, "game:_point_out")
 	for h in level.houses.size():
 		if level.houses[h].color == color_name and sim_state["fills"][h] < level.houses[h].order:
 			var house: House = board.house_nodes[h]
@@ -1953,7 +1968,7 @@ func _begin_plan() -> void:
 	_show_seg()
 	_preview_load()
 	Sfx.play("tick", 0.85)
-	Sfx.haptic(8)
+	Sfx.haptic(8, 1.0, "game:_begin_plan")
 
 
 ## While planning: the chute shows the load as it'll be at the end of the route so far (so its mouth holds
@@ -2067,7 +2082,7 @@ func _block(t: Vector2i) -> void:
 	blocked_at = t
 	board.show_block(seg.back(), t)
 	Sfx.play("bonk", 0.7, -4)
-	Sfx.haptic(16)
+	Sfx.haptic(16, 1.0, "game:_block")
 
 
 func _unblock() -> void:
@@ -2083,10 +2098,17 @@ func _refresh_tags() -> void:
 	if board.exit_zone:
 		board.exit_zone.open = Sim.all_delivered(level, sim_state)
 	var st: Dictionary = seg_states.back() if (state == State.DRAWING and not seg_states.is_empty()) else sim_state
+	stack_view.owed = _owed(sim_state)
+	# Everything aboard delivered but some still out there: the chute's "Awaiting pickup" pulses red, so an
+	# empty van doesn't read as "done". (Not on a job that starts empty, before its first delivery.)
+	stack_view.owed_alert = sim_state["stack"].is_empty() and Sim.delivered_count(sim_state) > 0
 	_queue_plan()
 	# Pickups the planned route will empty hold still and fade.
 	for k in board.shop_nodes.size():
 		board.shop_nodes[k].planned = state == State.DRAWING and int(st["picked"][k]) > int(sim_state["picked"][k])
+	var ready := _locker_ready()
+	for k in board.locker_nodes.size():
+		(board.locker_nodes[k] as House).next_up = k == ready      # (the one the van can use: tap it)
 	var top := Sim.top_color(level, st)
 	for h in level.houses.size():
 		var house: House = board.house_nodes[h]
@@ -2096,6 +2118,29 @@ func _refresh_tags() -> void:
 		house.next_up = need > 0 and top != "" and level.houses[h].color == top
 		if house.next_up and not was and state == State.DRAWING:
 			house.hop()
+
+
+## Packages still owed that aren't aboard (parked in a locker, or still waiting at a pickup), counted by
+## colour in the order they're met, for the chute's "Awaiting pickup": [[colour, n], ...].
+func _owed(s: Dictionary) -> Array:
+	var count := {}
+	var order := []
+	var add := func(c: String, n: int):
+		if n <= 0:
+			return
+		if not count.has(c):
+			order.append(c)
+		count[c] = int(count.get(c, 0)) + n
+	var held: Array = s.get("held", [])
+	for k in level.lockers.size():
+		if k < held.size() and str(held[k]) != "":
+			add.call(str(held[k]), 1)
+	for k in level.shops.size():
+		add.call(str(level.shops[k].color), int(level.shops[k].count) - int(s["picked"][k]))
+	var out := []
+	for c in order:
+		out.append([c, count[c]])
+	return out
 
 
 ## While planning, the chute keeps the real load and marks up what the plan will do to it: the packages it
@@ -2135,9 +2180,22 @@ func _queue_plan() -> void:
 		if int(spare.get(cur[i], 0)) > 0:
 			gone.push_front(cur[i])
 			spare[cur[i]] = int(spare[cur[i]]) - 1
-	for i in gone.size():
-		marks.append("gone")
-	stack_view.show_plan(st + gone, marks)
+	# Of those, the ones the plan leaves in a parking locker aren't delivered: they're marked "P".
+	var parked := {}
+	for c in seg_states.back().get("held", []):
+		if c != "":
+			parked[c] = int(parked.get(c, 0)) + 1
+	for c in sim_state.get("held", []):
+		if c != "":
+			parked[c] = int(parked.get(c, 0)) - 1
+	var gmarks := []
+	gmarks.resize(gone.size())
+	gmarks.fill("gone")
+	for i in range(gone.size() - 1, -1, -1):
+		if int(parked.get(gone[i], 0)) > 0:
+			gmarks[i] = "park"
+			parked[gone[i]] = int(parked[gone[i]]) - 1
+	stack_view.show_plan(st + gone, marks + gmarks)
 
 
 ## The chute is showing a plan's preview while the van really drives it (headlights: it follows the finger,
@@ -2257,7 +2315,7 @@ func _maybe_deny(t: Vector2i) -> void:
 	_denied = t
 	board.gate_nodes[t].deny()
 	Sfx.play("bonk", 1.3, -8)
-	Sfx.haptic(10)
+	Sfx.haptic(10, 1.0, "game:_maybe_deny")
 
 
 func _extend(t: Vector2i) -> void:
@@ -2273,7 +2331,7 @@ func _extend(t: Vector2i) -> void:
 	_refresh_tags()
 	_preview_load()
 	Sfx.play("tick", 1.0 + minf(seg.size(), 24) * 0.015, -2)
-	Sfx.haptic(6)
+	Sfx.haptic(6, 1.0, "game:_extend")
 
 
 func _retract() -> void:
@@ -2286,7 +2344,7 @@ func _retract() -> void:
 	_refresh_tags()
 	_preview_load()
 	Sfx.play("untick", 1.0, -4)
-	Sfx.haptic(4)
+	Sfx.haptic(4, 1.0, "game:_retract")
 
 
 ## The plan is sent: the van drives it. If the X was showing (the player was pushing into wreckage), it
@@ -2302,7 +2360,7 @@ func _release() -> void:
 		_cancel_plan()
 		Sfx.play("crunch", 0.9, 0.0)
 		Sfx.play("slam", 1.2, -6.0)
-		Sfx.haptic(25)
+		Sfx.haptic(25, 1.0, "game:_release")
 		_say("Route scrapped. Start again from the van.")
 		return
 	_cz_in = false
@@ -2341,6 +2399,8 @@ func _fs_tick(delta: float) -> void:
 	if _fs == 0 or seg.size() < 2 or not (state == State.DRAWING or (state == State.DRIVING and _fs_released)):
 		return
 	var goal := float(_fs_committed)
+	if _now() < _fs_hold:
+		return            # (stopped on a tile while its packages come and go)
 	if _fs_dist < goal:
 		# Quick off the mark, easing in as it catches up: one smooth follow, not a stop at every tile.
 		var speed := clampf((goal - _fs_dist) * 10.0, 3.0, DRIVE_SPEED * 2.5)
@@ -2358,7 +2418,15 @@ func _fs_tick(delta: float) -> void:
 			board.fire.emit(van.position)
 		while _fired < seg.size() - 1 and _fs_dist >= _fired + 1 - 0.02:
 			_fired += 1
+			_last_handoff = 0.0
 			_fs_arrive(_fired)
+			if _last_handoff > 0.0:
+				# Packages on the move here: the van pulls up on this tile till they've gone or landed, then
+				# catches up with the finger.
+				_fs_dist = float(_fired)
+				van.position = board.center(seg[_fired])
+				_fs_hold = _now() + _last_handoff
+				break
 	if _fs_released and _fs_dist >= goal:
 		_fs = 0
 		_fs_committed = 0
@@ -2398,6 +2466,16 @@ func _fs_land() -> void:
 func drive_tiles(tiles: Array) -> void:
 	if state != State.IDLE or tiles.size() < 2 or tiles[0] != route.back():
 		return
+	# A solver's steps can stop to use a locker (the same tile twice): drive to there, use it, drive on;
+	# segment_finished comes once, at the very end.
+	var cut := 1
+	while cut < tiles.size() and tiles[cut] != tiles[cut - 1]:
+		cut += 1
+	_auto_rest = tiles.slice(cut - 1) if cut < tiles.size() else []
+	if cut < 2:
+		_auto_continue()
+		return
+	tiles = tiles.slice(0, cut)
 	seg = tiles.duplicate()
 	_clear_hint()
 	van.inviting = false
@@ -2443,7 +2521,11 @@ func _on_settings() -> void:
 	set_dpad_mode(Progress.drive_mode == "dpad")
 	if convoy:
 		convoy.visible = Progress.trail
+	# All three helpers follow "Unlimited gas" (Progress.unlimited_hints): refresh every badge, not just
+	# Hint's (Call and Undo used to keep what they showed before the toggle, mid-job).
 	_update_hint()
+	_update_radio()
+	_update_undo()
 	_layout()
 
 
@@ -2522,7 +2604,7 @@ func _dpad_drive() -> void:
 		Sfx.play("untick", 0.8, -6)
 		return
 	Sfx.play("click")
-	Sfx.haptic(30, 1.0)
+	Sfx.haptic(30, 1.0, "game:_dpad_drive")
 	_release()
 	_update_drive_button()
 
@@ -2580,30 +2662,78 @@ func _drive() -> void:
 	# The tint of each stretch: the package on top while driving it.
 	_seg_cols = []
 	var st := Sim.copy_state(sim_state)
+	# Where something happens, the van pulls up on that tile and waits till every package has left it or
+	# landed in it, so they never chase it down the road (a warehouse loads one parcel at a time).
+	var stops := {}
 	for i in range(1, seg.size()):
 		_seg_cols.append(_tint(Sim.top_color(level, st)))
-		Sim.arrive(level, st, seg[i], route + seg.slice(0, i))
+		var ev: Array = Sim.arrive(level, st, seg[i], route + seg.slice(0, i))["events"]
+		var wait := _handoff_time(ev)
+		if wait > 0.0 and i < seg.size() - 1:
+			stops[i] = wait
 	_update_undo()
 	_refresh_tags()
-	var ramp := minf(RAMP, _drive_len / 2.0)
-	var dur := (_drive_len + 2.0 * ramp) / DRIVE_SPEED
+	_legs = []
+	var from := 0
+	var dur := 0.0
+	for i in range(1, seg.size()):
+		if stops.has(i) or i == seg.size() - 1:
+			var n := float(i - from)
+			var drive := (n + 2.0 * minf(RAMP, n / 2.0)) / DRIVE_SPEED
+			_legs.append([from, n, drive, float(stops.get(i, 0.0))])
+			dur += drive + float(stops.get(i, 0.0))
+			from = i
 	var tw := create_tween()
 	tw.tween_method(_drive_tick, 0.0, dur, dur)
 	tw.tween_callback(_drive_done)
 
 
-## Distance along the segment at time t: accelerate over RAMP tiles, cruise, brake.
+## How long the packages at a stop take to leave the van or land in it (as _show_events plays them out),
+## counted from the van reaching the tile. 0 when nothing there touches the van.
+func _handoff_time(events: Array) -> float:
+	var cursor := 0.0
+	var done := 0.0
+	for ev in events:
+		match ev["type"]:
+			"swap":
+				cursor += 0.14
+			"deliver", "park":
+				done = maxf(done, cursor + DROP_TIME)
+				cursor += 0.08
+			"pickup", "unpark":
+				done = maxf(done, cursor + FLY_TIME)
+				cursor += FLY_TIME + 0.02
+	# (Each queued animation starts a frame or so after the one before it: a little slack per package.)
+	return done + 0.03 * events.size() if done > 0.0 else 0.0
+
+
+## Distance along the segment at time t: each stretch accelerates over RAMP tiles, cruises and brakes,
+## then the van waits there while its packages come and go.
 func _dist_at(t: float) -> float:
-	var ramp := minf(RAMP, _drive_len / 2.0)
+	for leg in _legs:
+		var n: float = leg[1]
+		var drive: float = leg[2]
+		if t < drive:
+			return float(leg[0]) + _ease_along(t, n)
+		t -= drive
+		if t < float(leg[3]):
+			return float(leg[0]) + n
+		t -= float(leg[3])
+	return _drive_len
+
+
+## Accelerate over RAMP tiles, cruise, brake: distance after t seconds of a stretch n tiles long.
+func _ease_along(t: float, n: float) -> float:
+	var ramp := minf(RAMP, n / 2.0)
 	var v := DRIVE_SPEED
 	var ta := 2.0 * ramp / v
-	var tc := (_drive_len - 2.0 * ramp) / v
+	var tc := (n - 2.0 * ramp) / v
 	if t < ta:
 		return 0.5 * (v / ta) * t * t
 	if t < ta + tc:
 		return ramp + v * (t - ta)
 	var r := maxf(0.0, ta * 2.0 + tc - t)
-	return _drive_len - 0.5 * (v / ta) * r * r
+	return n - 0.5 * (v / ta) * r * r
 
 
 func _drive_tick(t: float) -> void:
@@ -2677,30 +2807,13 @@ func _arrive(k: int) -> bool:
 					stack_view.nod()
 					Sfx.play("bonk", 1.4, -12.0)
 					fx.say(house.base_pos + Vector2(0, -board.tile * 0.55), "Not on top yet!", Palette.pkg(str(level.houses[h].color)).darkened(0.25), int(board.tile * 0.24)))
-	for ev in res["events"]:
-		var t := maxf(_now(), _vis_cursor)
-		match ev["type"]:
-			"swap":
-				_at(t, _show_swap.bind(tile, stack_view.preview))
-				_vis_cursor = t + 0.14
-				_effects_end = maxf(_effects_end, t + 0.3)
-			"deliver":
-				deliveries.append(level.houses[ev["house"]].color)
-				if daily_day >= 0:
-					Progress.daily_reached(daily_day, deliveries.size())
-				_at(t, _launch_package.bind(ev["house"], combo, stack_view.preview))
-				combo += 1
-				_vis_cursor = t + 0.08
-				_effects_end = maxf(_effects_end, t + DROP_TIME + FLY_TIME + 0.02)
-			"pickup":
-				_at(t, _collect_parcel.bind(ev["shop"], stack_view.preview))
-				_vis_cursor = t + FLY_TIME + 0.02
-				_effects_end = maxf(_effects_end, t + FLY_TIME + 0.04)
+	_show_events(res, tile)
+	_last_handoff = _handoff_time(res["events"])
 	if not res["nopes"].is_empty():
 		for h in res["nopes"]:
 			board.house_nodes[h].wobble()
 		Sfx.play("bonk", randf_range(0.95, 1.05), -3)
-		Sfx.haptic(12)
+		Sfx.haptic(12, 1.0, "game:_arrive")
 		combo = 0
 	_show_gates()
 	if level.return_depot and board.depot:
@@ -2718,6 +2831,44 @@ func _arrive(k: int) -> bool:
 	return not res["events"].is_empty()
 
 
+## What happened at a stop (Sim's events), played out on the board and in the chute, one after another.
+func _show_events(res: Dictionary, tile: Vector2i) -> void:
+	var gen := _ev_gen
+	for ev in res["events"]:
+		var t := maxf(_now(), _vis_cursor)
+		match ev["type"]:
+			"swap":
+				_at(t, _if_current.bind(gen, _show_swap.bind(tile, stack_view.preview)))
+				_vis_cursor = t + 0.14
+				_effects_end = maxf(_effects_end, t + 0.3)
+			"deliver":
+				deliveries.append(level.houses[ev["house"]].color)
+				if daily_day >= 0:
+					Progress.daily_reached(daily_day, deliveries.size())
+				_at(t, _if_current.bind(gen, _launch_package.bind(ev["house"], combo, stack_view.preview)))
+				combo += 1
+				_vis_cursor = t + 0.08
+				_effects_end = maxf(_effects_end, t + DROP_TIME + FLY_TIME + 0.02)
+			"pickup":
+				_at(t, _if_current.bind(gen, _collect_parcel.bind(ev["shop"], stack_view.preview)))
+				_vis_cursor = t + FLY_TIME + 0.02
+				_effects_end = maxf(_effects_end, t + FLY_TIME + 0.04)
+			"park":
+				_at(t, _if_current.bind(gen, _park_package.bind(int(ev["locker"]), str(ev["color"]), stack_view.preview)))
+				_vis_cursor = t + 0.08
+				_effects_end = maxf(_effects_end, t + DROP_TIME + FLY_TIME + 0.02)
+			"unpark":
+				_at(t, _if_current.bind(gen, _unpark_package.bind(int(ev["locker"]), str(ev["color"]), stack_view.preview)))
+				_vis_cursor = t + FLY_TIME + 0.02
+				_effects_end = maxf(_effects_end, t + FLY_TIME + 0.04)
+
+
+## Runs an event's animation unless an undo has come since it was set off (it'd play over the rewound board).
+func _if_current(gen: int, cb: Callable) -> void:
+	if gen == _ev_gen:
+		cb.call()
+
+
 ## The van drives over the present: it hops into the van (it's yours if you finish).
 func _take_gift() -> void:
 	gift_taken = true
@@ -2731,7 +2882,7 @@ func _take_gift() -> void:
 	fx.say(at + Vector2(0, -board.tile * 0.4), "A key!" if is_key else "Ooh, shiny!", col.darkened(0.2), int(board.tile * 0.3))
 	Sfx.play("sparkle")
 	Sfx.play("kaching", 1.3, -8.0)
-	Sfx.haptic(20)
+	Sfx.haptic(20, 1.0, "game:_take_gift")
 	van.nudge()
 
 
@@ -2744,7 +2895,7 @@ func _show_swap(tile: Vector2i, was_preview := false) -> void:
 		board.hub_nodes[tile].spin()
 	van.squash()
 	Sfx.play("swap")
-	Sfx.haptic(14)
+	Sfx.haptic(14, 1.0, "game:_show_swap")
 
 
 ## A delivery: the next package drops out of the chute's mouth into the van, then flies on to the house.
@@ -2785,7 +2936,173 @@ func _launch_package(h: int, step: int, was_preview := false) -> void:
 			fx.say(to + Vector2(0, -board.tile * 0.3), CHEERS[mini(step - 1, CHEERS.size() - 1)], col.darkened(0.12), int(board.tile * 0.32))
 		var semis: int = COMBO_STEPS[mini(step, COMBO_STEPS.size() - 1)]
 		Sfx.play("thunk", pow(2.0, semis / 12.0))
-		Sfx.haptic(18))
+		Sfx.haptic(18, 1.0, "game:_launch_package"))
+
+
+## The player taps the parking locker the van's stopped beside: it keeps the top package, or gives back the
+## one it's keeping (Sim.use_locker). Its own undo step. False if there's nothing to do (not stopped beside
+## one, or nothing to put in or take out).
+func use_locker() -> bool:
+	if state != State.IDLE:
+		return false
+	var tile: Vector2i = route.back()
+	if Sim.locker_here(level, sim_state, tile) < 0:
+		return false
+	_clear_hint()
+	_clear_back()
+	history.append({"len": route.size(), "state": Sim.copy_state(sim_state), "rot": van.target_rotation, "deliv": deliveries.size(), "locker": true})
+	timing = true
+	var res := Sim.use_locker(level, sim_state, tile, route.slice(0, route.size() - 1))
+	# (How things stood once it was used too: headlights' Undo backs up to this stop as it was left.)
+	history.back()["after"] = Sim.copy_state(sim_state)
+	history.back()["after_deliv"] = deliveries.size() + res["events"].filter(func(ev): return ev["type"] == "deliver").size()
+	_show_events(res, tile)
+	LevelStats.add(_attempt_key(), "locker_uses")
+	van.squash()
+	if Sim.is_won(level, sim_state, route):
+		_at(maxf(_now(), _effects_end) + 0.1, func():
+			if state == State.IDLE:
+				_win())
+	else:
+		_stranded = _cut_off()
+		_update_undo()
+		if not Sim.has_move(level, route, sim_state):
+			# Used it, and there's no road on from here: that's stuck (once what it set off has landed).
+			_at(maxf(_now(), _effects_end) + 0.15, func():
+				if state == State.IDLE and not Sim.is_won(level, sim_state, route) and not Sim.has_move(level, route, sim_state) \
+						and not _locker_move_left():
+					_fail())
+	_refresh_tags()
+	_update_drive_button()
+	return true
+
+
+## The parking locker on tile `t`, or -1.
+func _locker_at(t: Vector2i) -> int:
+	for k in level.lockers.size():
+		if level.lockers[k].pos == t:
+			return k
+	return -1
+
+
+## Stopped beside a locker that hasn't been used at this stop yet: a move, even with every road gone (the
+## package in it may be the one the house next door wants). Once used here, it doesn't count again (tapping
+## it back is what Undo is for), so a dead end still ends.
+func _locker_move_left() -> bool:
+	if route.is_empty() or Sim.locker_here(level, sim_state, route.back()) < 0:
+		return false
+	return history.is_empty() or not (history.back().get("locker", false) and int(history.back()["len"]) == route.size())
+
+
+## The van's stopped beside a parking locker it can use: the locker that is ( -1 if none).
+func _locker_ready() -> int:
+	if state != State.IDLE or route.is_empty():
+		return -1
+	return Sim.locker_here(level, sim_state, route.back())
+
+
+## A tap on a locker: use it if the van's stopped beside it. True if it was used.
+func _tap_locker(t: Vector2i) -> bool:
+	var k := _locker_ready()
+	if k < 0 or level.lockers[k].pos != t:
+		return false
+	return use_locker()
+
+
+## A hint path that starts by using a locker (the van's tile twice): the locker's pointed out instead of a
+## way to drive. True if so.
+func _locker_hint(path: Array) -> bool:
+	if path.size() < 2 or path[1] != path[0]:
+		return false
+	var k := Sim.locker_here(level, sim_state, path[0])
+	if k < 0:
+		return false
+	var lk: House = board.locker_nodes[k]
+	lk.hop()
+	fx.ring(lk.base_pos + Vector2(0, -board.tile * 0.3), Palette.HINT, board.tile * 0.6)
+	# A finger pressing the locker, on a loop, till it's tapped (use_locker clears the hint).
+	_clear_hint()
+	hint_ghost = GhostFinger.new()
+	hint_ghost.radius = board.tile * 0.3
+	hint_ghost.pts.append(lk.base_pos + Vector2(0, -board.tile * 0.12))
+	board.add_child(hint_ghost)
+	if ghost:
+		ghost.visible = false
+	_say("Tap the locker.")
+	Sfx.play("hint")
+	return true
+
+
+## drive_tiles' steps after a locker stop (first: that stop, then the stop again = use it, then on).
+func _auto_continue() -> void:
+	var rest := _auto_rest
+	_auto_rest = []
+	if rest.size() >= 2 and rest[1] == rest[0]:
+		use_locker()
+		rest = rest.slice(1)
+	if rest.size() >= 2 and state == State.IDLE:
+		drive_tiles(rest)
+	else:
+		if state == State.IDLE and Sim.is_won(level, sim_state, route):
+			await get_tree().create_timer(0.3).timeout      # (the win's on its way)
+		segment_finished.emit.call_deferred()      # (a frame on: whoever called drive_tiles is waiting by then)
+
+
+## A solver path cut where it first uses a locker (the same tile twice): a hint shows the drive there.
+static func _to_locker(path: Array) -> Array:
+	for i in range(1, path.size()):
+		if path[i] == path[i - 1]:
+			return path.slice(0, i)
+	return path
+
+
+## Into a parking locker: the top package drops out of the chute into the van and flies on to the locker,
+## which shuts it in behind an open door till the van comes back past.
+func _park_package(k: int, color: String, was_preview := false) -> void:
+	var lk: House = board.locker_nodes[k]
+	var to := lk.base_pos + Vector2(0, -board.tile * 0.3)
+	var mouth := board.to_local(stack_view.mouth_global())
+	_land_parcels()
+	if not _resync_preview(was_preview):
+		stack_view.pop_top(true)
+		van.set_top(stack_view.top_color())
+	var pkg := _make_flyer(color, mouth)
+	Sfx.play("whoosh", randf_range(0.95, 1.1), -10)
+	var tw := create_tween()
+	tw.tween_method(func(t: float): _fly(t, pkg, mouth, to, board.tile * 0.6), 0.0, 1.0, FLY_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func():
+		pkg.queue_free()
+		_sync_lockers()        # (from the state, not `color`: an undo may have come in while it flew)
+		lk.pop()
+		Sfx.play("thunk", 0.8, -4.0)
+		Sfx.haptic(14, 1.0, "game:_park_package")
+		fx.say(to + Vector2(0, -board.tile * 0.35), "Parked!", Palette.pkg(color).darkened(0.2), int(board.tile * 0.26)))
+
+
+## Out of a parking locker: the package it kept hops back onto the van, on top.
+func _unpark_package(k: int, color: String, was_preview := false) -> void:
+	var lk: House = board.locker_nodes[k]
+	var from := lk.base_pos + Vector2(0, -board.tile * 0.3)
+	_sync_lockers()
+	lk.pop()
+	var pkg := _make_flyer(color, from)
+	Sfx.play("pickup", 0.85)
+	Sfx.haptic(14, 1.0, "game:_unpark_package")
+	var flight := {"pkg": pkg, "color": color, "preview": was_preview}
+	_landing.append(flight)
+	var tw := create_tween()
+	tw.tween_method(_fly_to_van.bind(pkg, from, board.tile * 0.6), 0.0, 1.0, FLY_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func():
+		if _landing.has(flight):
+			_land_parcels(flight)
+		van.nudge())
+
+
+## The parking lockers show what the state says they're keeping (after an undo or a fresh start).
+func _sync_lockers() -> void:
+	var held: Array = sim_state.get("held", [])
+	for k in board.locker_nodes.size():
+		(board.locker_nodes[k] as House).held = str(held[k]) if k < held.size() else ""
 
 
 ## Parcel hops from the shop onto the (moving) van, then lands on top of the stack.
@@ -2796,7 +3113,7 @@ func _collect_parcel(k: int, was_preview := false) -> void:
 	shop.collect()
 	var pkg := _make_flyer(color, from)
 	Sfx.play("pickup")
-	Sfx.haptic(14)
+	Sfx.haptic(14, 1.0, "game:_collect_parcel")
 	var flight := {"pkg": pkg, "color": color, "preview": was_preview}
 	_landing.append(flight)
 	var tw := create_tween()
@@ -2884,7 +3201,7 @@ func _brake(into: Vector2i) -> void:
 	van.target_rotation = dir.angle()
 	board.show_block(route.back(), into)
 	Sfx.play("screech", randf_range(0.95, 1.05), -3)
-	Sfx.haptic(35)
+	Sfx.haptic(35, 1.0, "game:_brake")
 	var tw := create_tween()
 	tw.tween_property(van, "position", nose, 0.16).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
@@ -2924,7 +3241,7 @@ func _after_segment() -> void:
 		_twist_fail("Out of gas! Find the shortest way round.")
 	elif _twist() == "melt" and _melt_left() <= 0.0:
 		_twist_fail("Melted! Every delivery before the clock runs out.")
-	elif not Sim.has_move(level, route, sim_state):
+	elif not Sim.has_move(level, route, sim_state) and not _locker_move_left():
 		_count_segment(true)
 		_fail()
 	else:
@@ -2936,7 +3253,13 @@ func _after_segment() -> void:
 			_say("All delivered! Drive back to the depot.")
 		_update_undo()
 	_refresh_tags()
+	if not level.lockers.is_empty():
+		_at(maxf(_now(), _effects_end) + 0.05, _sync_lockers)     # (stopped: the lockers show the truth)
 	_update_drive_button()
+	if not _auto_rest.is_empty() and state == State.IDLE:
+		_auto_continue.call_deferred()
+		return
+	_auto_rest = []
 	segment_finished.emit()
 
 
@@ -3034,7 +3357,7 @@ func _gas_ad(hint: bool, then: Callable, kind := "") -> void:
 		Progress.refuel()
 		Progress.hint_ad_watched = true
 		Sfx.play("kaching", 1.0, -4)
-		Sfx.haptic(20)
+		Sfx.haptic(20, 1.0, "game:_gas_ad")
 		gas_chip.bump()
 		_say("Tank filled up!", GasChip.FUEL.darkened(0.2))
 		_update_undo()
@@ -3302,7 +3625,7 @@ func _guide_show() -> void:
 		await get_tree().process_frame
 	if not is_inside_tree() or state != State.IDLE:
 		return
-	var path := Solver.solve_from(level, route, sim_state)
+	var path := _to_locker(Solver.solve_from(level, route, sim_state))
 	if path.size() < 3:
 		return
 	_show_hint_run(path.slice(0, maxi(2, int(ceil(path.size() / 2.0)))))
@@ -3424,10 +3747,10 @@ func _on_radio_pressed() -> void:
 ## clear, by Undo and Retry if it's a dead end.
 func _say_call(ok: bool) -> void:
 	if ok:
-		Sfx.haptic(10)
+		Sfx.haptic(10, 1.0, "game:_say_call")
 		fx.ring(van.position, Palette.GOOD, board.tile * 0.7)
 	else:
-		Sfx.haptic(25)
+		Sfx.haptic(25, 1.0, "game:_say_call")
 		fx.ring(van.position, Palette.ACCENT, board.tile * 0.7)
 		if can_undo():
 			undo_button.wiggle()
@@ -3556,7 +3879,7 @@ func _buy_with_can(kind: String) -> void:
 		_update_undo()
 		b.pop()
 		Sfx.play("sparkle", 1.2, -6.0)
-		Sfx.haptic(14)
+		Sfx.haptic(14, 1.0, "game:_buy_with_can")
 		_say("+1 hint!" if kind == "hint" else "+%d calls!" % Progress.RADIO_PER_CAN, Palette.GOOD.darkened(0.2)))
 
 
@@ -3637,7 +3960,7 @@ func _begin_rush(what: String) -> void:
 		return
 	Sfx.play("whoomp", 1.1, -4.0)
 	Sfx.play("sparkle", 1.0, -2.0)
-	Sfx.haptic(35, 1.0)
+	Sfx.haptic(35, 1.0, "game:_begin_rush")
 	var splash := RushSplash.new()
 	splash.kind = what
 	splash.secs = secs
@@ -3685,7 +4008,7 @@ func _rush_tick(delta: float) -> void:
 			ticked = true
 			if now <= int(RushRing.LAST):
 				Sfx.play("tick", 1.5, -4.0)
-				Sfx.haptic(8)
+				Sfx.haptic(8, 1.0, "game:_rush_tick")
 	for what in over:
 		Sfx.play("untick", 0.7, 0.0)
 		_say("%s over!" % Progress.RUSH_NAME[what], RushRing.HOT.darkened(0.2))
@@ -3893,15 +4216,29 @@ func undo() -> void:
 		undo_used = not lights
 	LevelStats.add(_attempt_key(), "undos")
 	undo_count += 1
+	_ev_gen += 1                 # (animations still to come from before this are dropped)
+	for f in _landing:            # (and parcels still flying in won't land in the chute)
+		if is_instance_valid(f["pkg"]):
+			(f["pkg"] as Node).queue_free()
+	_landing.clear()
 	if not _winnable.is_empty():
 		_winnable.pop_back()
 	stars_ctl.queue_redraw()
 	var snap: Dictionary
-	if lights:
+	if bool(history.back().get("locker", false)) and int(history.back()["len"]) == route.size():
+		# Just used a locker here: that's what's taken back (the van stays put).
+		snap = history.pop_back()
+	elif lights:
 		# Back to the last stop behind the van (a stop it's parked on is the one taken back).
 		while history.size() > 1 and int(history.back()["len"]) >= route.size():
 			history.pop_back()
 		snap = history.back()
+		if bool(snap.get("locker", false)) and snap.has("after"):
+			# That stop is where a locker was used: back to it as it was left (the package still parked),
+			# not as it was before the tap (a second Undo there takes the tap back).
+			snap = snap.duplicate()
+			snap["state"] = Sim.copy_state(snap["after"])
+			snap["deliv"] = int(snap.get("after_deliv", snap.get("deliv", deliveries.size())))
 	else:
 		snap = history.pop_back()
 	deliveries.resize(snap.get("deliv", deliveries.size()))
@@ -3932,7 +4269,7 @@ func undo() -> void:
 	hint_label.modulate.a = 0.35 if route.size() > 1 else 1.0
 	_update_undo()
 	Sfx.play("rewind")
-	Sfx.haptic(20)
+	Sfx.haptic(20, 1.0, "game:undo")
 
 	# Delivered packages fly back from their houses to where the van will end up;
 	# collected parcels fly back to their shops.
@@ -3962,6 +4299,7 @@ func undo() -> void:
 		van.position = dest
 		stack_view.rebuild(sim_state["stack"])
 		van.set_top(stack_view.top_color())
+		_sync_lockers()
 		van.stop_bounce()
 		board.show_trail(route)
 		board.wreck.set_route(route, route.size() - 1)
@@ -4141,7 +4479,7 @@ func _on_hint_pressed() -> void:
 			and _gas_paid == "":
 		_hint_armed = Time.get_ticks_msec() / 1000.0 + 2.5
 		Sfx.play("tick", 1.2, -4)
-		Sfx.haptic(12, 0.5)
+		Sfx.haptic(12, 0.5, "game:_on_hint_pressed")
 		hint_button.label = "Sure?"
 		hint_button.pop()
 		var tw := create_tween()
@@ -4181,7 +4519,9 @@ func _on_hint_pressed() -> void:
 	if dpad_mode and state == State.DRAWING:
 		_cancel_plan()
 	stars_ctl.queue_redraw()
-	_show_hint_run(_hint_run_from(path))
+	if _locker_hint(path):
+		return
+	_show_hint_run(_hint_run_from(_to_locker(path)))
 	_say("Try this way.")
 
 
@@ -4270,6 +4610,9 @@ func _safe_stop() -> Dictionary:
 ## `history`, as if the van had paused): the dead-end hint's pin goes there, and one Undo takes the van
 ## back to it. True if it added one.
 func _mark_furthest_winnable(from_len: int) -> bool:
+	# (A locker used on the way isn't in the route's tiles: the states can't be worked out from them.)
+	if history.any(func(m): return m.get("locker", false) and int(m["len"]) >= from_len):
+		return false
 	var at := -1
 	for k in history.size():
 		if int(history[k]["len"]) == from_len:
@@ -4326,6 +4669,10 @@ func _back_check() -> void:
 		return
 	var avoid: Array = [level.gift] if board.gift and not gift_taken and level.gift_item != "" else []
 	var path := Solver.solve_from(level, route, sim_state, 400000, avoid)
+	if _locker_hint(path):
+		_clear_back()
+		return
+	path = _to_locker(path)
 	if path.size() >= 2:
 		# As far as the road it took last time and one tile past where the two part: the turn that matters.
 		var shared := 0
@@ -4349,7 +4696,7 @@ func _show_hint_run(run: Array) -> void:
 	if ghost:
 		ghost.visible = false
 	Sfx.play("hint")
-	Sfx.haptic(10)
+	Sfx.haptic(10, 1.0, "game:_show_hint_run")
 
 
 ## While a route's being drawn, the hint stays but steps back (the finger's the player's now).
@@ -4643,7 +4990,7 @@ func _win() -> void:
 	Progress.momentum += 1
 	momentum_ctl.visible = false
 	Sfx.play("win")
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "game:_win")
 	# The ride's own celebration (RideWins), and the finish card waits for it. The board pushes in on it so
 	# nobody misses it (an action zoom), and eases back out just before the card.
 	van.celebrate()
@@ -4688,7 +5035,7 @@ func _win() -> void:
 	if crushed:
 		# A big reaction on the board first: every house cheers, confetti everywhere, the screen jolts.
 		Sfx.play("kaching", 1.0, -2.0)
-		Sfx.haptic(45, 1.0)
+		Sfx.haptic(45, 1.0, "game:_win")
 		var mid := board.size_px() / 2.0
 		for col in ["red", "yellow", "blue", "green", "purple", "orange"]:
 			fx.burst(mid, Palette.pkg(col), 14, board.tile * 6.0, board.tile * 0.14)
@@ -4788,7 +5135,7 @@ func _lesson_hint() -> void:
 		await get_tree().process_frame
 	if not is_inside_tree() or state != State.IDLE:
 		return
-	var path := Solver.solve_from(level, route, sim_state)
+	var path := _to_locker(Solver.solve_from(level, route, sim_state))
 	if path.size() < 2:
 		return
 	var run: Array = [path[0], path[1]]
@@ -5203,12 +5550,12 @@ func _jets_down() -> void:
 	if _boss_level():
 		Sfx.play("bonk", 0.9, -4.0)
 		Sfx.play("laugh", 1.2, -10.0)
-		Sfx.haptic(14)
+		Sfx.haptic(14, 1.0, "game:_jets_down")
 		_say("No jumping the Baron's jobs.\nHe has to be beaten.", Palette.ACCENT.darkened(0.12))
 		return
 	if Progress.jumps_waiting() >= Progress.JUMPS_WAITING_MAX:
 		Sfx.play("bonk", 1.1, -6.0)
-		Sfx.haptic(14)
+		Sfx.haptic(14, 1.0, "game:_jets_down")
 		_say("%d jobs are already waiting on the map.\nDeliver one of them, then you can jump again." % Progress.jumps_waiting(), Palette.ACCENT.darkened(0.12))
 		return
 	_jet_hold = 0.0
@@ -5227,7 +5574,7 @@ func _jump() -> void:
 	modal = exit_ribbon              # (hands off while it goes)
 	Sfx.play("whoosh", 0.8, -2.0)
 	Sfx.play("whoomp", 1.2, -6.0)
-	Sfx.haptic(30, 0.8)
+	Sfx.haptic(30, 0.8, "game:_jump")
 	_say("Jump jets! This job will wait on the map.", GasChip.FUEL.darkened(0.2))
 	var tw := create_tween()
 	tw.tween_property(van, "scale", Vector2(1.5, 1.5), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -5259,11 +5606,12 @@ func _fail() -> void:
 	state = State.FAILED
 	_update_undo()
 	Sfx.play("fail", 1.0, -2)
-	Sfx.haptic(25)
+	Sfx.haptic(25, 1.0, "game:_fail")
 	van.shake()
 	stack_view.flash_remaining()
 	var left := Sim.remaining(level, sim_state)
-	var msg := "Stuck! %d left." % left if left > 0 else "Stuck! Can't reach the depot."
+	var msg := ("Stuck! %d package%s left." % [left, "" if left == 1 else "s"]) if left > 0 \
+			else ("Stuck! Can't reach the exit." if level.has_exit() else "Stuck! Can't reach the depot.")
 	if daily_day >= 0 and Daily.out_of_tries(Progress.daily_record(daily_day)) and not can_undo():
 		DailyResults.send(daily_day)          # (the last try spent: a miss, for today's numbers)
 	if daily_day >= 0 and Daily.out_of_tries(Progress.daily_record(daily_day)):

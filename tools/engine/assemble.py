@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Picks the best candidate for every slot of the plan and writes levels/levels.json.
 
-  python3 tools/engine/assemble.py [--dry] [-v]
+  python3 tools/engine/assemble.py [--dry] [-v] [slots...]
+  (slots given: only those take a new candidate; every other level stays exactly as it is.)
 
 Reads tools/level_plan.json, the candidates tools/engine/gen_all.py left in build/engine/, and the
 current levels.json (for titles, hints, challenge flags, presents, and the levels the plan keeps). A slot
@@ -14,6 +15,7 @@ plan = json.load(open(os.path.join(ROOT, "tools", "level_plan.json")))["slots"]
 cur = json.load(open(os.path.join(ROOT, "levels", "levels.json")))["levels"]
 dry = "--dry" in sys.argv
 verbose = "-v" in sys.argv
+only = {int(a) for a in sys.argv[1:] if a.isdigit()}
 NAMES = {"r": "red", "b": "blue", "g": "green", "y": "yellow", "p": "purple", "o": "orange"}
 
 # The line under each level's name. Not clues: a joke, a bit of the road, or a glimpse of the Baron (Hoardly
@@ -68,10 +70,10 @@ HINTS = {
     53: "Déjà vu, with seagulls.",
     54: "Batten down the parcels.",
     55: "Lockers: the Baron calls them 'the competition'.",
-    56: "Insert coin. Lose coin.",
+    56: "Insert coin. Get it back later. Maybe.",
     57: "Night owls tip in riddles.",
     58: "Last train's leaving. The parcels are staying.",
-    59: "It ate your dollar. It'll eat your package.",
+    59: "It kept your dollar. It'll keep your package, for a while.",
     60: "Sing it like you mean it.",
     61: "The neon never sleeps. Neither will you.",
     62: "One bad apple. Several bad turns.",
@@ -116,7 +118,7 @@ HINTS = {
 }
 
 # Titles that no longer suit what the slot holds.
-TITLES = {13: "Second Thoughts"}
+TITLES = {13: "Second Thoughts", 55: "Park It"}
 
 def passes(s, c):
     """Does a candidate still meet today's plan? Returns '' or the reason it doesn't."""
@@ -169,8 +171,11 @@ for s in plan:
     old = cur[n - 1]
     if s.get("keep"):
         d = dict(old)
-        d["flavor"] = "intro"
+        d["flavor"] = old.get("flavor", "intro")
         levels.append(d)
+        continue
+    if only and n not in only:
+        levels.append(dict(old))
         continue
     pick, why = None, {}
     # The flavour is a wish: take the best candidate that has it, else the best that passes everything else.

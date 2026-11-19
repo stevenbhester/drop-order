@@ -18,7 +18,7 @@ var open := false:
 			open = v
 			if open and _t > 0.5:
 				Sfx.play("gate", 1.1, -4.0)
-				Sfx.haptic(14, 0.5)
+				Sfx.haptic(14, 0.5, "exit_zone:top")
 			queue_redraw()
 var _t := 0.0
 ## 0 shut, 1 open; it swings between them.

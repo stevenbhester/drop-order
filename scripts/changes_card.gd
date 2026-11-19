@@ -124,7 +124,7 @@ func _row(icon: String, title: String, what: String, why: String) -> Control:
 	var y := _label("Why: " + why, 27, Palette.ACCENT.darkened(0.25))
 	y.visible = false
 	texts.add_child(y)
-	var arrow := _label("why?", 24, Color(Palette.TEXT_SOFT, 0.75))
+	var arrow := _label("why?", 24, Palette.TEXT_SOFT)
 	arrow.custom_minimum_size = Vector2(70, 0)
 	arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	arrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

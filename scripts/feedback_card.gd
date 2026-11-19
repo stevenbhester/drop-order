@@ -243,7 +243,7 @@ func _on_done(result: int, code: int, _headers: PackedStringArray, body: PackedB
 		_send.icon_name = "star"
 		_send.bg = Palette.GOOD
 		Sfx.play("kaching", 1.1, -3.0)
-		Sfx.haptic(25)
+		Sfx.haptic(25, 1.0, "feedback_card:_on_done")
 		print("[feedback] sent (%s)" % _report_id)
 		return
 	var why := "Couldn't reach the server. Check your connection and try again."
@@ -320,7 +320,7 @@ class Tick:
 			accept_event()
 			on = not on
 			Sfx.play("click", 1.1 if on else 0.9)
-			Sfx.haptic(10, 0.5)
+			Sfx.haptic(10, 0.5, "feedback_card:_close")
 			toggled.emit(on)
 			queue_redraw()
 

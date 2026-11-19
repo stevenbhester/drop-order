@@ -42,9 +42,8 @@ func _ready() -> void:
 		Progress.reset()
 		level_chosen.emit(0))
 	add_child(map)
-	if Palette.night:
-		# Night mode: the whole road trip under a moonlit tint.
-		map.modulate = Color(0.6, 0.62, 0.8)
+	# (Night mode: the map draws its own charcoal board, RoadMap. It used to be the day map under a dimmer,
+	# which greyed every white and washed out the tickets' ink: "low white point", a tester said.)
 
 	# Behind the top bar, the map fades into the cream of the bar.
 	_fade = Control.new()

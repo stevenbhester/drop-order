@@ -1,7 +1,8 @@
 class_name TitleScreen
 extends Control
 ## The title: "Last Mile" over a little looping street where the van does its round forever, flinging the top
-## package to each house as it passes and reloading at the depot. Play goes to the next unfinished level, Levels
+## package to each house as it passes and reloading at the depot, in time with the theme (the street is its
+## rhythm section: see THEME). Play goes to the next unfinished level, Levels
 ## to the level select. The studio card (StudioCard) plays over it once a launch. Top left, the version badge
 ## (a "NEW" sticker until its patch notes have been read) opens the patch notes; when TestFlight has a newer
 ## build (UpdateCheck) it wears an "UPDATE" sticker and offers that instead.
@@ -20,18 +21,30 @@ const LOOP := Vector2(330, 270)
 const CORNER := 120.0
 const ROAD_W := 100.0
 const GRASS := Rect2(-470, -395, 940, 790)
-const VAN_SPEED := 340.0
-## Seconds parked at the depot between rounds.
-const DEPOT_PAUSE := 0.8
-## Houses inside the loop: base position (scene space), colour, and the road point the van flings from.
+## The theme: audio/theme.wav, composed and rendered by tools/make_theme.py, which has this same table (keep
+## the two in step). One lap of the van is LAP_BEATS beats at THEME_BPM, driven at a steady speed, so what it
+## passes lands on the beat: the depot on 0 (it loads up), the houses on theirs (each colour its own note),
+## the two bridges (to-tok) and the gate (ka-chunk). Those sounds are in the tune; nothing here plays one.
+const THEME := "res://audio/theme.wav"
+const THEME_BPM := 132.0
+const LAP_BEATS := 16.0
+const THEME_DB := -7.0
+const BRIDGE_BEATS := [4.0, 12.0]
+const GATE_BEAT := 8.0
+const GATE_COLOR := "green"
+## A package is in the air this many beats, and lands on its house's beat.
+const FLY_BEATS := 0.75
+## Houses inside the loop: how far down the yard, colour, and the beat the van is level with it (which is
+## where along the road it stands).
 const HOUSES := [
-	{"at": Vector2(-150, -95), "color": "red", "from": Vector2(-150, -270)},
-	{"at": Vector2(150, -95), "color": "blue", "from": Vector2(150, -270)},
-	{"at": Vector2(150, 175), "color": "green", "from": Vector2(150, 270)},
-	{"at": Vector2(-150, 175), "color": "yellow", "from": Vector2(-150, 270)},
+	{"y": -95.0, "color": "red", "beat": 3.0},
+	{"y": -95.0, "color": "blue", "beat": 5.0},
+	{"y": 175.0, "color": "green", "beat": 11.0},
+	{"y": 175.0, "color": "yellow", "beat": 13.0},
 ]
 const TREES := [Vector2(-418, -345), Vector2(418, -345), Vector2(-418, 345), Vector2(418, 345),
-		Vector2(0, -352), Vector2(0, 40), Vector2(-430, -150), Vector2(430, 120)]
+		Vector2(-232, -356), Vector2(236, 356), Vector2(-430, -150), Vector2(430, 120)]
+const WATER := Color("6fc3e8")
 
 ## True while something plays over the title (the studio card): no sounds.
 var quiet := false
@@ -43,11 +56,19 @@ var _houses: Array[House] = []
 var _path := PackedVector2Array()
 var _dist := PackedFloat32Array()
 var _length := 0.0
-var _triggers: Array[float] = []
 var _d := 0.0
-var _next_house := 0
-var _pause := 0.4
-var _since_go := 0.0
+## The round's clock, in seconds: the theme's own while it plays (so the street can't drift off the beat),
+## the frame clock otherwise (music off, or no sound device).
+var _clock := 0.0
+var _music: AudioStreamPlayer
+var _music_tw: Tween
+var _latency := 0.0
+var _heard := -1.0
+var _flights: Array = []       # packages in the air: {house, box, from (the beat it was thrown on)}
+var _gate: Gate
+var _gate_tw: Tween
+## 1 on each beat, fading: the trees and the depot ring nod along.
+var _pulse := 0.0
 var _title: Label
 var _tagline: Label
 var _play: Button
@@ -85,16 +106,33 @@ func _ready() -> void:
 		var house := House.new()
 		house.color = Palette.pkg(h["color"])
 		house.size = 165.0
-		house.base_pos = h["at"]
-		house.position = h["at"]
+		house.base_pos = Vector2(_at(float(h["beat"]) / LAP_BEATS * _length).x, float(h["y"]))
+		house.position = house.base_pos
 		_scene.add_child(house)
 		_houses.append(house)
-		_triggers.append(_dist_of(h["from"]))
+	# The gate, across the right-hand road: it lifts for the van's next package as the van comes down to it.
+	_gate = Gate.new()
+	_gate.color = Palette.pkg(GATE_COLOR)
+	_gate.tile = 130.0
+	_gate.road_w = ROAD_W
+	_gate.position = _at(GATE_BEAT / LAP_BEATS * _length)
+	_gate.rotation = PI / 2.0
+	_scene.add_child(_gate)
 	_van = Van.new()
 	_van.size = 150.0
 	_scene.add_child(_van)
 	_van.set_top(HOUSES[0]["color"])
 	_place_van()
+	_music = AudioStreamPlayer.new()
+	if ResourceLoader.exists(THEME):
+		var st := load(THEME) as AudioStreamWAV
+		if st:
+			st.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			st.loop_begin = 0
+			st.loop_end = int(round(st.get_length() * st.mix_rate))
+			_music.stream = st
+	add_child(_music)
+	_latency = AudioServer.get_output_latency()
 
 	_title = _label("Last Mile", 210, Palette.TEXT, _fredoka())
 	_title.add_theme_color_override("font_shadow_color", Color(0.23, 0.2, 0.27, 0.16))
@@ -195,7 +233,7 @@ func _ready() -> void:
 			elif _badge_press > 0.0:
 				_badge_press = 0.0
 				Sfx.play("click")
-				Sfx.haptic(12, 0.6)
+				Sfx.haptic(12, 0.6, "title_screen:_ready")
 				notes_pressed.emit())
 	add_child(_badge)
 
@@ -300,8 +338,12 @@ func _draw_badge() -> void:
 	for k in 5:
 		_badge.draw_circle(Vector2(-30, -28 + k * 14), 3.0, Color(1, 1, 1, 0.45))
 	var v := "v" + Version.NUMBER
-	var vw := f.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
-	_badge.draw_string(f, Vector2(-74 - vw / 2.0, 14), v, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, Color.WHITE)
+	# The stub's 88 wide: a longer number ("v0.7a") steps the size down to fit.
+	var vfs := 40
+	while vfs > 26 and f.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, vfs).x > 78:
+		vfs -= 2
+	var vw := f.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, vfs).x
+	_badge.draw_string(f, Vector2(-74 - vw / 2.0, 14 - (40 - vfs) * 0.36), v, HORIZONTAL_ALIGNMENT_LEFT, -1, vfs, Color.WHITE)
 	_badge.draw_string(f, Vector2(-16, -4), "WHAT'S", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(1, 1, 1, 0.8))
 	_badge.draw_string(f, Vector2(-16, 24), "NEW?", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color.WHITE)
 	Icons.star(_badge, Vector2(96, -6), 16.0, Palette.STAR_GOLD, _t * 0.8)
@@ -344,24 +386,91 @@ func _on_levels() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_pulse = maxf(_pulse - delta * 4.0, 0.0)
 	_scene.queue_redraw()
 	_badge.queue_redraw()
-	if _pause > 0.0:
-		_pause -= delta
-		_since_go = 0.0
-		return
-	_since_go += delta
-	# Pull away gently, and ease into the depot at the end of the round.
-	var speed := VAN_SPEED * minf(_since_go / 0.45, 1.0) * clampf((_length - _d) / 220.0, 0.22, 1.0)
-	var before := _d
-	_d += speed * delta
-	while _next_house < _triggers.size() and before < _triggers[_next_house] and _d >= _triggers[_next_house]:
-		_fling(_next_house)
-		_next_house += 1
-	if _d >= _length:
-		_d = 0.0
-		_reload()
+	_tune()
+	if quiet:
+		return           # (something's playing over the title: the van waits at the depot for the downbeat)
+	var beat_secs := 60.0 / THEME_BPM
+	var lap := LAP_BEATS * beat_secs
+	var before := _clock
+	_clock += delta
+	var jumped := false
+	if _music.playing:
+		# The tune's clock, not ours. (Only once it's seen to move: with no sound device it never does.)
+		var heard := _music.get_playback_position() + AudioServer.get_time_since_last_mix() - _latency
+		if not is_equal_approx(heard, _heard):
+			_heard = heard
+			var off := wrapf(heard - _clock, -lap / 2.0, lap / 2.0)
+			jumped = absf(off) > 0.08
+			_clock += off if jumped else off * 0.25
+	var b1 := fposmod(_clock, lap) / beat_secs
+	if not jumped:
+		_round(fposmod(before, lap) / beat_secs, b1)
+	# Packages in the air fly on the tune's clock too, so each lands on its beat whatever the frame rate does.
+	for f in _flights.duplicate():
+		var k := fposmod(b1 - float(f["from"]), LAP_BEATS) / FLY_BEATS
+		if k >= 1.0:
+			_flights.erase(f)
+			_landed(f["house"], f["box"])
+		else:
+			(f["box"] as FlyBox).t = 0.5 - 0.5 * cos(PI * k)
+	_d = b1 / LAP_BEATS * _length
 	_place_van()
+
+
+## The theme plays while the title's showing and nothing's over it (and Music is on in Options). It starts
+## from the top, with the van at the depot.
+func _tune() -> void:
+	var want := not quiet and is_visible_in_tree() and Progress.music and _music.stream != null
+	if want == _music.playing:
+		return
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()
+	if not want:
+		_music.stop()
+		return
+	_clock = 0.0
+	_heard = -1.0
+	for f in _flights:
+		f["box"].queue_free()
+	_flights.clear()
+	_reload()
+	_music.volume_db = -30.0
+	_music.play()
+	_music_tw = create_tween()
+	_music_tw.tween_property(_music, "volume_db", THEME_DB, 0.5).set_ease(Tween.EASE_OUT)
+
+
+## What happens between beats `b0` and `b1` of the lap (b1 < b0: the van's just passed the depot).
+func _round(b0: float, b1: float) -> void:
+	var passed := func(beat: float) -> bool:
+		beat = fposmod(beat, LAP_BEATS)
+		return (b0 < beat and beat <= b1) if b1 >= b0 else (beat > b0 or beat <= b1)
+	if b1 < b0:
+		_reload()
+	if int(floor(b1)) != int(floor(b0)):
+		_pulse = 1.0
+	for i in HOUSES.size():
+		# Thrown early, to land on the beat.
+		var beat: float = HOUSES[i]["beat"]
+		if passed.call(beat - FLY_BEATS):
+			_fling(i, beat - FLY_BEATS)
+	for beat in BRIDGE_BEATS:
+		if passed.call(beat):
+			_van.shake()
+	if passed.call(GATE_BEAT - 0.5):
+		_swing_gate(1.0, 0.5 * 60.0 / THEME_BPM, Tween.TRANS_BACK)
+	if passed.call(GATE_BEAT + 1.0):
+		_swing_gate(0.0, 0.22, Tween.TRANS_BOUNCE)
+
+
+func _swing_gate(to: float, secs: float, trans: Tween.TransitionType) -> void:
+	if _gate_tw and _gate_tw.is_valid():
+		_gate_tw.kill()
+	_gate_tw = _gate.create_tween()
+	_gate_tw.tween_property(_gate, "open_t", to, secs).set_trans(trans).set_ease(Tween.EASE_OUT)
 
 
 func _place_van() -> void:
@@ -372,8 +481,8 @@ func _place_van() -> void:
 		_van.target_rotation = ahead.angle()
 
 
-## The van throws its top package at house `i`.
-func _fling(i: int) -> void:
+## The van throws its top package at house `i` (on beat `from` of the lap; it lands FLY_BEATS later).
+func _fling(i: int, from: float) -> void:
 	var house := _houses[i]
 	var box := FlyBox.new()
 	box.color = Palette.pkg(HOUSES[i]["color"])
@@ -382,45 +491,31 @@ func _fling(i: int) -> void:
 	_scene.add_child(box)
 	_van.set_top(HOUSES[i + 1]["color"] if i + 1 < HOUSES.size() else "")
 	_van.squash()
-	_sound("whoosh", 1.1 + i * 0.04, -16.0)
-	var tw := box.create_tween()
-	tw.tween_property(box, "t", 1.0, 0.36).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_callback(_landed.bind(i, box))
+	_flights.append({"house": i, "box": box, "from": from})
 
 
 func _landed(i: int, box: Node2D) -> void:
 	box.queue_free()
 	_houses[i].deliver()
-	_sound("pop", 1.0 + i * 0.08, -12.0)
+	# The note it just played, where you can see it: a ring out from the house and a quaver floating off it.
+	var pop := NotePop.new()
+	pop.color = Palette.pkg(HOUSES[i]["color"])
+	pop.position = _houses[i].position + Vector2(0, -_houses[i].size * 0.3)
+	_scene.add_child(pop)
+	_van.nudge()
 
 
-## Back at the depot: houses reset, the van loads up, and after a pause it sets off again.
+## Passing the depot: the houses reset and the van loads up, without stopping.
 func _reload() -> void:
-	_next_house = 0
-	_pause = DEPOT_PAUSE
-	_van.stop_bounce()
 	for k in _houses.size():
-		var house := _houses[k]
-		get_tree().create_timer(0.12 * k).timeout.connect(_reset_house.bind(house))
-	get_tree().create_timer(0.5).timeout.connect(_load_van)
+		get_tree().create_timer(0.1 * k).timeout.connect(_reset_house.bind(_houses[k]))
+	_van.set_top(HOUSES[0]["color"])
+	_van.nudge()
 
 
 func _reset_house(house: House) -> void:
 	if is_instance_valid(house):
 		house.undeliver(0)
-
-
-func _load_van() -> void:
-	if not is_instance_valid(_van):
-		return
-	_van.set_top(HOUSES[0]["color"])
-	_van.nudge()
-	_sound("pickup", 1.0, -16.0)
-
-
-func _sound(sound: String, pitch: float, db: float) -> void:
-	if not quiet and is_visible_in_tree():
-		Sfx.play(sound, pitch, db)
 
 
 # --- The street's shape ----------------------------------------------------------------------------------
@@ -450,26 +545,25 @@ func _at(d: float) -> Vector2:
 	return _path[_path.size() - 1]
 
 
-## How far round the loop the point nearest `p` is.
-func _dist_of(p: Vector2) -> float:
-	var best := 0.0
-	var best_gap := INF
-	var d := 0.0
-	while d < _length:
-		var gap := _at(d).distance_squared_to(p)
-		if gap < best_gap:
-			best_gap = gap
-			best = d
-		d += 4.0
-	return best
-
-
 func _draw_scene() -> void:
 	var s := _scene
 	DrawUtil.rrect(s, Rect2(GRASS.position + Vector2(0, 18), GRASS.size), Palette.BOARD_SHADOW, 80)
 	DrawUtil.rrect(s, GRASS, Palette.GRASS, 80)
 	var inner := Rect2(-LOOP + Vector2(ROAD_W, ROAD_W) * 0.62, (LOOP - Vector2(ROAD_W, ROAD_W) * 0.62) * 2.0)
 	DrawUtil.rrect(s, inner, Palette.YARD, 50)
+	# A stream down the middle, under both roads (they cross it on the two bridges).
+	var stream := PackedVector2Array()
+	var y := GRASS.position.y + 14.0
+	while y <= GRASS.end.y - 14.0:
+		stream.append(Vector2(13.0 * sin(PI * y / 135.0), y))
+		y += 12.0
+	s.draw_polyline(stream, WATER.darkened(0.18), 44.0, true)
+	s.draw_polyline(stream, WATER, 34.0, true)
+	for k in 7:
+		var wy := GRASS.position.y + 60.0 + k * 105.0 + fmod(_t * 26.0, 105.0)
+		if wy < GRASS.end.y - 40.0:
+			var wx := 13.0 * sin(PI * wy / 135.0)
+			s.draw_line(Vector2(wx - 7, wy), Vector2(wx + 7, wy), Color(1, 1, 1, 0.5), 3.0, true)
 	# Road: a darker curb pass a little lower, then the tarmac, then lane dashes.
 	var closed := PackedVector2Array(_path)
 	var curb := Transform2D(0.0, Vector2(0, 5)) * closed
@@ -479,15 +573,50 @@ func _draw_scene() -> void:
 	while d < _length - 30.0:
 		s.draw_line(_at(d), _at(d + 22.0), Palette.ROAD_MARK, 4.0, true)
 		d += 44.0
-	# Depot ring where each round starts.
+	# The bridges: a deck with rails over the stream, top and bottom.
+	for beat in BRIDGE_BEATS:
+		var c := _at(float(beat) / LAP_BEATS * _length)
+		var deck := Rect2(c - Vector2(46, ROAD_W / 2.0), Vector2(92, ROAD_W))
+		s.draw_rect(Rect2(deck.position - Vector2(9, 0), Vector2(9, ROAD_W)), Palette.BRIDGE_SHADOW)
+		s.draw_rect(Rect2(Vector2(deck.end.x, deck.position.y), Vector2(9, ROAD_W)), Palette.BRIDGE_SHADOW)
+		DrawUtil.rrect(s, deck.grow_individual(4, 8, 4, 8), Palette.RAIL, 7)
+		s.draw_rect(deck, Palette.BRIDGE_DECK)
+		for k in 5:
+			var px := deck.position.x + 9.0 + k * 18.5
+			s.draw_line(Vector2(px, deck.position.y + 3), Vector2(px, deck.end.y - 3), Color(0, 0, 0, 0.14), 2.0)
+		s.draw_dashed_line(Vector2(deck.position.x, c.y), Vector2(deck.end.x, c.y), Palette.ROAD_MARK, 4.0, 14.0, true, true)
+	# Depot ring where each round starts: it flares on the beat.
 	var depot := Vector2(-LOOP.x, 0)
-	var glow := 0.55 + 0.45 * (0.5 + 0.5 * sin(_t * 3.0)) if _pause > 0.0 else 0.85
-	s.draw_arc(depot, 40, 0, TAU, 40, Color(Palette.DEPOT, glow), 6.0, true)
+	s.draw_arc(depot, 40 + 5.0 * _pulse, 0, TAU, 40, Color(Palette.DEPOT, 0.7 + 0.3 * _pulse), 6.0, true)
 	for t in TREES:
-		var r := 30.0 + fmod(absf(t.x * 0.37 + t.y * 0.11), 9.0)
+		var r := (30.0 + fmod(absf(t.x * 0.37 + t.y * 0.11), 9.0)) * (1.0 + 0.05 * _pulse)
 		s.draw_circle(t + Vector2(0, r * 0.35), r * 1.02, Color(0, 0, 0, 0.12))
 		s.draw_circle(t, r, Palette.TREE)
 		s.draw_circle(t + Vector2(-r * 0.3, -r * 0.3), r * 0.45, Palette.TREE_HI)
+
+
+## A delivery's note: a ring that opens out and a quaver that drifts up and fades, in the package's colour.
+class NotePop:
+	extends Node2D
+
+	var color := Color.WHITE
+	var t := 0.0:
+		set(v):
+			t = v
+			queue_redraw()
+
+	func _ready() -> void:
+		var tw := create_tween()
+		tw.tween_property(self, "t", 1.0, 0.7)
+		tw.tween_callback(queue_free)
+
+	func _draw() -> void:
+		var out := 1.0 - pow(1.0 - t, 3.0)
+		draw_arc(Vector2(0, 40), 70.0 + 80.0 * out, 0, TAU, 48, Color(color, 0.85 * (1.0 - t)), 10.0 * (1.0 - t) + 2.0, true)
+		var at := Vector2(34.0 + 10.0 * sin(t * 5.0), -70.0 - 90.0 * out)
+		var a := minf(1.0, (1.0 - t) * 2.5)
+		Icons.draw(self, "note", at + Vector2(0, 4), 64.0 * (0.7 + 0.3 * minf(t * 6.0, 1.0)), Color(0.17, 0.13, 0.2, 0.35 * a))
+		Icons.draw(self, "note", at, 64.0 * (0.7 + 0.3 * minf(t * 6.0, 1.0)), Color(color.lightened(0.15), a))
 
 
 ## A package in flight from the van to a house, on a little arc.

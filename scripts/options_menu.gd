@@ -134,6 +134,7 @@ func _build() -> void:
 			_rows.add_child(_reset_button())
 			return
 	_rows.add_child(_slider("Sound", "volume", "sound", ["Off", "Loud"]))
+	_rows.add_child(_toggle("Music", "music", "note", "the title theme and background music"))
 	_rows.add_child(_slider("Haptics", "haptics", "buzz", ["None", "Max"]))
 	_rows.add_child(_toggle("Night mode", "night", "moon"))
 	_rows.add_child(_toggle("Colorblind mode", "colorblind", "eye", "aka Paul mode"))
@@ -347,7 +348,7 @@ func _choice(name: String, key: String, opts: Array) -> HBoxContainer:
 			if Progress.get(key) == value:
 				return
 			Sfx.play("click")
-			Sfx.haptic(12, 0.6)
+			Sfx.haptic(12, 0.6, "options_menu:_choice")
 			if key == "drive_mode":
 				Progress.set_drive_mode(value)
 			else:
@@ -385,7 +386,7 @@ func _sides() -> VBoxContainer:
 			if Progress.stack_side == value:
 				return
 			Sfx.play("click")
-			Sfx.haptic(12, 0.6)
+			Sfx.haptic(12, 0.6, "options_menu:_sides")
 			Progress.stack_chosen = true
 			Progress.set_option("stack_side", value))
 		box.add_child(b)
@@ -401,7 +402,7 @@ func _foresight() -> VBoxContainer:
 	var row := _row("Headlights", "peek")
 	var says := "off: plan the whole route, then drive (old way)"
 	if Progress.foresight < 0 and Progress.headlights() == 0:
-		says = "dark until you finish job 1"
+		says = "dark until you finish job %d" % Progress.LIGHTS_LEVEL
 	elif Progress.foresight < 0:
 		says = "%s: plan %d ahead, the van follows" % [Progress.light_name(Progress.headlights()), Progress.headlights()]
 	elif Progress.foresight > 0:
@@ -429,7 +430,7 @@ func _foresight() -> VBoxContainer:
 			if Progress.foresight == value:
 				return
 			Sfx.play("click")
-			Sfx.haptic(12, 0.6)
+			Sfx.haptic(12, 0.6, "options_menu:_foresight")
 			Progress.set_option("foresight", value))
 		box.add_child(b)
 	return col
@@ -447,7 +448,7 @@ func _toggle(name: String, key: String, icon: String, sub := "") -> HBoxContaine
 	sw.custom_minimum_size = Vector2(170, 96)
 	sw.toggled.connect(func(v: bool):
 		Sfx.play("click", 1.1 if v else 0.9)
-		Sfx.haptic(14, 0.7)
+		Sfx.haptic(14, 0.7, "options_menu:_toggle")
 		Progress.set_option(key, v))
 	row.add_child(sw)
 	return row
@@ -476,7 +477,7 @@ func _slider(name: String, key: String, icon: String, ends: Array) -> VBoxContai
 			Progress.apply_volume()
 		elif key == "haptics":
 			# Feel it: a tap at the new strength (none at zero).
-			Sfx.haptic(16))
+			Sfx.haptic(16, 1.0, "options_menu:_slider"))
 	sl.stepped.connect(func(v: float):
 		if key == "volume":
 			Sfx.play("tick", 0.8 + 0.6 * v, -4.0))

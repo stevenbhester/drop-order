@@ -24,6 +24,7 @@ boot_splash/image="res://assets/launch/launch.png"
 
 Sfx="*res://scripts/sfx.gd"
 Progress="*res://scripts/progress.gd"
+Music="*res://scripts/music.gd"
 
 [debug]
 

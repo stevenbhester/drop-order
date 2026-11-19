@@ -65,4 +65,4 @@ func _draw() -> void:
 	var txt := "%d:%02d" % [sec / 60, sec % 60]
 	var px := int(r.size.y * 0.6)
 	var tx := r.position.x + r.size.y * 1.05
-	draw_string(f, Vector2(tx, cy + px * 0.3), txt, HORIZONTAL_ALIGNMENT_LEFT, r.end.x - tx - 10.0, px, Palette.CRASH if hurry else Palette.TEXT)
+	draw_string(f, Vector2(tx, cy + px * 0.3), txt, HORIZONTAL_ALIGNMENT_LEFT, r.end.x - tx - 10.0, px, Palette.CRASH if hurry else Palette.INK)

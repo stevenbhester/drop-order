@@ -92,7 +92,7 @@ func deny(dir: Vector2i) -> void:
 	if not _shake.has(dir):
 		return
 	_shake[dir] = 0.3
-	Sfx.haptic(26, 0.9)
+	Sfx.haptic(26, 0.9, "dpad:deny")
 	var tw := create_tween()
 	tw.tween_interval(0.09)
 	tw.tween_callback(Sfx.haptic.bind(18, 0.7))
@@ -121,7 +121,7 @@ func _touch(k: Vector2i) -> void:
 		return
 	_vel[k] = 9.0
 	_ripples.append({"key": k, "t": 0.0})
-	Sfx.haptic(16, 0.55)
+	Sfx.haptic(16, 0.55, "dpad:_touch")
 	if k == CLEAR:
 		clear.emit()
 		return
@@ -148,7 +148,7 @@ func _process(delta: float) -> void:
 		_wait -= delta
 		if _wait <= 0.0:
 			_wait = REPEAT
-			Sfx.haptic(10, 0.35)
+			Sfx.haptic(10, 0.35, "dpad:_process")
 			step.emit(_held)
 	queue_redraw()
 

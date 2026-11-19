@@ -28,7 +28,11 @@ typedef unsigned __int128 u128;
 #define MAXB 48      // houses, or shops
 #define MAXR 220     // tiles in a route
 #define MAXSTK 96
-#define ANY 6        // a locker's "colour"
+#define ANY 6        // an old-style locker's "colour" (takes whatever's on top, for good: the OG levels)
+#define MAXL 4       // parking lockers (token L): keep one package until the van passes again
+#define EMPTY 255
+#define USE 4        // the move that uses a parking locker
+#define NMOVES 5     // up, right, down, left, USE
 
 // Directions in the game's order (LevelData.DIRS): up, right, down, left.
 static const int DX[4] = {0, 1, 0, -1};
@@ -44,12 +48,14 @@ typedef struct {
     int8_t oneway[MAXC], gate[MAXC];
     int nh, hcell[MAXB], hcol[MAXB], hord[MAXB];
     int ns, scell[MAXB], scol[MAXB], scnt[MAXB];
+    int nl, lcell[MAXL];
     int nstack;
     uint8_t stack0[MAXSTK];
     // Worked out by level_finish():
     int nb[MAXC][4];
-    int nah[MAXC], nas[MAXC];
-    uint8_t ah[MAXC][4], as_[MAXC][4];
+    int nah[MAXC], nas[MAXC], nal[MAXC];
+    uint8_t ah[MAXC][4], as_[MAXC][4], al[MAXC][4];
+    u128 lroads[MAXL];
     u128 hroads[MAXB], sroads[MAXB], roadm, startnb, colL, colR, all;
     int total, nroad, nbridge, maxlen;
 } Level;
@@ -86,7 +92,7 @@ static void level_finish(Level *L) {
             L->nroad++;
         }
         if (L->bridge[c]) L->nbridge++;
-        L->nah[c] = L->nas[c] = 0;
+        L->nah[c] = L->nas[c] = L->nal[c] = 0;
         for (int d = 0; d < 4; d++) {
             int nx = x + DX[d], ny = y + DY[d];
             L->nb[c][d] = (nx >= 0 && ny >= 0 && nx < L->w && ny < L->h) ? ny * L->w + nx : -1;
@@ -114,11 +120,21 @@ static void level_finish(Level *L) {
             }
         }
     }
+    for (int k = 0; k < L->nl; k++) {
+        L->lroads[k] = 0;
+        for (int d = 0; d < 4; d++) {
+            int rp = L->nb[L->lcell[k]][d];
+            if (rp >= 0 && L->road[rp]) {
+                L->lroads[k] |= BIT(rp);
+                if (L->nal[rp] < 4) L->al[rp][L->nal[rp]++] = (uint8_t)k;
+            }
+        }
+    }
     L->startnb = 0;
     if (L->start >= 0)
         for (int d = 0; d < 4; d++)
             if (L->nb[L->start][d] >= 0) L->startnb |= BIT(L->nb[L->start][d]);
-    L->maxlen = L->nroad + L->nbridge + 2;
+    L->maxlen = L->nroad + L->nbridge + 2 + 4 * L->nl;
 }
 
 // One token of a map row (LevelData._parse_token).
@@ -150,6 +166,10 @@ static void level_token(Level *L, int c, const char *t) {
     } else if (t[0] == 'c' && t[1]) {
         int v = atoi(t + 1);
         L->works[c] = (uint8_t)(v < 1 ? 1 : v);
+    } else if (!strcmp(t, "L")) {
+        L->road[c] = 0;
+        if (L->nl < MAXL) L->lcell[L->nl++] = c;
+        else L->bad = 1;
     } else if (t[0] == 'w') {
         L->road[c] = 0;
         int v = t[1] ? atoi(t + 1) : 1;
@@ -217,9 +237,12 @@ typedef struct {
     u128 vis, bh, bv;      // tiles driven; bridges entered sideways / up-and-down
     uint8_t stk[MAXSTK];
     uint8_t fill[MAXB], pick[MAXB];
+    uint8_t held[MAXL];    // what each parking locker keeps (EMPTY: nothing)
+    uint8_t acted;         // the last move was USE (the next can't be)
 } State;
 
-// What happened on arriving somewhere, for the analysis: 'd' house, 'p' shop, 's' swap.
+// What happened on arriving somewhere, for the analysis: 'd' house, 'p' shop, 's' swap, 'k' parked in a
+// locker, 'u' given back by one.
 typedef struct {
     int n;
     char type[24];
@@ -233,11 +256,18 @@ static void state_init(const Level *L, State *s) {
     s->len = 1;
     s->sp = L->nstack;
     memcpy(s->stk, L->stack0, (size_t)L->nstack);
+    memset(s->held, EMPTY, sizeof s->held);
     s->vis = BIT(L->start);
 }
 
-// Sim.can_extend: the tile that way, or -1.
+// Sim.can_extend: the tile that way, or -1. Move USE (4) is using the parking locker beside the van (the van
+// stays put: the tile is its own), once per stop (Solver: twice would only undo it).
 static inline int can_extend(const Level *L, const State *s, int d) {
+    if (d == USE) {
+        if (s->acted || s->parked || !L->nal[s->pos]) return -1;
+        int k = L->al[s->pos][0];
+        return (s->held[k] != EMPTY || s->sp > 0) ? s->pos : -1;
+    }
     int nx = L->nb[s->pos][d];
     if (nx < 0 || !L->road[nx] || s->parked) return -1;
     if (L->oneway[nx] >= 0 && L->oneway[nx] == (d ^ 2)) return -1;
@@ -250,7 +280,10 @@ static inline int can_extend(const Level *L, const State *s, int d) {
     return nx;
 }
 
-// Sim.arrive: the hub's swap, then deliveries and pickups until nothing more happens.
+static inline void arrive_buildings(const Level *L, State *s, int t, Events *ev);
+
+// Sim.arrive: the hub's swap, then deliveries and pickups until nothing more happens. (Parking lockers do
+// nothing on arrival: using one is a move of its own, USE.)
 static inline void arrive(const Level *L, State *s, int t, Events *ev) {
     if (L->hub[t] && s->sp >= 2) {
         uint8_t a = s->stk[s->sp - 1];
@@ -258,7 +291,32 @@ static inline void arrive(const Level *L, State *s, int t, Events *ev) {
         s->stk[s->sp - 2] = a;
         if (ev && ev->n < 24) ev->type[ev->n++] = 's';
     }
-    if (!L->nah[t] && !L->nas[t]) return;
+    if (L->nah[t] || L->nas[t]) arrive_buildings(L, s, t, ev);
+}
+
+// Sim.use_locker: stopped beside a parking locker, the player taps it: it gives back what it keeps (on top),
+// or keeps the top package. Then deliveries and pickups there, as on arriving.
+static inline void use_locker(const Level *L, State *s, Events *ev) {
+    int t = s->pos, k = L->al[t][0];
+    if (s->held[k] != EMPTY) {
+        if (s->sp < MAXSTK) s->stk[s->sp++] = s->held[k];
+        s->held[k] = EMPTY;
+        if (ev && ev->n < 24) {
+            ev->type[ev->n] = 'u';
+            ev->who[ev->n++] = (uint8_t)k;
+        }
+    } else {
+        s->held[k] = s->stk[--s->sp];
+        if (ev && ev->n < 24) {
+            ev->type[ev->n] = 'k';
+            ev->who[ev->n++] = (uint8_t)k;
+        }
+    }
+    if (L->nah[t] || L->nas[t]) arrive_buildings(L, s, t, ev);
+}
+
+// Deliveries and pickups at tile t until nothing more happens.
+static inline void arrive_buildings(const Level *L, State *s, int t, Events *ev) {
     for (;;) {
         int progress = 0;
         if (s->sp > 0) {
@@ -298,6 +356,13 @@ static inline void arrive(const Level *L, State *s, int t, Events *ev) {
 }
 
 static inline void step(const Level *L, State *s, int d, int nx, Events *ev) {
+    if (d == USE) {
+        s->acted = 1;
+        s->len++;
+        use_locker(L, s, ev);
+        return;
+    }
+    s->acted = 0;
     if (L->bridge[nx]) {
         if (d & 1)
             s->bh |= BIT(nx);
@@ -318,7 +383,7 @@ static inline int won(const Level *L, const State *s) {
 }
 
 static inline int has_move(const Level *L, const State *s) {
-    for (int d = 0; d < 4; d++)
+    for (int d = 0; d < NMOVES; d++)
         if (can_extend(L, s, d) >= 0) return 1;
     return 0;
 }
@@ -342,6 +407,8 @@ static inline int hopeless(const Level *L, const State *s) {
         if (s->fill[k] < L->hord[k] && !(L->hroads[k] & r)) return 1;
     for (int k = 0; k < L->ns; k++)
         if (s->pick[k] < L->scnt[k] && !(L->sroads[k] & r)) return 1;
+    for (int k = 0; k < L->nl; k++)
+        if (s->held[k] != EMPTY && !(L->lroads[k] & r)) return 1;
     if (L->ret && !((r | BIT(s->pos)) & L->startnb)) return 1;
     return 0;
 }
@@ -363,7 +430,7 @@ static void solve_dfs(const Level *L, Solve *S, const State *s) {
         return;
     }
     S->nodes++;
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < NMOVES; d++) {
         int nx = can_extend(L, s, d);
         if (nx < 0) continue;
         State t = *s;
@@ -422,7 +489,7 @@ static int cmd_solve(void) {
 static int g_hist[MAXR];
 static void lens_dfs(const Level *L, const State *s, long *budget) {
     if ((*budget)-- <= 0) return;
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < NMOVES; d++) {
         int nx = can_extend(L, s, d);
         if (nx < 0) continue;
         State t = *s;
@@ -534,6 +601,8 @@ typedef struct {
 static inline int doors_gone(const Level *L, const State *s) {
     for (int k = 0; k < L->nh; k++)
         if (s->fill[k] < L->hord[k] && !(L->hroads[k] & ~s->vis)) return 1;
+    for (int k = 0; k < L->nl; k++)
+        if (s->held[k] != EMPTY && !(L->lroads[k] & ~s->vis)) return 1;
     return 0;
 }
 
@@ -556,6 +625,8 @@ static u128 targets(const Level *L, const State *s) {
     if (!tg) {
         for (int k = 0; k < L->ns; k++)
             if (s->pick[k] < L->scnt[k]) tg |= L->sroads[k];
+        for (int k = 0; k < L->nl; k++)
+            if (s->held[k] != EMPTY || s->sp > 0) tg |= L->lroads[k];
         if (s->sp >= 2)
             for (int c = 0; c < L->n; c++)
                 if (L->hub[c]) tg |= BIT(c);
@@ -625,7 +696,7 @@ static void junction(const Level *L, const State *s, Junction *J) {
     J->best = -1;
     J->c = J->cu = J->W = J->A = 0;
     J->amin = 0;
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < NMOVES; d++) {
         int nx = can_extend(L, s, d);
         if (nx < 0) continue;
         int i = J->nch++;
@@ -885,7 +956,7 @@ static void plan_dfs(const Level *L, const State *s, int node, int since) {
         g_pover = 1;
         return;
     }
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < NMOVES; d++) {
         int nx = can_extend(L, s, d);
         if (nx < 0) continue;
         State t = *s;
@@ -1017,16 +1088,19 @@ static int drive(const Level *L, const int *route, int len, Drive *P) {
     P->len = len - 1;
     State s;
     state_init(L, &s);
-    int passed[MAXB] = {0};
+    int passed[MAXB] = {0}, parked_at[MAXL] = {0};
     u128 seenb = 0, usedm = BIT(route[0]);
     P->max_load = s.sp;
     int quiet = 0;
     for (int i = 0; i + 1 < len; i++) {
         int nx = route[i + 1], d;
-        for (d = 0; d < 4; d++)
-            if (L->nb[s.pos][d] == nx && can_extend(L, &s, d) >= 0) break;
-        if (d == 4) return 0;
-        if (i >= 1 && d != s.prev) P->turns++;
+        if (nx == s.pos) d = can_extend(L, &s, USE) >= 0 ? USE : NMOVES;
+        else
+            for (d = 0; d < 4; d++)
+                if (L->nb[s.pos][d] == nx && can_extend(L, &s, d) >= 0) break;
+        if (d == 4 && nx != s.pos) return 0;
+        if (d == NMOVES) return 0;
+        if (i >= 1 && d != USE && d != s.prev) P->turns++;
         if (L->gate[nx] >= 0) P->used_gate++;
         if (L->works[nx]) P->used_works++;
         if (L->oneway[nx] >= 0) P->used_oneway++;
@@ -1043,6 +1117,16 @@ static int drive(const Level *L, const int *route, int len, Drive *P) {
         int sp = before.sp;
         for (int e = 0; e < ev.n; e++) {
             if (ev.type[e] == 's') P->swaps++;
+            if (ev.type[e] == 'u') {
+                // Back from a parking locker. It only counts as using it if something was delivered while
+                // it waited (parking one and taking it straight back changes nothing).
+                if (before.deliv > parked_at[ev.who[e]]) P->dumps++;
+                sp++;
+            }
+            if (ev.type[e] == 'k') {
+                parked_at[ev.who[e]] = s.deliv;
+                sp--;
+            }
             if (ev.type[e] == 'p') {
                 P->pickups++;
                 if (sp > 0) P->buried++;
@@ -1089,6 +1173,7 @@ typedef struct {
     int ok, over;
     long routes, nodes;
     int capped, plans, shortest;
+    long nshort;                   // winning routes as short as the shortest (1: the shortest is one of a kind)
     Sub T;                         // the tree, from the start, for the player the level is scored for
     double tries[3], first[3];     // new, regular, expert
     int who;
@@ -1107,9 +1192,12 @@ static uint64_t plan_hash(const Level *L, const int *route, int len) {
     uint64_t hsh = 1469598103934665603ULL;
     for (int i = 0; i + 1 < len; i++) {
         int d;
-        for (d = 0; d < 4; d++)
-            if (L->nb[s.pos][d] == route[i + 1] && can_extend(L, &s, d) >= 0) break;
-        if (d == 4) return 0;
+        if (route[i + 1] == s.pos) d = can_extend(L, &s, USE) >= 0 ? USE : NMOVES;
+        else
+            for (d = 0; d < 4; d++)
+                if (L->nb[s.pos][d] == route[i + 1] && can_extend(L, &s, d) >= 0) break;
+        if (d == 4 && route[i + 1] != s.pos) return 0;
+        if (d == NMOVES) return 0;
         Events ev = {0};
         step(L, &s, d, route[i + 1], &ev);
         for (int e = 0; e < ev.n; e++) {
@@ -1150,6 +1238,7 @@ static void census(const Level *L, Report *R) {
     }
     if (L->ns) has[4] = 1;
     if (L->ret) has[8] = 1;
+    if (L->nl) has[6] = 1;
     for (int k = 0; k < L->nh; k++) {
         if (L->hcol[k] == ANY)
             has[6] = 1;
@@ -1214,6 +1303,7 @@ static void report(const Level *L, Report *R, long budget, int who) {
     R->nodes = S.nodes;
     R->capped = S.capped;
     R->shortest = S.short_len - 1;
+    R->nshort = S.nshort;
     census(L, R);
     if (S.count == 0) return;
     uint64_t seen[MAXSOL];
@@ -1270,6 +1360,7 @@ static void print_report_json(const Level *L, const Report *R) {
                R->V.plans + 1, R->V.ptries, R->V.pfirst, R->V.pdec, R->V.ptwists, R->V.pdev, R->V.pstops);
         printf(",\"opening\":%d,\"picks\":%d,\"buried\":%d,\"doors1\":%d,\"doors\":%d,\"last_doors\":%d", T->opening, P->picks, P->buried, R->doors1,
                R->doors, P->last_doors);
+        printf(",\"shortest\":%d,\"nshort\":%ld", R->shortest, R->nshort);
         printf(",\"len\":%d,\"turns\":%d,\"quiet\":%d,\"cover\":%.2f,\"late_drops\":%d,\"dumps\":%d,\"pickups\":%d,\"swaps\":%d,\"max_load\":%d",
                P->len, P->turns, P->quiet, P->cover, P->late_drops, P->dumps, P->pickups, P->swaps, P->max_load);
         printf(",\"used\":{\"gate\":%d,\"works\":%d,\"ice\":%d,\"oneway\":%d,\"bridge\":%d}", P->used_gate, P->used_works, P->used_ice,

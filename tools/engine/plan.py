@@ -74,20 +74,20 @@ T = {
   54: ("knot", "hard", "br ice pick", "ice pickup"),
   # Neon Alley
   55: ("intro", "easy", "1w lock", "locker"),
-  56: ("dump", "medium", "gate lock", "locker"),
+  56: ("park", "medium", "gate lock", "locker"),
   57: ("twodoor", "melter", "lock", ""),
-  58: ("dump", "medium", "1w gate lock", "locker"),
+  58: ("park", "medium", "1w gate lock", "locker"),
   59: ("twodoor", "medium", "gate lock", "locker"),
   60: ("breather", "easy", "1w gate lock", ""),
   61: ("gauntlet", "hard", "1w gate lock", "gate locker"),
   # Orchard Hills
   62: ("decoy", "medium", "lock R", "locker"),
   63: ("restock", "melter", "pick R", ""),
-  64: ("twin", "medium", "lock R", ""),
+  64: ("twodoor", "medium", "lock", "locker"),
   65: ("decoy", "easy", "lock pick", ""),
   66: ("restock", "medium", "lock pick R", "pickup"),
   67: ("knot", "medium", "lock R", ""),
-  68: ("dump", "hard", "lock pick R", "locker"),
+  68: ("park", "hard", "lock pick R", "locker"),
   # Detour City
   69: ("intro", "easy", "1w works", "works"),
   70: ("longcon", "medium", "hub works", "works"),
@@ -98,7 +98,7 @@ T = {
   75: ("gauntlet", "hard", "1w hub works", "works"),
   # Thunder Mesa
   76: ("decoy", "easy", "ice lock works", "ice works locker"),
-  77: ("dump", "medium", "ice lock works", "locker"),
+  77: ("park", "medium", "ice lock works", "locker"),
   78: ("decoy", "melter", "works hub lock", ""),
   79: ("twodoor", "medium", "lock works", "works"),
   80: ("decoy", "medium", "ice lock works", ""),
@@ -202,7 +202,7 @@ ASKS = {
     "longcon": "An early, innocent turn decides the ending",
     "gauntlet": "One trap after another, all the way along",
     "knot": "One long winding drive; don't box yourself in",
-    "dump": "A locker takes a package a house wanted: choose which",
+    "park": "Park a package in the locker to get it out of the way, fetch it later",
     "restock": "Fetch the pickup when you want it on top, not before",
     "sorter": "The hub decides the order: choose when to cross it",
     "twin": "Two different answers",
@@ -238,7 +238,7 @@ for n in range(1, 101):
     needs = set(need.split())
     if flavor == "restock": needs.add("pickup")
     if flavor == "sorter": needs.add("hub")
-    if flavor == "dump": needs.add("locker")
+    if flavor == "park": needs.add("locker")
     z = zone_need(n, m)
     if z: needs.add(z)
     if "wh" in m:                      # Death Valley and the crane: lots of packages, fed in by warehouses
@@ -255,7 +255,7 @@ for n in range(1, 101):
     if "gate" in m: a["gmax"] = 2
     if "hub" in m: a["umax"] = 2
     if "ice" in m: a["imax"] = 3
-    if "lock" in m: a["lmax"] = 2; a["lmin"] = 1 if "locker" in needs else 0
+    if "lock" in m: a["lmax"] = 1 if kind in ("intro", "easy") else 2; a["lmin"] = 1 if "locker" in needs else 0
     if "works" in m: a["wmax"] = 2
     if "R" in m: a["ret"] = 1
     if flavor == "breather": a.update(rmin=2, rmax=6)

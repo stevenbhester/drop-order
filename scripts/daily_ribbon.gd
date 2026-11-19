@@ -131,7 +131,7 @@ func _draw() -> void:
 		var msg := "The daily opens after job %d" % Daily.UNLOCK_AT
 		var tw := f.get_string_size(msg, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x
 		var at := Vector2(L - tw - 44.0, H + 8.0)
-		DrawUtil.rrect(self, Rect2(at, Vector2(tw + 28.0, 50)), Color(1, 1, 1, 0.95 * a), 18)
+		DrawUtil.rrect(self, Rect2(at, Vector2(tw + 28.0, 50)), Color(Palette.BUBBLE, 0.95 * a), 18)
 		draw_string(f, at + Vector2(14, 34), msg, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(Palette.TEXT, a))
 
 

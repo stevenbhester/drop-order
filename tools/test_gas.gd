@@ -16,7 +16,7 @@ func _init() -> void:
 		[0, now, now + s * 2.5, 2, s * 0.5],
 		[0, now, now + s * 99.0, m, 0.0],
 		[2, now + 500.0, now, 2, s],        # clock went backwards: the wait starts again
-		[3, 0.0, now, 3, s],                # no start recorded: starts now
+		[m - 1, 0.0, now, m - 1, s],        # no start recorded: starts now
 	]
 	var bad := 0
 	for c in cases:

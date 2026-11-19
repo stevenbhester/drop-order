@@ -61,9 +61,10 @@ func _draw() -> void:
 	# The name tag.
 	var tag := Rect2(170, 22, size.x - 170, 106)
 	DrawUtil.rrect(self, Rect2(tag.position + Vector2(0, 6), tag.size), Color(0, 0, 0, 0.25), 24)
-	DrawUtil.rrect(self, tag, Color.WHITE, 24)
+	DrawUtil.rrect(self, tag.grow(3), Palette.BUBBLE_RIM, 27)
+	DrawUtil.rrect(self, tag, Palette.BUBBLE, 24)
 	var kind: String = Cosmetics.BANNERS.get(Cosmetics.kind_of(item), "NEW!")
-	draw_string(f, tag.position + Vector2(24, 40), kind, HORIZONTAL_ALIGNMENT_LEFT, tag.size.x - 40, 26, tint.darkened(0.3))
+	draw_string(f, tag.position + Vector2(24, 40), kind, HORIZONTAL_ALIGNMENT_LEFT, tag.size.x - 40, 26, tint.lerp(Palette.TEXT, 0.5) if Palette.night else tint.darkened(0.3))
 	var name := Cosmetics.name_of(item)
 	var px := 44
 	while px > 26 and f.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > tag.size.x - 48:

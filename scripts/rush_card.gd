@@ -41,7 +41,7 @@ func _ready() -> void:
 	create_tween().tween_property(_root, "modulate:a", 1.0, 0.18)
 	Sfx.play("whoomp", 0.9, -6.0)
 	Sfx.play("sparkle", 1.0, -4.0)
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "rush_card:_ready")
 
 
 func _process(delta: float) -> void:

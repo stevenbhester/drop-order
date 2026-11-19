@@ -24,11 +24,22 @@ var line := ""                   # what he yells (any defeat line if empty)
 var _line := ""
 var _dropped := false
 var _ran := false
+## When he turns and runs, and when it's over. He stands there bawling till his line's been read (a tester
+## often couldn't finish it before he was gone): the run, the drops and the end all wait that long.
+var _run := 1.3
+var _end := TIME
+var _stand_x := 0.0              # where he stood (his bubble stays there as he runs)
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	layer = 65
 	_line = line if line != "" else Boss.defeat()
+	# Reading time: about a third of a second a word, and a beat. The bubble's up from 0.15 to the run + 0.6.
+	var words := _line.split(" ", false).size()
+	var hold := clampf(0.9 + 0.32 * words - (1.3 + 0.6 - 0.15), 0.0, 3.5)
+	_run += hold
+	_end += hold
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP if not rewards.is_empty() else Control.MOUSE_FILTER_IGNORE
@@ -48,27 +59,27 @@ func _process(delta: float) -> void:
 		_dropped = true
 		Sfx.play("kaching", 0.9, -2.0)
 		Sfx.play("thunk", 0.8, -4.0)
-		Sfx.haptic(30, 0.8)
-	if not _ran and _t >= 1.3:
+		Sfx.haptic(30, 0.8, "boss_outro:_process")
+	if not _ran and _t >= _run:
 		_ran = true
 		Sfx.play("whoosh", 0.7, -4.0)
 		Sfx.play("screech", 1.6, -12.0)
 	# The packages land, one at a time, as he runs.
 	for i in rewards.size():
-		var at := 1.3 + i * DROP_EVERY + 0.28
+		var at := _run + i * DROP_EVERY + 0.28
 		if before < at and _t >= at:
 			Sfx.play("thunk", 1.1 + 0.1 * i, -4.0)
-			Sfx.haptic(14)
+			Sfx.haptic(14, 1.0, "boss_outro:_process")
 	if rewards.is_empty():
-		if before < TIME - 0.25 and _t >= TIME - 0.25:
+		if before < _end - 0.25 and _t >= _end - 0.25:
 			create_tween().tween_property(_root, "modulate:a", 0.0, 0.25)
-		if _t >= TIME:
+		if _t >= _end:
 			done.emit()
 			queue_free()
-	elif before < TIME and _t >= TIME:
+	elif before < _end and _t >= _end:
 		Sfx.play("sparkle", 1.0, -4.0)
 	# (Self-tests open them on their own.)
-	if Progress.auto and not rewards.is_empty() and _t >= TIME + 0.3 and not _busy:
+	if Progress.auto and not rewards.is_empty() and _t >= _end + 0.3 and not _busy:
 		var next := _opened.find(false)
 		if next >= 0:
 			_open(next)
@@ -89,9 +100,9 @@ func _on_input(e: InputEvent) -> void:
 	if not press or _busy or rewards.is_empty():
 		return
 	_root.accept_event()
-	if _t < TIME:
+	if _t < _end:
 		# Still running off: skip to the packages, landed and waiting.
-		_t = TIME
+		_t = _end
 		_dropped = true
 		_ran = true
 		Sfx.play("sparkle", 1.0, -4.0)
@@ -110,7 +121,7 @@ func _on_input(e: InputEvent) -> void:
 func _open(i: int) -> void:
 	_busy = true
 	Sfx.play("pop", 1.0, -2.0)
-	Sfx.haptic(20)
+	Sfx.haptic(20, 1.0, "boss_outro:_open")
 	var order := [rewards[i]]
 	for k in rewards.size():
 		if k != i and not _opened[k]:
@@ -170,44 +181,44 @@ func _draw_it() -> void:
 	var tall := 380.0
 	var floor_y := v.y - 260.0 - ins.y
 	# (Darker once his packages are waiting: it's their moment.)
-	var dark := 0.35 + (0.5 * clampf((_t - TIME + 0.4) / 0.4, 0.0, 1.0) if not rewards.is_empty() else 0.0)
+	var dark := 0.35 + (0.5 * clampf((_t - _end + 0.4) / 0.4, 0.0, 1.0) if not rewards.is_empty() else 0.0)
 	_root.draw_rect(Rect2(Vector2.ZERO, v), Color(0.06, 0.04, 0.12, dark * clampf(_t / 0.2, 0.0, 1.0)))
 	# In from the right, panicking; off to the left at a sprint after the drop.
 	var x := v.x * 0.62
 	if _t < 0.3:
 		x = lerpf(v.x + 240.0, v.x * 0.62, 1.0 - pow(1.0 - _t / 0.3, 3.0))
-	elif _t > 1.3:
-		var u := (_t - 1.3) / 0.9
+	elif _t > _run:
+		var u := (_t - _run) / 0.9
 		x = lerpf(v.x * 0.62, -320.0, u * u)
-	var feet := Vector2(x, floor_y + (absf(sin(_t * 20.0)) * -18.0 if _t > 1.3 else 0.0))
-	Boss.draw(_root, feet, tall, _t, "panic" if _t < 0.45 else "cry", -1.0 if _t > 1.3 else 1.0)
+	var feet := Vector2(x, floor_y + (absf(sin(_t * 20.0)) * -18.0 if _t > _run else 0.0))
+	Boss.draw(_root, feet, tall, _t, "panic" if _t < 0.45 else "cry", -1.0 if _t > _run else 1.0)
 	# Bawling: WAAAH, popping off him.
 	if _t > 0.45:
 		var f := UiTheme.font()
 		for k in 3:
 			var a := fmod(_t - 0.45 + k * 0.33, 1.0)
-			var at := Vector2(feet.x + (k - 1) * 120.0 + (60.0 if _t > 1.3 else -60.0) * a, feet.y - tall * 1.15 - a * 120.0)
+			var at := Vector2(feet.x + (k - 1) * 120.0 + (60.0 if _t > _run else -60.0) * a, feet.y - tall * 1.15 - a * 120.0)
 			var w := f.get_string_size("WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50).x
 			_root.draw_set_transform(at, (k - 1) * 0.25, Vector2.ONE * (0.7 + 0.5 * a))
 			_root.draw_string_outline(f, Vector2(-w / 2.0, 0), "WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50, 10, Color(0.1, 0.06, 0.16, 1.0 - a))
 			_root.draw_string(f, Vector2(-w / 2.0, 0), "WAAAH!", HORIZONTAL_ALIGNMENT_LEFT, -1, 50, Color(0.6, 0.85, 1.0, 1.0 - a))
 			_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Dust kicked up as he runs.
-	if _t > 1.3:
+	if _t > _run:
 		for k in 6:
 			var a := fmod(_t * 3.0 + k / 6.0, 1.0)
 			var p := Vector2(x + 60.0 + a * 160.0, floor_y - 10.0 - a * 30.0)
 			_root.draw_circle(p, 20.0 + 30.0 * a, Color(0.85, 0.8, 0.72, 0.5 * (1.0 - a)))
 	# The packages he drops as he runs (one per prize), or (nothing to give) the money bag, bursting.
 	for i in rewards.size():
-		var t0 := 1.3 + i * DROP_EVERY
+		var t0 := _run + i * DROP_EVERY
 		if _t < t0:
 			continue
 		var land := _package_at(i)
 		var u := clampf((_t - t0) / 0.28, 0.0, 1.0)
-		var from := Vector2(lerpf(v.x * 0.62, -320.0, pow((t0 - 1.3) / 0.9, 2.0)), floor_y - tall * 0.55)
+		var from := Vector2(lerpf(v.x * 0.62, -320.0, pow((t0 - _run) / 0.9, 2.0)), floor_y - tall * 0.55)
 		var p := from.lerp(land, u) + Vector2(0, -160.0 * sin(PI * u))
-		if u >= 1.0 and _t >= TIME and not _opened[i]:
+		if u >= 1.0 and _t >= _end and not _opened[i]:
 			# Waiting to be opened: a hop now and then, a ring.
 			p.y -= absf(sin(_t * 3.0 + i * 1.3)) * 16.0
 			var k := fmod(_t / 1.4 + i * 0.3, 1.0)
@@ -215,8 +226,8 @@ func _draw_it() -> void:
 		_root.draw_set_transform(p, sin(_t * 9.0 + i) * 0.08 if u < 1.0 else 0.0, Vector2.ONE)
 		_reward_box(Vector2.ZERO, 150.0, _reward_color(rewards[i]), _opened[i])
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if not rewards.is_empty() and _t >= TIME - 0.2:
-		var k := clampf((_t - TIME + 0.2) / 0.3, 0.0, 1.0)
+	if not rewards.is_empty() and _t >= _end - 0.2:
+		var k := clampf((_t - _end + 0.2) / 0.3, 0.0, 1.0)
 		var f := UiTheme.font()
 		var head := "BOSS REWARD" if rewards.size() == 1 else "BOSS REWARDS"
 		var ins2 := UiTheme.insets(_root.get_viewport())
@@ -249,20 +260,23 @@ func _draw_it() -> void:
 				var p := bag + Vector2(cos(a), sin(a)) * sp * b + Vector2(0, 900.0 * b * b)
 				if b < 1.4:
 					Icons.draw(_root, "coin", p, 40.0 * (1.0 - 0.3 * k), Color.WHITE)
-	# What he says.
-	if _t > 0.15 and _t < 2.2:
+	# What he says: it stays where he stood, a moment after he's off.
+	if _t <= _run:
+		_stand_x = feet.x
+	if _t > 0.15 and _t < _run + 0.6:
 		var px := 44
 		var f := UiTheme.font()
 		var w := f.get_string_size(_line, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
 		var lines: Array = BossIntro.wrap_text(_line, px, v.x - 200.0)
 		var bw := minf(w, v.x - 200.0) + 64.0
 		var bh := lines.size() * px * 1.25 + 44.0
-		var bc := Vector2(clampf(feet.x, bw / 2.0 + 40.0, v.x - bw / 2.0 - 40.0), feet.y - tall * 1.5 - bh / 2.0)
+		var bc := Vector2(clampf(_stand_x, bw / 2.0 + 40.0, v.x - bw / 2.0 - 40.0), floor_y - tall * 1.5 - bh / 2.0)
 		var s := 1.0 - pow(1.0 - clampf((_t - 0.15) / 0.18, 0.0, 1.0), 3.0)
+		s *= clampf((_run + 0.6 - _t) / 0.2, 0.0, 1.0)          # (and pops away)
 		_root.draw_set_transform(bc, sin(_t * 30.0) * 0.02, Vector2.ONE * s)
 		DrawUtil.rrect(_root, Rect2(Vector2(-bw / 2.0, -bh / 2.0) + Vector2(0, 8), Vector2(bw, bh)), Color(0, 0, 0, 0.3), 30.0)
-		DrawUtil.rrect(_root, Rect2(Vector2(-bw / 2.0, -bh / 2.0), Vector2(bw, bh)), Color.WHITE, 30.0)
+		DrawUtil.rrect(_root, Rect2(Vector2(-bw / 2.0, -bh / 2.0), Vector2(bw, bh)), Palette.BUBBLE, 30.0)
 		for i in lines.size():
 			var lw := f.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
-			_root.draw_string(f, Vector2(-lw / 2.0, -bh / 2.0 + 22.0 + px + i * px * 1.25), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color("d62839"))
+			_root.draw_string(f, Vector2(-lw / 2.0, -bh / 2.0 + 22.0 + px + i * px * 1.25), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, Color("d62839") if not Palette.night else Color("ff7a85"))
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

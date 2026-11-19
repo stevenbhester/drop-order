@@ -172,6 +172,8 @@ func _draw() -> void:
 	var f := UiTheme.font()
 	var mid := size / 2.0 + Vector2(0, (2.0 if is_pressed() else -3.0) + label_dy)
 	var col := Color(_fg(), 0.45) if (dim or locked) else _fg()
+	if (dim or locked) and Palette.night and _fg().get_luminance() < 0.5:
+		col = Color(Palette.TEXT, 0.5)        # (a dark label on the dark dimmed button vanished at night)
 	if turbo:
 		col = Color(1, 1, 1, 0.6 if dim else 1.0)
 	var isz := minf(size.y * 0.5, font_px * 1.3) * icon_scale if icon_name != "" else 0.0

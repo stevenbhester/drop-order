@@ -7,11 +7,13 @@ extends CanvasLayer
 ## deals the rest at once. Then Share (the game asking you to brag over it, until today's has been shared),
 ## a big Get back to work (`done_pressed`: back to the map, the card up for the job your van's at) with
 ## Stats beside it ("How everyone did": DailyStats). A red X on the card's corner is the same way out, there
-## from the start. `animate = false` shows it all straight away (opening it again from the daily screen).
+## from the start (opened again from the daily screen, it just closes the card: `dismissed`). `animate = false` shows it all straight away (opening it again from the daily screen).
 
 signal share_pressed
 signal stats_pressed
 signal done_pressed
+## The X on a card opened again from the daily screen: just put it away (stay on the daily screen).
+signal dismissed
 
 const FIRST_AT := 0.5
 const EVERY := 0.36
@@ -61,7 +63,7 @@ func _ready() -> void:
 		Sfx.play("click")
 		Progress.daily_shared(day)
 		share_pressed.emit())
-	_stats = _button("Stats", "grid", Color.WHITE, Palette.TEXT, 40)
+	_stats = _button("Stats", "grid", Palette.SURFACE, Palette.TEXT, 40)
 	StatsFlair.dress(_stats)
 	_stats.pressed.connect(func():
 		Sfx.play("click")
@@ -70,7 +72,7 @@ func _ready() -> void:
 	_done = _button("Get back to work", "", Palette.GOOD, Color.WHITE, 50)
 	_done.pressed.connect(_close)
 	_x = CloseX.new()
-	_x.pressed.connect(_close)
+	_x.pressed.connect(func(): _close(animate))      # (opened again from the daily screen: it only closes)
 	_root.add_child(_x)
 	_fx = Fx.new()
 	_root.add_child(_fx)
@@ -133,7 +135,7 @@ func _process(delta: float) -> void:
 			else:
 				Sfx.play("star", 1.0 + 0.05 * _dealt, -3.0)
 				_fx.burst(Vector2(rr.end.x - 46.0, rr.get_center().y), Palette.STAR_GOLD, 14, 520.0, 14.0)
-			Sfx.haptic(12, 0.5)
+			Sfx.haptic(12, 0.5, "daily_score:_process")
 	# The number rolls up to what's landed.
 	var landed := 0
 	for i in _dealt:
@@ -145,7 +147,7 @@ func _process(delta: float) -> void:
 		_rolled = _score
 		Sfx.play("kaching", 1.0, -2.0)
 		Sfx.play("win", 1.1, -8.0)
-		Sfx.haptic(35, 0.9)
+		Sfx.haptic(35, 0.9, "daily_score:_process")
 		var c := Vector2(card.get_center().x, card.position.y + 190.0)
 		_fx.ring(c, Palette.STAR_GOLD, 220.0)
 		for col in [Palette.STAR_GOLD, GREEN, Color("4d8dff")]:
@@ -173,7 +175,7 @@ func _process(delta: float) -> void:
 	_root.queue_redraw()
 
 
-func _close() -> void:
+func _close(to_work := true) -> void:
 	if _closing:
 		return
 	_closing = true
@@ -181,7 +183,10 @@ func _close() -> void:
 	var tw := create_tween()
 	tw.tween_property(_root, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(func():
-		done_pressed.emit()
+		if to_work:
+			done_pressed.emit()
+		else:
+			dismissed.emit()
 		queue_free())
 
 

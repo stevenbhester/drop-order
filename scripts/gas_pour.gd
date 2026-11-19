@@ -18,7 +18,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	Sfx.play("whoosh", 1.3, -8.0)
-	Sfx.haptic(12)
+	Sfx.haptic(12, 1.0, "gas_pour:_ready")
 
 
 func _process(delta: float) -> void:
@@ -26,7 +26,7 @@ func _process(delta: float) -> void:
 	if not _popped and _t >= 0.5:
 		_popped = true
 		Sfx.play("pop", 1.3, -5.0)
-		Sfx.haptic(18)
+		Sfx.haptic(18, 1.0, "gas_pour:_process")
 		if is_instance_valid(button) and button.has_method("pop"):
 			button.pop()
 	if _t >= TIME:

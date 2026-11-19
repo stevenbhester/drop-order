@@ -37,7 +37,7 @@ enum { M_ONEWAY, M_BRIDGE, M_GATE, M_HUB, M_PICK, M_ICE, M_LOCK, M_WORKS, M_RET,
 static const char *KIND_NAME[NKIND] = {"oneway", "bridge", "gate", "hub", "pickup", "ice", "locker", "works", "return", "multi", "warehouse"};
 
 enum { F_NONE, F_DECOY, F_LONGWAY, F_TWODOOR, F_LONGCON, F_GAUNTLET, F_KNOT, F_DUMP, F_RESTOCK, F_SORTER, F_TWIN, F_HOARD, F_BREATHER, NFLAVOR };
-static const char *FLAVOR_NAME[NFLAVOR] = {"none", "decoy", "longway", "twodoor", "longcon", "gauntlet", "knot", "dump", "restock", "sorter", "twin", "hoard", "breather"};
+static const char *FLAVOR_NAME[NFLAVOR] = {"none", "decoy", "longway", "twodoor", "longcon", "gauntlet", "knot", "park", "restock", "sorter", "twin", "hoard", "breather"};
 
 typedef struct {
     int slot, seed, w, h, ret, who, keep, gift, flavor, melter, late, verbose;
@@ -125,7 +125,7 @@ static void slot_arg(Slot *S, const char *a) {
 // ------------------------------------------------------------------ a design: a town, the answer, the buildings
 
 typedef struct {
-    int cell, kind;        // kind: 0 house, 1 locker, 2 pickup
+    int cell, kind;        // kind: 0 house, 1 parking locker (keeps one package until the van passes again), 2 pickup
     int col, n;            // colour; packages wanted (or held)
     uint8_t pass[5];       // per package: which time the answer drives past delivers it (0 = the first)
     uint8_t feed[5];       // lockers: the colour each package is, when it comes from the starting load
@@ -227,6 +227,25 @@ static int level_valid(const Level *L) {
         if (!L->hroads[k]) return 0;
     for (int k = 0; k < L->ns; k++)
         if (!L->sroads[k]) return 0;
+    // Two houses of one colour beside the same road: which one gets the package would be a hidden
+    // tie-break, so that's never built.
+    for (int k = 0; k < L->nh; k++)
+        for (int k2 = k + 1; k2 < L->nh; k2++)
+            if (L->hcol[k] == L->hcol[k2] && L->hcol[k] != ANY && (L->hroads[k] & L->hroads[k2])) return 0;
+    // Nor a pickup beside a house of its own colour (in and straight out again at one stop reads as a muddle).
+    for (int k = 0; k < L->nh; k++)
+        for (int j = 0; j < L->ns; j++)
+            if (L->hcol[k] == L->scol[j] && (L->hroads[k] & L->sroads[j])) return 0;
+    if (L->nal[s]) return 0;
+    for (int c = 0; c < L->n; c++)
+        if (L->nal[c] > 1) return 0;          // (tapping a locker must be clear)
+    for (int k = 0; k < L->nl; k++) {
+        // A parking locker needs two ways in: one to leave a package, another to fetch it.
+        int doors = 0;
+        for (int c = 0; c < L->n; c++)
+            if (L->lroads[k] & BIT(c)) doors++;
+        if (doors < 2) return 0;
+    }
     for (int c = 0; c < L->n; c++) {
         if (!L->road[c]) continue;
         int r[4], deg = 0;
@@ -235,7 +254,7 @@ static int level_valid(const Level *L) {
             r[d] = q >= 0 && L->road[q];
             deg += r[d];
         }
-        if ((L->bridge[c] || L->hub[c]) && (L->nah[c] || L->nas[c])) return 0;
+        if ((L->bridge[c] || L->hub[c]) && (L->nah[c] || L->nas[c] || L->nal[c])) return 0;
         if (L->bridge[c] && deg != 4) return 0;
         if (L->oneway[c] >= 0 && !r[L->oneway[c]]) return 0;
         if ((L->gate[c] >= 0 || L->works[c]) && !((r[0] && r[2] && !r[1] && !r[3]) || (r[1] && r[3] && !r[0] && !r[2]))) return 0;
@@ -272,7 +291,10 @@ static int build_level(const Design *D, Level *L, int *eff) {
     int pickups = 0;
     for (int i = 0; i < D->nb; i++) {
         const Bld *b = &D->b[ord[i]];
-        if (b->kind == 2) {
+        if (b->kind == 1) {
+            if (L->nl >= MAXL) return 0;
+            L->lcell[L->nl++] = b->cell;
+        } else if (b->kind == 2) {
             L->scell[L->ns] = b->cell;
             L->scol[L->ns] = b->col;
             L->scnt[L->ns++] = b->n;
@@ -312,6 +334,8 @@ static int build_level(const Design *D, Level *L, int *eff) {
     for (int j = 0; j < n0; j++) sym[j] = -(n0 - j);       // bottom ... top = variables n0-1 ... 0
     for (int j = 0; j < 16; j++) varcol[j] = -1;
     uint8_t seenp[MAXB] = {0}, picked[MAXB] = {0}, unitc[MAXB] = {0};
+    int held[MAXL];
+    for (int k = 0; k < MAXL; k++) held[k] = EMPTY;
     for (int i = 1; i < D->nroute; i++) {
         int t = D->route[i];
         if (L->hub[t] && sp >= 2) {
@@ -319,6 +343,7 @@ static int build_level(const Design *D, Level *L, int *eff) {
             sym[sp - 1] = sym[sp - 2];
             sym[sp - 2] = a;
         }
+
         for (int any = 0; any < 2; any++)
             for (int a = 0; a < L->nah[t]; a++) {
                 int k = L->ah[t][a];
@@ -345,8 +370,20 @@ static int build_level(const Design *D, Level *L, int *eff) {
                 sym[sp++] = L->scol[k];
             }
         }
+        if (L->nal[t]) {          // the answer stops here and uses the parking locker: back, or in
+            int k = L->al[t][0];
+            if (held[k] != EMPTY) {
+                if (sp >= MAXSTK) return 0;
+                sym[sp++] = held[k];
+                held[k] = EMPTY;
+            } else if (sp > 0) {
+                held[k] = sym[--sp];
+            }
+        }
     }
     if (sp != 0) return 0;
+    for (int k = 0; k < MAXL; k++)
+        if (held[k] != EMPTY) return 0;
     for (int j = 0; j < n0; j++)
         if (varcol[j] < 0 || varcol[j] > 5) return 0;
     L->nstack = n0;
@@ -373,6 +410,14 @@ static int build_level(const Design *D, Level *L, int *eff) {
         if (won(L, &s)) {
             *eff = i + 1;
             return most <= 12;
+        }
+        if (can_extend(L, &s, USE) >= 0) {       // (as above: the answer uses every locker it stops by)
+            step(L, &s, USE, t, NULL);
+            if (s.sp > most) most = s.sp;
+            if (won(L, &s)) {
+                *eff = i + 1;
+                return most <= 12;
+            }
         }
     }
     return 0;
@@ -652,10 +697,7 @@ static int mutate(Design *D, const Slot *S) {
     if (r < 18) {                       // recolour a house or a pickup
         if (D->nb == 0 || S->ncol < 2) return 0;
         Bld *b = &D->b[rint_(D->nb)];
-        if (b->kind == 1) {
-            b->feed[rint_(b->n)] = (uint8_t)rint_(S->ncol);
-            return 1;
-        }
+        if (b->kind == 1) return 0;          // (a parking locker has no colour)
         int c = rint_(S->ncol);
         if (c == b->col) return 0;
         b->col = c;
@@ -673,7 +715,7 @@ static int mutate(Design *D, const Slot *S) {
     if (r < 40) {                       // deliver on a different pass
         if (D->nb == 0) return 0;
         Bld *b = &D->b[rint_(D->nb)];
-        if (b->kind == 2) return 0;
+        if (b->kind != 0) return 0;
         b->pass[rint_(b->n)] = (uint8_t)rint_(3);
         return 1;
     }
@@ -713,6 +755,7 @@ static int mutate(Design *D, const Slot *S) {
         Bld *b = &D->b[rint_(D->nb)];
         if (b->kind == 0 && nl < S->lmax && nh > S->hmin) {
             b->kind = 1;
+            b->n = 1;
             return 1;
         }
         if (b->kind == 1 && nl > S->lmin && nh < S->hmax) {
@@ -725,6 +768,7 @@ static int mutate(Design *D, const Slot *S) {
     if (r < 75) {                       // a bigger or smaller order (or warehouse)
         if (D->nb == 0) return 0;
         Bld *b = &D->b[rint_(D->nb)];
+        if (b->kind == 1) return 0;
         int top = b->kind == 2 ? S->stock : S->maxorder;
         if (top < 2) return 0;
         int v = b->n + (rint_(2) ? 1 : -1);
@@ -825,6 +869,7 @@ typedef struct {
 } Eval;
 
 static void strip_kind(Level *L, int kind) {
+    if (kind == M_LOCK) L->nl = 0;
     for (int c = 0; c < L->n; c++) {
         if (kind == M_ONEWAY) L->oneway[c] = -1;
         if (kind == M_BRIDGE) L->bridge[c] = 0;
@@ -851,11 +896,7 @@ static int kind_matters(const Level *L, const Report *R, int kind) {
             if (L->scnt[k] >= 3) return 1;
         return 0;
     }
-    if (kind == M_LOCK) {
-        for (int k = 0; k < L->nh; k++)
-            if (L->hcol[k] == ANY) return 1;
-        return 0;
-    }
+    if (kind == M_LOCK && P->dumps < 1) return 0;     // (the answer has to park something)
     if (kind == M_ONEWAY && P->used_oneway < 1) return 0;
     if (kind == M_BRIDGE && P->used_bridge2 < 1) return 0;
     if (kind == M_GATE && P->used_gate < 1) return 0;
@@ -973,9 +1014,13 @@ static int gift_after(const Level *L, const int *route, int len, u128 on) {
     state_init(L, &s);
     for (int i = 0; i + 1 < len; i++) {
         int d;
-        for (d = 0; d < 4; d++)
-            if (L->nb[s.pos][d] == route[i + 1]) break;
-        if (d == 4) return -1;
+        if (route[i + 1] == s.pos) {
+            d = USE;
+        } else {
+            for (d = 0; d < 4; d++)
+                if (L->nb[s.pos][d] == route[i + 1]) break;
+            if (d == 4) return -1;
+        }
         on |= BIT(route[i + 1]);
         step(L, &s, d, route[i + 1], NULL);
     }
@@ -1056,12 +1101,16 @@ static void print_level(const Level *L) {
     printf("\"w\":%d,\"h\":%d,\"ret\":%d,\"map\":\"", L->w, L->h, L->ret);
     for (int c = 0; c < L->n; c++) {
         if (c) putchar(c % L->w ? ' ' : '/');
-        int hk = -1, sk = -1;
+        int hk = -1, sk = -1, lk = -1;
+        for (int k = 0; k < L->nl; k++)
+            if (L->lcell[k] == c) lk = k;
         for (int k = 0; k < L->nh; k++)
             if (L->hcell[k] == c) hk = k;
         for (int k = 0; k < L->ns; k++)
             if (L->scell[k] == c) sk = k;
-        if (hk >= 0) {
+        if (lk >= 0) {
+            putchar('L');
+        } else if (hk >= 0) {
             putchar(L->hcol[hk] == ANY ? 'w' : COLS[L->hcol[hk]]);
             if (L->hord[hk] > 1) printf("%d", L->hord[hk]);
         } else if (sk >= 0) {
@@ -1157,6 +1206,9 @@ static void print_cand(const Slot *S, const Level *L, const Eval *E, int restart
         if (k == M_RET && L2.ret) present = 1;
         for (int h = 0; h < L2.nh; h++) {
             if (k == M_LOCK && L2.hcol[h] == ANY) present = 1;
+        }
+        if (k == M_LOCK && L2.nl) present = 1;
+        for (int h = 0; h < L2.nh; h++) {
             if (k == M_MULTI && L2.hcol[h] != ANY && L2.hord[h] > 1) present = 1;
         }
         for (int h = 0; h < L2.ns; h++)

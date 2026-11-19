@@ -175,12 +175,13 @@ level that's fair to an expert isn't a wall for whoever is actually playing it. 
 their ceiling is tight, because whoever plays them has just finished the tutorial.
 
 **What the harder tiers ask for**, from the feedback above: several houses of the same colour to choose
-between (and no one colour hogging the van), few one-door houses, no one-door house for the last package,
+between (never two of them beside one road tile: that's a guess, not a choice, so `level_valid` refuses it) (and no one colour hogging the van), few one-door houses, no one-door house for the last package,
 and deliveries spread along the drive instead of saved for one street.
 
 **Flavours** are a wish, not a requirement: decoy (the obvious first stop is wrong), twodoor (drive past a
 house, deliver later from another street), longcon (an early turn decides the ending), gauntlet, knot,
-dump, restock, sorter, twin, hoard, breather. The assembler takes the best candidate with the flavour,
+park (the answer parks a package in a parking locker and delivers something else before fetching it back;
+parking one and taking it straight back doesn't count), restock, sorter, twin, hoard, breather. The assembler takes the best candidate with the flavour,
 else the best without.
 
 **Mechanics.** A level that introduces a mechanic must use it on the answer, and the answer set must change

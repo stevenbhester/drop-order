@@ -194,7 +194,7 @@ func _submit() -> void:
 		_note.release_focus()
 	DisplayServer.virtual_keyboard_hide()
 	Sfx.play("click", 1.1)
-	Sfx.haptic(14, 0.7)
+	Sfx.haptic(14, 0.7, "rating_card:_submit")
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var out := answers()
 	var tw := create_tween()
@@ -229,7 +229,7 @@ class Stars:
 			accept_event()
 			value = 0 if value == i else i
 			Sfx.play("click", 0.9 + 0.06 * value)
-			Sfx.haptic(10, 0.5)
+			Sfx.haptic(10, 0.5, "rating_card:_submit")
 			changed.emit(value)
 			queue_redraw()
 
@@ -268,7 +268,7 @@ class Chip:
 			accept_event()
 			on = not on
 			Sfx.play("click", 1.1 if on else 0.9)
-			Sfx.haptic(10, 0.5)
+			Sfx.haptic(10, 0.5, "rating_card:_submit")
 			toggled.emit(on)
 			queue_redraw()
 

@@ -33,7 +33,7 @@ func _ready() -> void:
 	_card = PanelContainer.new()
 	_card.custom_minimum_size = Vector2(900, 0)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("fffaf0")
+	sb.bg_color = Palette.CARD
 	sb.set_corner_radius_all(64)
 	sb.set_content_margin_all(56)
 	sb.shadow_color = Color(0, 0, 0, 0.25)
@@ -81,7 +81,7 @@ func _ready() -> void:
 		return
 	var offer := PanelContainer.new()
 	var ob := StyleBoxFlat.new()
-	ob.bg_color = Color("ffeccb")
+	ob.bg_color = Color("ffeccb") if not Palette.night else Palette.SURFACE
 	ob.set_corner_radius_all(40)
 	ob.set_content_margin_all(30)
 	ob.anti_aliasing = true
@@ -186,7 +186,7 @@ func _on_buy() -> void:
 	_buy.breathe(false)
 	Progress.buy_full_tank()
 	Sfx.play("kaching")
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "gas_shop:_on_buy")
 	_buy.label = "Filled up!"
 	_buy.icon_name = "gas"
 	var at := _buy.global_position + _buy.size / 2.0
@@ -213,7 +213,7 @@ func _on_ad() -> void:
 		Progress.refuel()
 		Progress.hint_ad_watched = true
 		Sfx.play("kaching")
-		Sfx.haptic(30)
+		Sfx.haptic(30, 1.0, "gas_shop:_on_ad")
 		_buy.label = "Tank filled up!"
 		_buy.icon_name = "gas"
 		var at := _buy.global_position + _buy.size / 2.0

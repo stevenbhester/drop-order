@@ -21,7 +21,7 @@ func _process(delta: float) -> void:
 	if k != _said and k <= 3:
 		_said = k
 		Sfx.play("tick" if k < 3 else "kaching", 1.0 + k * 0.15, -2.0)
-		Sfx.haptic(20 if k < 3 else 40, 0.8)
+		Sfx.haptic(20 if k < 3 else 40, 0.8, "countdown:_process")
 		if k == 3:
 			done.emit()
 	if _t > 0.7 * 3 + 0.5:

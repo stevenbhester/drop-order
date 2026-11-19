@@ -57,7 +57,7 @@ func _ready() -> void:
 	show_off.gui_input.connect(func(e: InputEvent):
 		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and not _van.celebrating():
 			Sfx.play("tick", 1.1, -4.0)
-			Sfx.haptic(12)
+			Sfx.haptic(12, 1.0, "garage:_ready")
 			_van.celebrate())
 	add_child(show_off)
 	if OS.get_cmdline_user_args().has("--garage-win"):
@@ -227,7 +227,7 @@ func _tile(id: String) -> Button:
 			return
 		Progress.wear(id)
 		Sfx.play("pop", 1.1)
-		Sfx.haptic(10)
+		Sfx.haptic(10, 1.0, "garage:_tile")
 		if Cosmetics.kind_of(id) == "trail":
 			t.replay()
 		# Picking a ride (or the van back) shows off its win celebration; anything else just bounces.

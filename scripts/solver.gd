@@ -11,6 +11,10 @@ extends RefCounted
 ##
 ## `nodes` (partial routes explored) is a rough measure of how many tempting wrong
 ## routes a level has: the generator uses it to prefer deceptive levels.
+##
+## Parking lockers: stopped beside one, using it (Sim.use_locker) is a move of its own, at most once per stop
+## (twice would just undo it). Routes handed back write that move as the same tile twice in a row ("steps");
+## the search itself keeps `route` to real tiles and notes where the locker was used in `_acts`.
 
 const REVISIT_CAP := 2
 
@@ -24,6 +28,7 @@ var capped := false
 var nodes := 0
 var node_limit := 4000000
 var _visits := {}
+var _acts: Array = []    # route indices (the stop) where the locker was used, in order
 ## When set, every winning route found is kept here (up to `limit`).
 var keep_all := false
 var routes: Array = []
@@ -34,7 +39,7 @@ static func solve(level: LevelData, max_solutions := 20000, max_nodes := 4000000
 	s.L = level
 	s.limit = max_solutions
 	s.node_limit = max_nodes
-	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2 + 4 * level.lockers.size()
 	var t0 := Time.get_ticks_usec()
 	s._visits = {level.start: 1}
 	s._dfs([level.start], Sim.new_state(level))
@@ -54,7 +59,7 @@ static func solve_all(level: LevelData, cap := 400, max_nodes := 2000000) -> Arr
 	s.limit = cap
 	s.node_limit = max_nodes
 	s.keep_all = true
-	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2 + 4 * level.lockers.size()
 	s._visits = {level.start: 1}
 	s._dfs([level.start], Sim.new_state(level))
 	s.routes.sort_custom(func(a, b): return a.size() < b.size())
@@ -73,9 +78,10 @@ static func gift_route(level: LevelData) -> Array:
 	if level.return_depot:
 		return []
 	for r in routes:
-		var ext := _reach(level, r.duplicate(), Sim.run(level, r), level.gift, 6)
+		var tiles := Sim.tiles_of(r)
+		var ext := _reach(level, tiles.duplicate(), Sim.run_steps(level, r), level.gift, 6)
 		if not ext.is_empty():
-			return ext
+			return r + ext.slice(tiles.size())
 	return []
 
 
@@ -119,7 +125,7 @@ static func can_finish(level: LevelData, route: Array, state: Dictionary, max_no
 	s.L = level
 	s.limit = 1
 	s.node_limit = max_nodes
-	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2 + 4 * level.lockers.size()
 	var from: Array = route.duplicate()
 	if level.no_revisit:
 		for t in from:
@@ -142,7 +148,7 @@ static func _solve_from(level: LevelData, route: Array, state: Dictionary, max_n
 	s.L = level
 	s.limit = 400
 	s.node_limit = max_nodes
-	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2
+	s.max_len = level.road_count() * (1 if level.no_revisit else REVISIT_CAP) + level.bridges.size() + 2 + 4 * level.lockers.size()
 	var from: Array = route.duplicate()
 	if level.no_revisit:
 		for t in from:
@@ -159,7 +165,7 @@ static func _solve_from(level: LevelData, route: Array, state: Dictionary, max_n
 	return s.shortest.slice(from.size() - 1)
 
 
-func _dfs(route: Array, state: Dictionary) -> void:
+func _dfs(route: Array, state: Dictionary, acted := false) -> void:
 	if count >= limit or nodes >= node_limit:
 		capped = true
 		return
@@ -177,19 +183,49 @@ func _dfs(route: Array, state: Dictionary) -> void:
 		route.append(nxt)
 		_visits[nxt] = v + 1
 		if Sim.is_won(L, st, route):
-			count += 1
-			if keep_all:
-				routes.append(route.duplicate())
-			if shortest.is_empty() or route.size() < shortest.size():
-				shortest = route.duplicate()
-		elif route.size() < max_len and not _hopeless(route, st):
+			_found(route)
+		elif route.size() + _acts.size() < max_len and not _hopeless(route, st):
 			_dfs(route, st)
 		route.pop_back()
 		_visits[nxt] = v
+	# Stopped here: use the parking locker (once per stop).
+	if not acted and route.size() >= 1 and Sim.locker_here(L, state, last) >= 0:
+		var st := Sim.copy_state(state)
+		Sim.use_locker(L, st, last, route.slice(0, route.size() - 1))
+		_acts.append(route.size() - 1)
+		if Sim.is_won(L, st, route):
+			_found(route)
+		elif route.size() + _acts.size() < max_len and not _hopeless(route, st):
+			_dfs(route, st, true)
+		_acts.pop_back()
+
+
+## A win: counted, and kept as steps (locker uses written in).
+func _found(route: Array) -> void:
+	count += 1
+	var steps := _steps(route)
+	if keep_all:
+		routes.append(steps)
+	if shortest.is_empty() or steps.size() < shortest.size():
+		shortest = steps
+
+
+## The route with each locker use written in as its tile again.
+func _steps(route: Array) -> Array:
+	if _acts.is_empty():
+		return route.duplicate()
+	var out := []
+	var j := 0
+	for i in route.size():
+		out.append(route[i])
+		while j < _acts.size() and _acts[j] == i:
+			out.append(route[i])
+			j += 1
+	return out
 
 
 ## True if something still needed can't be reached any more: a house still waiting, a
-## shop still holding a parcel, or (return levels) the depot. Only valid without revisits.
+## shop still holding a parcel, a locker keeping a package, or (return levels) the depot. Only valid without revisits.
 func _hopeless(route: Array, st: Dictionary) -> bool:
 	if not L.no_revisit:
 		return false
@@ -216,6 +252,10 @@ func _hopeless(route: Array, st: Dictionary) -> bool:
 	var picked: Array = st["picked"]
 	for k in L.shops.size():
 		if picked[k] < L.shops[k].count and not _touches(L.shop_roads[k], reach, last):
+			return true
+	var held: Array = st.get("held", [])
+	for k in held.size():
+		if held[k] != "" and not _touches(L.locker_roads[k], reach, last):
 			return true
 	if L.has_exit() and not reach.has(L.exit):
 		return true

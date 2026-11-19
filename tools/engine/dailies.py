@@ -8,7 +8,8 @@ its spice: 1 mild, 2 medium, 3 spicy, each a band of the plan view (design/level
 on failed drives so six tries is fair.
 
   python3 tools/engine/dailies.py gen [--seed N] [--time X] [numbers...]   candidates -> build/engine/daily_NNN.<seed>.txt
-  python3 tools/engine/dailies.py write [--dry]                            the best of them -> levels/daily.json
+  python3 tools/engine/dailies.py write [--dry] [numbers...]               the best of them -> levels/daily.json
+  (numbers given: only those take a new puzzle; the rest stay exactly as they are)
 A slot with no candidate that passes keeps the puzzle it has, and is listed.
 """
 import glob, json, os, subprocess, sys, time
@@ -36,7 +37,7 @@ DAILIES = [
     ("Rainy Tuesday", "Short trip. Mind the puddles.", 1, "", "longcon"),
     ("Birthday Rush", "Some houses want two. Party logistics!", 3, "xN", "twodoor"),
     ("Llama Drama", "Arrows know best. Usually.", 2, "1w", "decoy"),
-    ("The Big Map", "Lots of packages, one way through. Take your time.", 3, "", "gauntlet"),
+    ("The Big Map", "Lots of packages. Take your time.", 3, "", "gauntlet"),
     ("Lunchbox Shuffle", "Packed in the wrong order. Naturally.", 2, "", "knot"),
     ("Kite Festival", "Over the bridge and round again. Strings attached.", 2, "br", "twodoor"),
     ("Hot Cocoa Run", "Warm cup, cold one-way streets.", 2, "1w", "longcon"),
@@ -64,12 +65,21 @@ GIFTS = {}                        # (no presents on dailies while toppers are sh
 
 # Per spice: the plan-view band (wrong plans worked through), the least to hold, how often the first plan
 # may be right, the ceiling on failed drives, and the search.
+# Answers: a daily may have several winning routes (rmax). Steven: part of the fun is finding *a* way, then
+# seeing from the Straight shot badge whether it was the shortest. So the search leans (gen's `fuel`, the
+# same pull the old fuel levels used) toward one shortest route that the likeliest winning line misses by
+# two tiles or more. A single answer is still fine now and then. The difficulty bands below are about
+# finding any answer, so more answers don't make a daily easier to finish.
 SPICE = {
-    1: dict(pelo=1.3, pehi=2.5, pnmin=13, pfmax=0.4, ehi=3.5, hmin=4, hmax=5, ncol=3, colmin=2, pkmin=4, pkmax=6, rmax=2, len_min=11,
-            cover_min=0.6, nodes_max=1500, qmax=7, mono=0.6, pickmin=1, secs=20, sizes=[(5, 6), (6, 6)]),
-    2: dict(pelo=2.6, pehi=4.2, pnmin=25, pfmax=0.2, ehi=6.0, hmin=5, hmax=6, ncol=3, colmin=3, pkmin=5, pkmax=7, rmax=1, len_min=15,
+    # Mild used a first-plan-right chance of 40%: Pothole Patrol (plans 1.4, 1.3 drives) read as trivial.
+    # Mild then became the low end of medium, and that Pothole Patrol (plans 2.7, hold 20, first plan right
+    # 13%) was still "so easy" (2026-11-18). So Mild is where Medium was, and Medium moved up a notch to
+    # stay apart from it. Spicy is unchanged.
+    1: dict(pelo=2.6, pehi=3.6, pnmin=23, pfmax=0.13, ehi=5.0, hmin=4, hmax=6, ncol=3, colmin=3, pkmin=5, pkmax=6, rmax=8, fuel=1, len_min=13,
+            cover_min=0.6, nodes_max=2000, qmax=8, mono=0.55, pickmin=2, secs=30, sizes=[(5, 7), (6, 6)]),
+    2: dict(pelo=3.1, pehi=4.4, pnmin=27, pfmax=0.16, ehi=6.5, hmin=5, hmax=6, ncol=3, colmin=3, pkmin=5, pkmax=7, rmax=6, fuel=1, len_min=15,
             cover_min=0.65, nodes_max=2500, qmax=9, mono=0.5, d1max=2, pickmin=3, secs=45, sizes=[(6, 7), (5, 7)]),
-    3: dict(pelo=4.2, pehi=6.2, pnmin=36, pfmax=0.08, ehi=8.5, hmin=5, hmax=7, ncol=3, colmin=3, pkmin=6, pkmax=8, rmax=1, len_min=15,
+    3: dict(pelo=4.2, pehi=6.2, pnmin=36, pfmax=0.08, ehi=8.5, hmin=5, hmax=7, ncol=3, colmin=3, pkmin=6, pkmax=8, rmax=4, fuel=1, len_min=15,
             cover_min=0.6, nodes_max=3000, qmax=9, mono=0.5, d1max=1, open_end=1, pickmin=3, melter=1, secs=80, sizes=[(6, 7), (6, 8)]),
 }
 MECH = {
@@ -162,6 +172,7 @@ def fmt(d):
 
 def write(args):
     dry = "--dry" in args
+    only = {int(a) for a in args if a.isdigit()}      # numbers given: only those take a new puzzle
     cur = json.load(open(PATH))["levels"]
     cands = {}
     for f in glob.glob(os.path.join(ROOT, "build", "engine", "daily_*.txt")):
@@ -173,6 +184,10 @@ def write(args):
     for i in range(len(DAILIES)):
         s = slot(i)
         old = cur[i] if i < len(cur) else None
+        if only and s["n"] not in only and old:
+            seen.add(town({"map": "/".join(" ".join(r.split()) for r in old["map"])}))
+            out.append(old)
+            continue
         pick, why = None, {}
         for want_flavor in (True, False):
             for c in sorted(cands.get(s["n"], []), key=lambda c: -c["fit"]):
@@ -199,9 +214,9 @@ def write(args):
         d["stack"] = [NAMES[x] for x in pick["stack"] if x in NAMES]
         out.append(d)
         m = pick["m"]
-        print("daily %2d %-18s spice %d %-4s plans %.1f hold %3d first %2.0f%% drives %.1f answers %d %dx%d %d pkg" % (
+        print("daily %2d %-18s spice %d %-4s plans %.1f hold %3d first %2.0f%% drives %.1f routes %d shortest %d%s likeliest %d %dx%d %d pkg" % (
             s["n"], s["title"], s["spice"], s["mech"], m["ptries"], m["pnodes"], 100 * m["pfirst"], m["tries3"][0], m["routes"],
-            m["size"][0], m["size"][1], m["packages"]))
+            m["shortest"], "" if m["nshort"] == 1 else " (x%d)" % m["nshort"], m["len"], m["size"][0], m["size"][1], m["packages"]))
     for n, title, spice, mech, k, why in missing:
         print("KEPT daily %d %s (spice %d %s): %d candidates; %s" % (n, title, spice, mech, k, why))
     text = '{\n  "levels": [\n' + ",\n".join(fmt(d) for d in out) + "\n  ]\n}\n"

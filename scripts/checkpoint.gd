@@ -83,7 +83,7 @@ func _ready() -> void:
 	_root.modulate.a = 0.0
 	create_tween().tween_property(_root, "modulate:a", 1.0, 0.2)
 	Sfx.play("screech", 1.0, -8.0)
-	Sfx.haptic(20)
+	Sfx.haptic(20, 1.0, "checkpoint:_ready")
 
 
 func _label_button() -> void:
@@ -139,7 +139,7 @@ func _pass(watched: bool) -> void:
 		Progress.refuel()
 		Sfx.play("kaching", 1.0, -4.0)
 	Sfx.play("slam", 1.2, -6.0)
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "checkpoint:_pass")
 	_label_button()
 
 
@@ -204,7 +204,7 @@ func _draw_card() -> void:
 		# (The button sits here: see _process.) Under it, small: who to blame.
 		# Under it, not ready yet (and it says so): the way to never see these again.
 		UiTheme.draw_wip(_root, Rect2(cx - 380.0, r.position.y + 815.0 + 150.0 + 26.0, 760.0, 104.0), "Buy Last Mile Premium to remove ads!")
-		_lines(str(FINE[posmod(zone - 1, FINE.size())]), Vector2(cx, r.position.y + 815.0 + 150.0 + 26.0 + 104.0 + 42.0), 24, r.size.x - 160.0, Color(Palette.TEXT_SOFT, 0.6))
+		_lines(str(FINE[posmod(zone - 1, FINE.size())]), Vector2(cx, r.position.y + 815.0 + 150.0 + 26.0 + 104.0 + 42.0), 24, r.size.x - 160.0, Palette.TEXT_SOFT)
 	else:
 		# PAPERS IN ORDER, stamped down.
 		var k := clampf(_state_t / 0.18, 0.0, 1.0)

@@ -194,6 +194,7 @@ static func pick() -> int:
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	layer = 88
 	if kind == "":
 		var i := pick()
@@ -667,7 +668,7 @@ func _reach(k: int) -> void:
 				house.deliver()
 				_marks.append({"at": house.base_pos + Vector2(0, -_tile * 0.6), "t0": _t, "kind": "heart"})
 				Sfx.play("thunk", 1.0 + 0.1 * (3 - _load.size()))
-				Sfx.haptic(14))
+				Sfx.haptic(14, 1.0, "promo_ad:_reach"))
 	else:
 		house.wobble()
 		_van.shake()
@@ -677,7 +678,7 @@ func _reach(k: int) -> void:
 		_drive = -1.0
 		Sfx.play("bonk", 0.9, -2.0)
 		Sfx.play("fail", 1.0, -6.0)
-		Sfx.haptic(20)
+		Sfx.haptic(20, 1.0, "promo_ad:_reach")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1268,7 +1269,7 @@ func _crash() -> void:
 	_react("😭", "AWW MAN!")
 	Sfx.play("crash", 1.0, -2.0)
 	Sfx.play("punch", 0.8, 0.0)
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "promo_ad:_crash")
 	if _bait_ready():
 		var tb := AudioStreamPlayer.new()
 		tb.stream = _bait_music["trombone"]

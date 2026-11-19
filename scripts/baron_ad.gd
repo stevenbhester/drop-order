@@ -108,6 +108,7 @@ static func due() -> bool:
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	layer = 80
 	if not SPOTS.has(spot):
 		for a in OS.get_cmdline_user_args():

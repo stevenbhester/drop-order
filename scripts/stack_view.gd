@@ -37,6 +37,18 @@ var spout := 1.0
 var finish_flag := false
 ## Where the flag's drawn (in here), once it has been (INF: not showing). For the "End of shift" card.
 var flag_at := Vector2.INF
+## Packages still to deliver that aren't aboard (parked in a locker, or waiting at a pickup), by colour:
+## [[colour name, how many], ...]. Shown beside the chute, not in it, as "Awaiting pickup" (the parcel
+## tracking status) and a little parcel ×N per colour, so an empty van doesn't read as "done, head home".
+var owed: Array = []:
+	set(v):
+		if owed != v:
+			owed = v
+			queue_redraw()
+## Game: the van's delivered everything aboard and some's still owed. Once the chute's empty too, the label
+## pops up big and red, then keeps pulsing red until something's aboard again.
+var owed_alert := false
+var _alert_at := -1.0        # when the alert started showing (seconds), -1: not showing
 ## Fog (a side road's twist): every package but the next is a grey "?" crate.
 var fog := false:
 	set(v):
@@ -337,8 +349,14 @@ func _swing_flap() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _roll != 0.0 or _flap != 0.0 or finish_flag or not boxes.is_empty():
+	if not _alerting():
+		_alert_at = -1.0
+	if _roll != 0.0 or _flap != 0.0 or finish_flag or not boxes.is_empty() or _alerting():
 		queue_redraw()
+
+
+func _alerting() -> bool:
+	return owed_alert and boxes.is_empty() and not owed.is_empty()
 
 
 # ---------------------------------------------------------------- changes
@@ -682,6 +700,9 @@ func _draw() -> void:
 		var c := _at_place(end[1])
 		DrawUtil.rrect(self, Rect2(c - Vector2(tw / 2.0 + ph * 0.1, fs * 0.72), Vector2(tw + ph * 0.2, fs * 1.36)), Palette.SURFACE, ph * 0.14)
 		draw_string(f, c + Vector2(-tw / 2.0, fs * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.TEXT)
+	# What's still to collect (parked, or waiting at a pickup): beside the chute, away from the board.
+	if not owed.is_empty():
+		_draw_owed_strip(far, tube, lw, mr)
 	# Return levels: the finish flag behind the last package (in the mouth once they're all out).
 	if finish_flag:
 		var q := boxes.size()
@@ -696,3 +717,75 @@ func _draw() -> void:
 		flag_at = at
 		if at != Vector2.INF:
 			Icons.finish_flag(self, at, ph * 0.86, Time.get_ticks_msec() / 1000.0)
+
+
+## "Awaiting pickup", then a small parcel ×N for each colour not aboard yet. Lying along the board: one
+## line over (or under) the tube, from its back end toward the mouth, stopping short of the NEXT tag.
+## Standing beside it: under the hopper, a line each.
+func _draw_owed_strip(far: float, tube: float, lw: float, mouth: Rect2) -> void:
+	var f := UiTheme.font()
+	var fs := int(ph * 0.6)
+	var chip := Vector2(ph * 0.84, ph * 0.62)
+	var label := "Awaiting pickup:"
+	var soft := Palette.TEXT_SOFT
+	var ink := Palette.TEXT
+	# The van's empty but these are still out there: a pop up to 1.2x, then a red pulse a little over size.
+	var grow := 1.0
+	var alert := _alerting()
+	if alert:
+		var now := Time.get_ticks_msec() / 1000.0
+		if _alert_at < 0.0:
+			_alert_at = now
+		var t := now - _alert_at
+		var beat := 0.5 + 0.5 * sin(t * 6.0)
+		grow = 1.08 + 0.04 * beat
+		if t < 0.45:
+			grow = lerpf(1.0, 1.2, sin(t / 0.45 * PI)) if t < 0.225 else lerpf(1.2, grow, (t - 0.225) / 0.225)
+		var red := Color("d92b2b") if not Palette.night else Color("ff5a52")
+		soft = red.lerp(Palette.TEXT_SOFT, 0.35 * (1.0 - beat))
+	else:
+		_alert_at = -1.0
+	var lfs := int(fs * grow)
+	if not vertical:
+		var away := -_side()
+		var y := (away * (tube / 2.0 + lw * 2.0 + chip.y * 0.5 + ph * 0.16)).y
+		var x := -(far + ph * 0.3)
+		var stop := mouth.position.x - ph * 0.3
+		# Everything at full size, or drop the label when it won't fit.
+		var need := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + ph * 0.2
+		for e in owed:
+			need += chip.x + ph * 0.1 + f.get_string_size("×%d" % int(e[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + ph * 0.22
+		var lw1 := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if alert:
+			need += lw1 * 0.08   # room for it to swell without touching the first chip
+		if x + need > stop:
+			label = ""
+		if label != "":
+			# Swells about its middle, the chips stay put.
+			var big := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs).x
+			if alert:
+				x += lw1 * 0.04
+			draw_string(f, Vector2(x + (lw1 - big) / 2.0, y + lfs * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs, soft)
+			x += lw1 + ph * 0.2 + (lw1 * 0.04 if alert else 0.0)
+		elif alert:
+			ink = soft   # no room for the words: the counts go red instead
+		for e in owed:
+			var txt := "×%d" % int(e[1])
+			var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+			if x + chip.x + ph * 0.1 + tw > stop:
+				break
+			DrawUtil.parcel(self, Vector2(x + chip.x / 2.0, y), chip, Palette.pkg(str(e[0])), false)
+			x += chip.x + ph * 0.1
+			draw_string(f, Vector2(x, y + fs * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, ink)
+			x += tw + ph * 0.22
+		return
+	var yy := far + ph * 0.75
+	var lw2 := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs).x
+	draw_string(f, Vector2(-lw2 / 2.0, yy + lfs * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, lfs, soft)
+	for e in owed:
+		yy += chip.y + ph * 0.14
+		var txt := "×%d" % int(e[1])
+		var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var x0 := -(chip.x + ph * 0.1 + tw) / 2.0
+		DrawUtil.parcel(self, Vector2(x0 + chip.x / 2.0, yy), chip, Palette.pkg(str(e[0])), false)
+		draw_string(f, Vector2(x0 + chip.x + ph * 0.1, yy + fs * 0.36), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, ink)

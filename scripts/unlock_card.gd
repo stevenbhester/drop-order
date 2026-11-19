@@ -4,7 +4,8 @@ extends Control
 ## wrapped in the item's colour, rattling: tap to open it. The lid flies off in a blast of light, and then
 ## the sunburst, the item's kind as a slanted banner, a big turning van (or truck) wearing it on a pad, its
 ## name, where it's from, and two choices: a button that says what it does for that kind of thing ("Take it
-## for a spin", "Paint the van"...) and "Maybe later". Nothing is used unless the player says so.
+## for a spin", "Paint the van"...) and "Maybe later". Nothing is used unless the player says so. Once it's
+## on, the bottom button is Continue (it's always the way out) and the big one turns into its Undo.
 ## A new ride is shown in its own Classic paint (how it's meant to look). Wearing some other paint job, you
 ## get two ways in, each with a little van beside it showing the result: the big button keeps your paint
 ## ("in your Duskwood paint", small, under it), a quieter one under that takes it in Classic.
@@ -42,10 +43,11 @@ var _wear_tw: Tween
 var _box_t := -1.0
 var _box_wait := 0.0
 var _items: Array = []    # what the reveal shows (hidden while it's wrapped)
-## What was worn before the big button was pressed (Progress.look_snapshot), for its Undo; and the buttons'
-## words before (put back on an undo).
-var _before := {}
-var _labels := {}
+## What was worn before the big button was pressed (Progress.look_snapshot), for an Undo elsewhere (the
+## finish card's tile); empty if nothing was put on.
+var before := {}
+## How long the card stays up once it's put on: long enough to see it, then back to the road.
+const WORN_HOLD := 0.9
 
 
 func _ready() -> void:
@@ -98,11 +100,7 @@ func _ready() -> void:
 		get_tree().create_timer(0.6).timeout.connect(func():
 			if is_instance_valid(tp):
 				tp.replay())
-	# A new ride shows off its win celebration once it's in.
-	if kind == "ride":
-		get_tree().create_timer(0.7).timeout.connect(func():
-			if is_instance_valid(_van):
-				_van.celebrate())
+	# (A new ride shows off its win celebration once it's in: _show_off, from _reveal.)
 	_fx = Fx.new()
 	add_child(_fx)
 
@@ -121,7 +119,7 @@ func _ready() -> void:
 				c.visible = false
 		_box_t = 0.0
 		Sfx.play("thunk", 0.8, -4.0)
-		Sfx.haptic(20)
+		Sfx.haptic(20, 1.0, "unlock_card:_ready")
 		return
 	_reveal()
 
@@ -194,8 +192,8 @@ func _ride_buttons(v: Vector2, painted: bool) -> void:
 	if painted:
 		_classic = JuicyButton.new()
 		_classic.font_px = 36
-		_classic.bg = Color.WHITE
-		_classic.fg = Color("2b2233")
+		_classic.bg = Palette.SURFACE if Palette.night else Color.WHITE
+		_classic.fg = Palette.TEXT if Palette.night else Color("2b2233")
 		_classic.label = "Take %s in Classic" % Cosmetics.them(item)
 		_classic.size = Vector2(bw, 116)
 		_classic.position = Vector2(x0, y + 190)
@@ -234,13 +232,14 @@ func _reveal() -> void:
 			c.visible = c != _van or not (Looks.is_look(Cosmetics.kind_of(item)) or Cosmetics.kind_of(item) == "trail")
 	Sfx.play("jingle", 1.0, -3.0)
 	Sfx.play("sparkle")
-	Sfx.haptic(30)
+	Sfx.haptic(30, 1.0, "unlock_card:_reveal")
 	var tw := create_tween()
 	_reveal_tw = tw
 	tw.tween_property(_van, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
 		_fx.burst(_van.position, Cosmetics.tint(item), 28, 900.0, 24.0)
-		_fx.burst(_van.position, Palette.STAR_GOLD, 14, 700.0, 18.0))
+		_fx.burst(_van.position, Palette.STAR_GOLD, 14, 700.0, 18.0)
+		_show_off())
 	tw.tween_interval(0.15)
 	tw.tween_callback(func():
 		_wear.pivot_offset = _wear.size / 2.0
@@ -252,12 +251,24 @@ func _reveal() -> void:
 	tw.tween_callback(func(): _revealed = true)
 
 
+## A new ride does its win celebration once it's out of the box (not while it's still wrapped: the race car's
+## burnout ring was drawn right over the present).
+var _shown_off := false
+
+func _show_off() -> void:
+	if _shown_off or Cosmetics.kind_of(item) != "ride" or not is_instance_valid(_van):
+		return
+	_shown_off = true
+	_van.celebrate()
+
+
 ## A tap while it's still arriving: everything's in at once.
 func _skip_reveal() -> void:
 	for t in [_reveal_tw, _wear_tw]:
 		if t and t.is_valid():
 			t.kill()
 	_van.scale = Vector2.ONE
+	_show_off()
 	_wear.pivot_offset = _wear.size / 2.0
 	_wear.scale = Vector2.ONE
 	_keep.modulate.a = 1.0
@@ -277,71 +288,35 @@ func _on_classic() -> void:
 
 
 func _snap() -> void:
-	if _before.is_empty():
-		_before = Progress.look_snapshot()
-		_labels = {"wear": _wear.label, "wear_icon": _wear.icon_name, "keep": _keep.label, "wear_dy": _wear.label_dy,
-			"classic": _classic.label if _classic else ""}
+	if before.is_empty():
+		before = Progress.look_snapshot()
 
 
+## Put it on: a moment to see it (the burst, "Riding him!"), then the card closes by itself. Changed your
+## mind? The finish card's tile for it has the Undo.
 func _on_wear() -> void:
 	if _worn:
-		_close()               # (worn: the big button is Continue)
 		return
 	_snap()
 	_worn = true
 	Sfx.play("kaching", 1.1, -3.0)
-	Sfx.haptic(25)
+	Sfx.haptic(25, 1.0, "unlock_card:_on_wear")
 	Progress.put_on(item)
 	_van.paint = Progress.paint
 	_van.squash()
 	_fx.burst(_van.position, Cosmetics.tint(item), 30, 1000.0, 26.0)
 	_fx.say(_van.position + Vector2(0, -230), "Riding %s!" % Cosmetics.them(item) if Cosmetics.PRONOUN.has(item) else "Looking good!", Palette.GOOD, 72)
-	# On now, so the big button turns into the way back to the road: green, Continue, gently breathing.
-	_wear.label = "Continue"
-	_wear.icon_name = "next"
-	_wear.recolor(Palette.GOOD, Color.WHITE)
-	_wear.label_dy = 0.0
-	for c in _wear.get_children():
-		if c is Label:
-			c.visible = false     # (the "in your X paint" line: said and done)
-	_wear.breathe(true)
-	# Changed their mind? "Maybe later" turns into Undo: it puts back what was worn.
-	_keep.label = "Undo"
-	_keep.icon_name = "undo"
-	_keep.recolor(Color.WHITE, Color("2b2233"))
-	_keep.pop()
-	if _classic:
-		_classic.visible = false
+	_wear.pop()
+	for b in [_wear, _keep, _classic]:
+		if b:
+			b.disabled = true
+	get_tree().create_timer(WORN_HOLD).timeout.connect(_close)
 
 
-## "Maybe later" (nothing changes), or, once it's on, Undo.
+## "Maybe later": nothing changes.
 func _on_keep() -> void:
 	if not _worn:
 		_close()
-		return
-	_worn = false
-	Sfx.play("rewind", 1.1, -4.0)
-	Sfx.haptic(14)
-	Progress.restore_look(_before)
-	_before = {}
-	var kind := Cosmetics.kind_of(item)
-	_van.paint = item if kind == "paint" else ("classic" if kind == "ride" else Progress.paint)
-	_van.squash()
-	_fx.say(_van.position + Vector2(0, -230), "Back how it was", Palette.TEXT_SOFT, 56)
-	_wear.label = str(_labels.get("wear", _wear.label))
-	_wear.icon_name = str(_labels.get("wear_icon", ""))
-	_wear.recolor(Palette.ACCENT, Color.WHITE)
-	_wear.breathe(false)
-	_wear.label_dy = float(_labels.get("wear_dy", 0.0))
-	for c in _wear.get_children():
-		if c is Label:
-			c.visible = true
-	_keep.label = str(_labels.get("keep", "Maybe later"))
-	_keep.icon_name = ""
-	_keep.recolor(Palette.GOOD, Color.WHITE)
-	if _classic:
-		_classic.visible = true
-		_classic.label = str(_labels.get("classic", _classic.label))
 
 
 func _close() -> void:
@@ -377,7 +352,7 @@ func _open_box() -> void:
 	_box_wait = 0.001
 	Sfx.play("punch", 1.2, -2.0)
 	Sfx.play("whoomp", 1.1, -4.0)
-	Sfx.haptic(45, 1.0)
+	Sfx.haptic(45, 1.0, "unlock_card:_open_box")
 	_fx.burst(_c, Cosmetics.tint(item), 40, 1300.0, 28.0)
 	_fx.burst(_c, Color.WHITE, 24, 1000.0, 20.0)
 
@@ -405,7 +380,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var v := size
-	draw_rect(Rect2(Vector2.ZERO, v), Color(0.08, 0.05, 0.14, 0.86))
+	draw_rect(Rect2(Vector2.ZERO, v), Color(0.08, 0.05, 0.14, 0.96))      # (0.86 let the finish card's numbers read through)
 	var tint := Cosmetics.tint(item)
 	if _box_t >= 0.0:
 		_draw_box(v, tint)
@@ -444,7 +419,7 @@ func _draw() -> void:
 	var nw := f.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx).x
 	var ny := v.y * 0.64
 	draw_string_outline(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, 16, Color(0.1, 0.07, 0.16))
-	draw_string(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, tint.lightened(0.35))
+	draw_string(f, Vector2((v.x - nw) / 2.0, ny), name, HORIZONTAL_ALIGNMENT_LEFT, -1, npx, tint.lightened(0.35 if tint.get_luminance() > 0.45 else 0.62))     # (a dark paint, lifted further: it sank into the dark)
 	var from: String = source if source != "" else str(Cosmetics.ITEMS.get(item, {}).get("from", ""))
 	var sub := ("from " + from) if from != "" else ("for delivering %s packages" % Progress.commas(Cosmetics.need_for(item)) if Cosmetics.by_count(item) and Cosmetics.need_for(item) > 0 else ("won from %s" % Boss.NAME if Cosmetics.need_for(item) < 0 or Boss.LOOT.values().has(item) else "found on the road"))
 	sub += "  ·  yours to keep"

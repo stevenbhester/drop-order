@@ -35,7 +35,7 @@
   },
   {
    "n": 5,
-   "title": "Dead End Drive",
+   "title": "Shortcut",
    "flavor": "longcon",
    "tier": "easy",
    "who": 0,
@@ -2554,7 +2554,7 @@
     "qmax": 7,
     "secs": 12,
     "amax": 2,
-    "lmax": 2,
+    "lmax": 1,
     "lmin": 1,
     "w": 6,
     "h": 7,
@@ -2573,7 +2573,7 @@
   {
    "n": 56,
    "title": "Arcade",
-   "flavor": "dump",
+   "flavor": "park",
    "tier": "medium",
    "who": 1,
    "gift": "gloaming",
@@ -2590,7 +2590,7 @@
    ],
    "w": 6,
    "h": 7,
-   "asks": "A locker takes a package a house wanted: choose which",
+   "asks": "Park a package in the locker to get it out of the way, fetch it later",
    "args": {
     "hmin": 5,
     "hmax": 7,
@@ -2621,7 +2621,7 @@
     "pnmin": 44,
     "pfmax": 0.12,
     "ehi": 13.0,
-    "flavor": "dump",
+    "flavor": "park",
     "need": "locker",
     "gift": 1
    }
@@ -2683,7 +2683,7 @@
   {
    "n": 58,
    "title": "Last Train",
-   "flavor": "dump",
+   "flavor": "park",
    "tier": "medium",
    "who": 1,
    "mech": [
@@ -2700,7 +2700,7 @@
    ],
    "w": 7,
    "h": 8,
-   "asks": "A locker takes a package a house wanted: choose which",
+   "asks": "Park a package in the locker to get it out of the way, fetch it later",
    "args": {
     "hmin": 5,
     "hmax": 7,
@@ -2732,7 +2732,7 @@
     "pnmin": 44,
     "pfmax": 0.12,
     "ehi": 13.0,
-    "flavor": "dump",
+    "flavor": "park",
     "need": "locker"
    }
   },
@@ -2828,7 +2828,7 @@
     "secs": 20,
     "amax": 2,
     "gmax": 2,
-    "lmax": 2,
+    "lmax": 1,
     "lmin": 1,
     "rmin": 2,
     "w": 6,
@@ -3018,13 +3018,12 @@
   {
    "n": 64,
    "title": "Scarecrow",
-   "flavor": "twin",
+   "flavor": "twodoor",
    "tier": "medium",
    "who": 2,
    "gift": "lab",
    "mech": [
-    "lock",
-    "R"
+    "lock"
    ],
    "need": [
     "locker"
@@ -3035,7 +3034,7 @@
    ],
    "w": 7,
    "h": 8,
-   "asks": "Two different answers",
+   "asks": "Drive past a house now, deliver from another street later",
    "args": {
     "hmin": 5,
     "hmax": 7,
@@ -3043,7 +3042,7 @@
     "colmin": 3,
     "pkmin": 5,
     "pkmax": 8,
-    "rmax": 4,
+    "rmax": 1,
     "len_min": 15,
     "cover_min": 0.65,
     "nodes_max": 2500,
@@ -3054,8 +3053,6 @@
     "secs": 45,
     "lmax": 2,
     "lmin": 1,
-    "ret": 1,
-    "rmin": 2,
     "w": 7,
     "h": 8,
     "who": 2,
@@ -3067,7 +3064,7 @@
     "pnmin": 44,
     "pfmax": 0.12,
     "ehi": 13.0,
-    "flavor": "twin",
+    "flavor": "twodoor",
     "need": "locker",
     "gift": 1
    }
@@ -3109,7 +3106,7 @@
     "secs": 20,
     "smax": 2,
     "smin": 0,
-    "lmax": 2,
+    "lmax": 1,
     "lmin": 1,
     "w": 5,
     "h": 7,
@@ -3241,7 +3238,7 @@
   {
    "n": 68,
    "title": "Harvest Moon",
-   "flavor": "dump",
+   "flavor": "park",
    "tier": "hard",
    "who": 2,
    "challenge": true,
@@ -3259,7 +3256,7 @@
    ],
    "w": 7,
    "h": 9,
-   "asks": "A locker takes a package a house wanted: choose which",
+   "asks": "Park a package in the locker to get it out of the way, fetch it later",
    "args": {
     "hmin": 6,
     "hmax": 8,
@@ -3293,7 +3290,7 @@
     "pnmin": 90,
     "pfmax": 0.03,
     "ehi": 22.0,
-    "flavor": "dump",
+    "flavor": "park",
     "need": "locker"
    }
   },
@@ -3712,7 +3709,7 @@
     "pickmin": 1,
     "secs": 20,
     "imax": 3,
-    "lmax": 2,
+    "lmax": 1,
     "lmin": 1,
     "wmax": 2,
     "w": 6,
@@ -3733,7 +3730,7 @@
   {
    "n": 77,
    "title": "Flash Flood",
-   "flavor": "dump",
+   "flavor": "park",
    "tier": "medium",
    "who": 2,
    "mech": [
@@ -3751,7 +3748,7 @@
    ],
    "w": 7,
    "h": 9,
-   "asks": "A locker takes a package a house wanted: choose which",
+   "asks": "Park a package in the locker to get it out of the way, fetch it later",
    "args": {
     "hmin": 5,
     "hmax": 7,
@@ -3783,7 +3780,7 @@
     "pnmin": 52,
     "pfmax": 0.1,
     "ehi": 14.0,
-    "flavor": "dump",
+    "flavor": "park",
     "need": "locker,works"
    }
   },
@@ -3992,7 +3989,7 @@
     "mono": 0.6,
     "pickmin": 1,
     "secs": 20,
-    "lmax": 2,
+    "lmax": 1,
     "lmin": 0,
     "wmax": 2,
     "rmin": 2,
@@ -5146,7 +5143,7 @@
   "longcon": "An early, innocent turn decides the ending",
   "gauntlet": "One trap after another, all the way along",
   "knot": "One long winding drive; don't box yourself in",
-  "dump": "A locker takes a package a house wanted: choose which",
+  "park": "Park a package in the locker to get it out of the way, fetch it later",
   "restock": "Fetch the pickup when you want it on top, not before",
   "sorter": "The hub decides the order: choose when to cross it",
   "twin": "Two different answers",

@@ -38,6 +38,7 @@ var _leaving := false
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	theme = UiTheme.theme()
@@ -67,7 +68,7 @@ func _ready() -> void:
 	_bubble.add_child(col)
 	_title = _label(40, Palette.ACCENT)
 	_body = _label(36, Palette.TEXT)
-	_tap = _label(24, Color(Palette.TEXT_SOFT, 0.8))
+	_tap = _label(24, Palette.TEXT_SOFT)
 	_tap.text = "tap to go on"
 	for l in [_title, _body, _tap]:
 		col.add_child(l)
@@ -184,9 +185,9 @@ func _process(delta: float) -> void:
 			Sfx.play("slam", 1.1, -3.0)
 			if str(step["stamp"]) == "pump":
 				Sfx.play("sparkle", 0.8, -2.0)
-				Sfx.haptic(45, 1.0)
+				Sfx.haptic(45, 1.0, "limits_scene:_process")
 			Sfx.play("thunk", 0.8, -4.0)
-			Sfx.haptic(30, 0.8)
+			Sfx.haptic(30, 0.8, "limits_scene:_process")
 		elif step.has("say"):
 			Sfx.play("laugh", 1.1, -8.0)
 	var r := _target(step) if (_stamped or not step.has("stamp")) else Rect2()

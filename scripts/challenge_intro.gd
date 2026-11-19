@@ -22,7 +22,7 @@ const TAUNTS := {
 	36: "Sort it out... if you can.",
 	47: "Snow blind. Plan every slide before you go.",
 	53: "Storm's coming in. The ice won't wait.",
-	58: "The lockers are hungry. Feed them carefully.",
+	58: "Park it, fetch it, don't forget it.",
 	67: "Harvest moon. Everything has to come home.",
 	73: "Every road's dug up. Every delivery counts.",
 	83: "Ice, lockers, roadworks. All at once.",
@@ -105,7 +105,7 @@ func _process(delta: float) -> void:
 	if before < STAMP_AT and _t >= STAMP_AT:
 		_stamped = true
 		Sfx.play("slam", 0.9, -2.0)
-		Sfx.haptic(35, 1.0)
+		Sfx.haptic(35, 1.0, "challenge_intro:_process")
 	if before < 0.75 and _t >= 0.75:
 		Sfx.play("kaching", 0.9, -8.0)
 	if not _go.visible and _t >= 0.95:

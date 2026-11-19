@@ -47,7 +47,7 @@ func _ready() -> void:
 	col.add_child(_pic)
 	col.add_child(_label("Stuck? Jump over the job. It's free.", 44, Palette.TEXT))
 	col.add_child(_label("It waits on the map. Come back and deliver it whenever you like.", 34, Palette.TEXT_SOFT))
-	col.add_child(_label("Pull out the ribbon at the top left and hold Jump jets. Up to 3 jobs can wait at once. One thing they can't jump: the Baron's jobs. He has to be beaten.", 28, Color(Palette.TEXT_SOFT, 0.8)))
+	col.add_child(_label("Pull out the ribbon at the top left and hold Jump jets. Up to 3 jobs can wait at once. One thing they can't jump: the Baron's jobs. He has to be beaten.", 28, Palette.TEXT_SOFT))
 	var ok := JuicyButton.new()
 	ok.label = "Got it"
 	ok.font_px = 48

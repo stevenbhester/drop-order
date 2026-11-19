@@ -27,6 +27,10 @@ static var BRIDGE_SHADOW: Color = Color(0, 0, 0, 0.3)
 static var BRIDGE_DECK: Color = Color("6a7487")
 static var HUB: Color = Color("48506a")
 static var TEXT: Color = Color("3b3346")
+## Text on something that stays light at night too (a white bubble, a badge, a gold button): TEXT turns
+## cream at night, so on those it vanishes. INK never changes.
+const INK := Color("3b3346")
+const INK_SOFT := Color(0.23, 0.2, 0.27, 0.6)
 static var TEXT_SOFT: Color = Color(0.23, 0.2, 0.27, 0.6)
 const ACCENT := Color("ff7a59")
 const GOOD := Color("35c27a")
@@ -68,6 +72,11 @@ static func confetti() -> Array:
 
 
 ## Buttons, chips and cards: the surface they're drawn on, its pressed/disabled shade, and its lip.
+## Speech bubbles, tips, toasts and pop-up cards: white by day; at night a slate a step lighter than the
+## cards, with TEXT (cream) on it. Night mode is cream on dark, never white boxes with dark ink.
+static var BUBBLE: Color = Color.WHITE
+## Night only: a faint light rim, so a dark bubble still separates from a dark screen.
+static var BUBBLE_RIM: Color = Color(1, 1, 1, 0.0)
 static var SURFACE: Color = Color.WHITE
 static var SURFACE_DIM: Color = Color("ddd6ca")
 static var CARD: Color = Color("fffaf0")
@@ -79,7 +88,7 @@ const _DAY := {
 	"ROAD_EDGE": Color("444b59"), "ROAD_MARK": Color(1, 1, 1, 0.32), "TRAIL": Color(0.12, 0.13, 0.17, 0.7),
 	"RAIL": Color("efe7d8"), "BRIDGE_SHADOW": Color(0, 0, 0, 0.3), "BRIDGE_DECK": Color("6a7487"), "HUB": Color("48506a"),
 	"TEXT": Color("3b3346"), "TEXT_SOFT": Color(0.23, 0.2, 0.27, 0.6),
-	"SURFACE": Color.WHITE, "SURFACE_DIM": Color("ddd6ca"), "CARD": Color("fffaf0"),
+	"SURFACE": Color.WHITE, "SURFACE_DIM": Color("ddd6ca"), "CARD": Color("fffaf0"), "BUBBLE": Color.WHITE, "BUBBLE_RIM": Color(1, 1, 1, 0.0),
 }
 ## Night: moonlit lawns, darker asphalt, cards like slate, warm text.
 const _NIGHT := {
@@ -88,7 +97,7 @@ const _NIGHT := {
 	"ROAD_EDGE": Color("262a37"), "ROAD_MARK": Color(1, 0.95, 0.8, 0.28), "TRAIL": Color(0.05, 0.05, 0.08, 0.7),
 	"RAIL": Color("8b8fa6"), "BRIDGE_SHADOW": Color(0, 0, 0, 0.45), "BRIDGE_DECK": Color("4a5166"), "HUB": Color("2d3245"),
 	"TEXT": Color("f3ead9"), "TEXT_SOFT": Color(0.95, 0.92, 0.85, 0.62),
-	"SURFACE": Color("343050"), "SURFACE_DIM": Color("2a2742"), "CARD": Color("2b2747"),
+	"SURFACE": Color("343050"), "SURFACE_DIM": Color("2a2742"), "CARD": Color("2b2747"), "BUBBLE": Color("3a3560"), "BUBBLE_RIM": Color(1, 1, 1, 0.14),
 }
 
 
@@ -115,4 +124,6 @@ static func apply(at_night: bool) -> void:
 	SURFACE = c["SURFACE"]
 	SURFACE_DIM = c["SURFACE_DIM"]
 	CARD = c["CARD"]
+	BUBBLE = c["BUBBLE"]
+	BUBBLE_RIM = c["BUBBLE_RIM"]
 	Backdrop.apply(at_night)

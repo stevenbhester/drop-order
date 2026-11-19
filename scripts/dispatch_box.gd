@@ -68,7 +68,7 @@ func _ready() -> void:
 	_label.visible_ratio = 0.0
 	_place()
 	Sfx.play("radio", 1.0, -4.0)
-	Sfx.haptic(8, 0.4)
+	Sfx.haptic(8, 0.4, "dispatch_box:_ready")
 	_reroll()
 
 
@@ -135,7 +135,7 @@ func _process(delta: float) -> void:
 		_label.visible_ratio = 0.0
 		_place()
 		Sfx.play("radio", 1.25 if good else 0.85, -5.0)
-		Sfx.haptic(12 if good else 25)
+		Sfx.haptic(12 if good else 25, 1.0, "dispatch_box:_process")
 	var since := _t - (CALL_SECS if calling else 0.0)
 	if _said:
 		_label.visible_ratio = minf(1.0, maxf(_label.visible_ratio, since / 0.55))

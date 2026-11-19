@@ -52,6 +52,7 @@ var _top := 0.0
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	layer = 80
 	_top = UiTheme.insets(get_viewport()).x
 	_root = Control.new()
@@ -99,7 +100,7 @@ static func nudge(skip: JuicyButton) -> void:
 		return
 	skip.pop()
 	Sfx.play("tick", 1.3, -8.0)
-	Sfx.haptic(8, 0.4)
+	Sfx.haptic(8, 0.4, "fake_ad:nudge")
 	skip.modulate = Color(2.2, 2.2, 2.2)
 	skip.create_tween().tween_property(skip, "modulate", Color.WHITE, 0.45)
 

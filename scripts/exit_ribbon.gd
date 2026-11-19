@@ -110,7 +110,7 @@ func _process(delta: float) -> void:
 		if _give >= GIVE_HOLD:
 			_give = -1.0
 			close()
-			Sfx.haptic(20)
+			Sfx.haptic(20, 1.0, "exit_ribbon:_process")
 			give_up.emit()
 	_fit()
 	queue_redraw()
@@ -138,14 +138,14 @@ func _gui_input(e: InputEvent) -> void:
 		elif not is_open() or _out < 0.8:
 			_want = 1.0
 			Sfx.play("whoosh", 1.4, -10.0)
-			Sfx.haptic(8, 0.4)
+			Sfx.haptic(8, 0.4, "exit_ribbon:_gui_input")
 		elif e.position.y < ROW_H or row == "":
 			_give = 0.0
 			Sfx.play("tick", 0.9, -6.0)
 		elif row == "locked":
 			_no = _t
 			Sfx.play("bonk", 1.2, -8.0)
-			Sfx.haptic(10, 0.5)
+			Sfx.haptic(10, 0.5, "exit_ribbon:_gui_input")
 		else:
 			_jets_held = true
 			jets_down.emit()

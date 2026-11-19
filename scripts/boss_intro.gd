@@ -24,12 +24,18 @@ var _t := 0.0
 var _op := 0.0                   # the opening's clock (the rest waits for it)
 var _shinged := false
 var _named := false
-## Main-road boss fights laugh you in once a session (not again on every retry).
+## Boss fights laugh you in once a session (not again on every retry): main-road ones by level number,
+## boss detours by their id.
 static var _seen := {}
+static var _seen_side := {}
 
 
 static func should_show(L: LevelData) -> bool:
 	return Boss.is_level(L.number) and not _seen.has(L.number) and not Progress.auto
+
+
+static func should_show_side(d: Dictionary) -> bool:
+	return Boss.is_boss(d) and not _seen_side.has(str(d.get("id", ""))) and not Progress.auto
 
 
 var _go: JuicyButton
@@ -40,10 +46,13 @@ var _stamped := false
 
 
 func _ready() -> void:
+	add_to_group(Music.HUSH_GROUP)      # (the background music waits while this is up)
 	layer = 70
 	_line = Boss.taunt_for(side)
 	if side.has("level"):
 		_seen[int(side["level"])] = true
+	elif side.has("id"):
+		_seen_side[str(side["id"])] = true
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -81,7 +90,7 @@ func _process(delta: float) -> void:
 		if was < 0.14 and _op >= 0.14:
 			Sfx.play("crash", 1.4, -4.0)
 			Sfx.play("kaching", 0.7, -4.0)
-			Sfx.haptic(40, 1.0)
+			Sfx.haptic(40, 1.0, "boss_intro:_process")
 		if was < 0.62 and _op >= 0.62 and not _shinged:
 			_shinged = true
 			Sfx.play("sparkle", 1.6, -2.0)
@@ -89,7 +98,7 @@ func _process(delta: float) -> void:
 		if was < 0.85 and _op >= 0.85 and not _named:
 			_named = true
 			Sfx.play("slam", 1.2, -2.0)
-			Sfx.haptic(25, 0.8)
+			Sfx.haptic(25, 0.8, "boss_intro:_process")
 		if _op >= OPEN:
 			Sfx.play("whoomp", 0.6, -4.0)
 		_root.queue_redraw()
@@ -99,11 +108,11 @@ func _process(delta: float) -> void:
 	if before < RISE and _t >= RISE and not _laughed:
 		_laughed = true
 		Sfx.play("laugh", 1.0, 0.0)
-		Sfx.haptic(30, 0.8)
+		Sfx.haptic(30, 0.8, "boss_intro:_process")
 	if before < STAMP_AT and _t >= STAMP_AT:
 		_stamped = true
 		Sfx.play("slam", 0.8, -2.0)
-		Sfx.haptic(35, 1.0)
+		Sfx.haptic(35, 1.0, "boss_intro:_process")
 	if not _go.visible and _t >= STAMP_AT + 0.45:
 		var v := _root.size
 		_go.visible = true
@@ -296,12 +305,13 @@ func _draw_it() -> void:
 		_root.draw_set_transform(bubble.get_center(), 0.0, Vector2.ONE * k)
 		var local := Rect2(-bubble.size / 2.0, bubble.size)
 		DrawUtil.rrect(_root, Rect2(local.position + Vector2(0, 8), local.size), Color(0, 0, 0, 0.3), 36.0)
-		DrawUtil.rrect(_root, local, Color.WHITE, 36.0)
-		_root.draw_colored_polygon(PackedVector2Array([Vector2(-30, local.end.y - 2), Vector2(30, local.end.y - 2), Vector2(0, local.end.y + 50)]), Color.WHITE)
+		DrawUtil.rrect(_root, local.grow(3), Palette.BUBBLE_RIM, 39.0)
+		DrawUtil.rrect(_root, local, Palette.BUBBLE, 36.0)
+		_root.draw_colored_polygon(PackedVector2Array([Vector2(-30, local.end.y - 2), Vector2(30, local.end.y - 2), Vector2(0, local.end.y + 50)]), Palette.BUBBLE)
 		var f := UiTheme.font()
 		for i in lines.size():
 			var lw := f.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
-			_root.draw_string(f, Vector2(-lw / 2.0, local.position.y + 28.0 + px + i * px * 1.25), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, INK)
+			_root.draw_string(f, Vector2(-lw / 2.0, local.position.y + 28.0 + px + i * px * 1.25), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, Palette.TEXT)
 		_root.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# BOSS FIGHT!, the detour, and what he's sitting on.
 	if _t >= STAMP_AT - 0.05:

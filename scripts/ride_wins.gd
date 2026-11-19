@@ -253,7 +253,7 @@ static func overlay(ci: CanvasItem, ride: String, w: float, size: float, rot: fl
 				var at: Vector2 = Vector2(L * 0.5, 0) + up * (W * 0.9 + age * W * 0.6)
 				ci.draw_set_transform(at, -rot, Vector2.ONE * (0.6 + 0.4 * k))
 				var tw := f.get_string_size("BEEP!", HORIZONTAL_ALIGNMENT_LEFT, -1, int(W * 0.5)).x
-				DrawUtil.rrect(ci, Rect2(-tw / 2.0 - W * 0.12, -W * 0.36, tw + W * 0.24, W * 0.52), Color(1, 1, 1, 0.95 * (1.0 - age / 0.5)), W * 0.2)
+				DrawUtil.rrect(ci, Rect2(-tw / 2.0 - W * 0.12, -W * 0.36, tw + W * 0.24, W * 0.52), Color(Palette.BUBBLE, 0.95 * (1.0 - age / 0.5)), W * 0.2)
 				ci.draw_string(f, Vector2(-tw / 2.0, W * 0.08), "BEEP!", HORIZONTAL_ALIGNMENT_LEFT, -1, int(W * 0.5), Color(Palette.TEXT, 1.0 - age / 0.5))
 				ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		"pillow_tower":

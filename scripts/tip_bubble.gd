@@ -97,7 +97,7 @@ func _draw() -> void:
 		draw_colored_polygon(PackedVector2Array([edge + side * 22.0, edge - side * 22.0, tl - dir * 46.0]), Palette.ACCENT)
 	DrawUtil.rrect(self, Rect2(lr.position + Vector2(0, 8), lr.size), Color(0, 0, 0, 0.18), 30)
 	DrawUtil.rrect(self, lr.grow(5), Palette.ACCENT, 34)
-	DrawUtil.rrect(self, lr, Color.WHITE, 30)
+	DrawUtil.rrect(self, lr, Palette.BUBBLE, 30)
 	var f := UiTheme.font()
 	var lines := text.split("\n")
 	for i in lines.size():

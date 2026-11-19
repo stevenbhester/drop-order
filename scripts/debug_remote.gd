@@ -102,8 +102,11 @@ func _run(cmd: Dictionary) -> void:
 			# Drives the job's answer from the start (as the S key does in a debug build).
 			var g := main.get("screen") as Game
 			if g and g.route.size() == 1 and not g._busy_modal():
-				g.drive_tiles(g.solve_info.get("shortest", []))
-				out["note"] = "driving the answer"
+				var steps: Array = g.solve_info.get("shortest", [])
+				if int(cmd.get("steps", 0)) > 0:
+					steps = steps.slice(0, int(cmd["steps"]))      # (just the start of it: "solve N")
+				g.drive_tiles(steps)
+				out["note"] = "driving the answer: %s" % [g.solve_info.get("shortest", [])]
 			else:
 				out["note"] = "can't: not at the start of a job"
 	await get_tree().create_timer(clampf(float(cmd.get("settle", 0.45)), 0.0, 10.0)).timeout
@@ -348,7 +351,11 @@ func _board(g: Game) -> Array:
 				for s in L.shops.size():
 					if L.shops[s].pos == p:
 						t = str(L.shops[s].color).left(1).to_upper() + "shop"
+				for k in L.lockers.size():
+					if L.lockers[k].pos == p:
+						var hc := str(g.sim_state.get("held", [])[k])
+						t = "P[" + (hc.left(1) if hc != "" else " ") + "]"
 			row.append(t.rpad(5))
 		lines.append("  " + "".join(row))
-	lines.append("  (VAN the van; # road; x road already driven, gone; letter+number a house still owed that many of its colour, 'ok' done; * a present on the road; ^ v < > one-way; + bridge; =c gate; @ spinner)")
+	lines.append("  (VAN the van; # road; x road already driven, gone; letter+number a house still owed that many of its colour, 'ok' done; * a present on the road; ^ v < > one-way; + bridge; =c gate; @ spinner; P[ ] parking locker, P[g] keeping a green)")
 	return lines

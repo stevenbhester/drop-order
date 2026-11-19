@@ -675,5 +675,10 @@ func _swap(next: Node) -> void:
 			create_tween().tween_property(_cover, "color:a", 0.0, 0.3)
 	screen = next
 	_put(next)
+	# The title has its own theme; everywhere else gets the background music.
+	if next is TitleScreen:
+		Music.stop()
+	else:
+		Music.play("sunrise")
 	# A breadcrumb for bug reports (the log rides along with them).
 	print("[screen] %s" % Feedback.where_of(next))

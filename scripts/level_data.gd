@@ -36,6 +36,9 @@ var adjacent_houses := {}        # road Vector2i -> Array[int] of house indices
 var adjacent_shops := {}         # road Vector2i -> Array[int] of shop indices
 var house_roads: Array = []      # per house: Array[Vector2i] of touching road tiles
 var shop_roads: Array = []       # per shop: Array[Vector2i] of touching road tiles
+var lockers: Array = []          # parking lockers (token L): [{ "pos": Vector2i }]. Hold one package till you pass again
+var adjacent_lockers := {}       # road Vector2i -> Array[int] of locker indices
+var locker_roads: Array = []     # per locker: Array[Vector2i] of touching road tiles
 var fp := 0                      # fingerprint(): the puzzle's identity, to spot redesigns
 var gift := Vector2i(-1, -1)     # a road tile with a cosmetic on it (optional; not part of the rules)
 var gift_item := ""              # Cosmetics id, "key" (a key that opens a locked side road) or "headlights" (the van's first, level 2)
@@ -135,6 +138,11 @@ func _parse_token(t: String, p: Vector2i) -> void:
 			ice[p] = true
 		"^", ">", "v", "<":
 			oneway[p] = ARROWS[t]
+		"L":
+			# A parking locker: drive past it empty and it keeps your top package; drive past again
+			# (another road beside it) and you get it back, on top.
+			cells[i] = Cell.HOUSE
+			lockers.append({"pos": p})
 		_:
 			var code := t.substr(0, 1)
 			if code == "=" and t.length() == 2 and COLOR_CODES.has(t.substr(1)):
@@ -172,6 +180,8 @@ func _index_neighbours() -> void:
 		house_roads.append(_touching(houses[hi].pos, adjacent_houses, hi))
 	for si in shops.size():
 		shop_roads.append(_touching(shops[si].pos, adjacent_shops, si))
+	for li in lockers.size():
+		locker_roads.append(_touching(lockers[li].pos, adjacent_lockers, li))
 
 
 func _touching(p: Vector2i, index: Dictionary, id: int) -> Array:
@@ -191,6 +201,29 @@ func _validate() -> void:
 		_check_building("house", houses[hi].pos, house_roads[hi])
 	for si in shops.size():
 		_check_building("shop", shops[si].pos, shop_roads[si])
+	for li in lockers.size():
+		_check_building("locker", lockers[li].pos, locker_roads[li])
+	# Two houses of one colour beside the same road: which one gets the package would come down to a
+	# hidden tie-break, so no job is built that way (a playtester planned around the wrong house).
+	for rp in adjacent_houses:
+		var cols := {}
+		for hi in adjacent_houses[rp]:
+			var c: String = houses[hi].color
+			if c == "any":
+				continue
+			if cols.has(c):
+				errors.append("road at %s is beside two %s houses (which one gets the package would be a guess)" % [rp, c])
+				break
+			cols[c] = true
+		# Nor a pickup beside a house of its own colour: the parcel would come aboard and go straight
+		# out again in one stop, which reads as a muddle.
+		for si in adjacent_shops.get(rp, []):
+			if cols.has(shops[si].color):
+				errors.append("road at %s is beside a %s pickup and a %s house" % [rp, shops[si].color, shops[si].color])
+				break
+	for rp in adjacent_lockers:
+		if adjacent_lockers[rp].size() > 1:
+			errors.append("road at %s is beside two parking lockers (tapping one must be clear)" % rp)
 	for b in bridges:
 		for dir in DIRS:
 			if not is_road(b + dir):
@@ -206,11 +239,12 @@ func _validate() -> void:
 			errors.append("roadworks can't be on the start tile")
 	if bridges.has(start) or oneway.has(start) or gates.has(start) or hubs.has(start) or ice.has(start):
 		errors.append("the start tile must be plain road")
-	if adjacent_houses.has(start) or adjacent_shops.has(start):
+	if adjacent_houses.has(start) or adjacent_shops.has(start) or adjacent_lockers.has(start):
 		errors.append("a house/shop touches the start tile (the van only acts on tiles it drives onto)")
 
 	# House orders must match the packages that exist (van stack + shop parcels) exactly.
-	# Lockers ("any") take whatever's left over: every colour must have enough, and the totals must match.
+	# (Parking lockers keep nothing for good, so they don't count.)
+	# Old-style lockers ("any", the OG levels) take whatever's left over: every colour must have enough, and the totals must match.
 	var need := {}
 	var any := 0
 	for h in houses:
